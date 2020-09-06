@@ -20,7 +20,7 @@ jobs:
         channel: beta
     - run: flutter pub get
     # - run: flutter test
-    - run: flutter build appbundle
+    - run: flutter build appbundle --release
 
     - name: Sign release
       uses: r0adkll/sign-android-release@v1
