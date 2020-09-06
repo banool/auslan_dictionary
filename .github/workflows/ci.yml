@@ -23,6 +23,7 @@ jobs:
     - run: flutter build appbundle --release
 
     - name: Sign release
+      id: sign_release
       uses: r0adkll/sign-android-release@v1
       with:
           releaseDirectory: build/app/outputs/bundle/release
@@ -31,12 +32,13 @@ jobs:
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}       
           keyPassword: ${{ secrets.KEY_PASSWORD }}
 
-    - name: Publish build to internal track
+    - name: Publish build to alpha track
       uses: r0adkll/upload-google-play@v1
       with:
         serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
         packageName: com.banool.auslan_dictionary
-        releaseFile: build/app/outputs/bundle/release/app-release.aab
-        track: internal
+        releaseFile: ${{ steps.run_tests.outputs.signedReleaseFile }} 
+        # releaseFile: build/app/outputs/bundle/release/app-release.aab
+        track: alpha
 
     - run: flutter build ios --release --no-codesign
