@@ -3,6 +3,8 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'word_page.dart';
+
 void main() {
   runApp(MyApp());
 }
@@ -144,7 +146,6 @@ Widget listWidget(BuildContext context, List<String> items) {
       return ListTile(title: listItem(context, items[index]));
     },
   );
-  ;
 }
 
 Widget listItem(BuildContext context, String word) {
@@ -158,19 +159,4 @@ Widget listItem(BuildContext context, String word) {
     },
     splashColor: Colors.yellow,
   );
-}
-
-class WordPage extends StatelessWidget {
-  WordPage({this.word});
-
-  final String word;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(word),
-      ),
-    );
-  }
 }
