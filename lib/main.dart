@@ -86,7 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
+          padding: EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
           child: Column(
             // Column is also a layout widget. It takes a list of children and
             // arranges them vertically. By default, it sizes itself to fit its
@@ -107,7 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
             children: <Widget>[
               Padding(
                 padding:
-                    EdgeInsets.only(bottom: 10, left: 16, right: 16, top: 0),
+                    EdgeInsets.only(bottom: 10, left: 32, right: 32, top: 0),
                 child: Form(
                     key: _formSearchKey,
                     child: Column(children: <Widget>[
@@ -141,10 +141,18 @@ Widget listWidget(BuildContext context, List<String> items) {
   return ListView.builder(
     itemCount: items.length,
     itemBuilder: (context, index) {
-      return ListTile(
-        title: Text('${items[index]}'),
-      );
+      return ListTile(title: listItem(context, items[index]));
     },
   );
   ;
+}
+
+Widget listItem(BuildContext context, String word) {
+  return FlatButton(
+    child: Align(alignment: Alignment.topLeft, child: Text('$word')),
+    onPressed: () {
+      /*...*/
+    },
+    splashColor: Colors.yellow,
+  );
 }
