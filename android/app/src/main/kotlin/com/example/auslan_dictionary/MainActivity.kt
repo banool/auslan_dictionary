@@ -1,4 +1,4 @@
-package com.example.auslan_dictionary
+package com.banool.auslan_dictionary
 
 import io.flutter.embedding.android.FlutterActivity
 
