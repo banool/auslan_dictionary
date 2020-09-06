@@ -32,13 +32,13 @@ jobs:
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}       
           keyPassword: ${{ secrets.KEY_PASSWORD }}
 
-    - name: Publish build to alpha track
+    - name: Publish build to internal track
       uses: r0adkll/upload-google-play@v1
       with:
         serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
         packageName: com.banool.auslan_dictionary
         # releaseFile: ${{ steps.run_tests.outputs.signedReleaseFile }} 
         releaseFile: build/app/outputs/bundle/release/app-release.aab
-        track: alpha
+        track: internal
 
     - run: flutter build ios --release --no-codesign
