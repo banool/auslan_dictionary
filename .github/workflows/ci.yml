@@ -20,5 +20,31 @@ jobs:
         channel: beta
     - run: flutter pub get
     - run: flutter test
-    - run: flutter build apk
+    - run: flutter build appbundle --target-platform android-arm,android-arm64,android-x64
     - run: flutter build ios --release --no-codesign
+      
+    - name: Sign Release
+      uses: r0adkll/sign-android-release@v1
+      with:
+        releaseDirectory: build/app/outputs/bundle/release
+        signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+        alias: ${{ secrets.ALIAS }}
+        keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+        keyPassword: ${{ secrets.KEY_PASSWORD }}
+
+    - name: Tag Release
+      run: |
+        version_name=${GITHUB_REF##*/}
+        echo "Tagging release with tag $version_name"
+        git tag $version_name release/$version_name
+        git push origin --tags
+    - name: Create service_account.json
+      run: echo '${{ secrets.SERVICE_ACCOUNT_JSON }}' > service_account.json
+
+    - name: Deploy to Alpha
+      uses: r0adkll/upload-google-play@v1
+      with:
+        serviceAccountJson: service_account.json
+        packageName: com.banool.auslan_dictionary
+        releaseFile: build/app/outputs/bundle/release/app-release.aab
+        track: alpha
