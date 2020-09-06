@@ -37,8 +37,8 @@ jobs:
       with:
         serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
         packageName: com.banool.auslan_dictionary
-        releaseFile: ${{ steps.run_tests.outputs.signedReleaseFile }} 
-        # releaseFile: build/app/outputs/bundle/release/app-release.aab
+        # releaseFile: ${{ steps.run_tests.outputs.signedReleaseFile }} 
+        releaseFile: build/app/outputs/bundle/release/app-release.aab
         track: alpha
 
     - run: flutter build ios --release --no-codesign
