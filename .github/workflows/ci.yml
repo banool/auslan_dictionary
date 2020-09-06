@@ -19,7 +19,7 @@ jobs:
         flutter-version: '1.21.0-9.2.pre'
         channel: beta
     - run: flutter pub get
-    - run: flutter test
+    # - run: flutter test
     - run: flutter build appbundle --target-platform android-arm,android-arm64,android-x64
 
     - name: Create service_account.json
