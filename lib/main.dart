@@ -151,8 +151,26 @@ Widget listItem(BuildContext context, String word) {
   return FlatButton(
     child: Align(alignment: Alignment.topLeft, child: Text('$word')),
     onPressed: () {
-      /*...*/
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => WordPage(word: word)),
+      );
     },
     splashColor: Colors.yellow,
   );
+}
+
+class WordPage extends StatelessWidget {
+  WordPage({this.word});
+
+  final String word;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(word),
+      ),
+    );
+  }
 }
