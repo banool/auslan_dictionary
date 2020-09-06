@@ -18,10 +18,16 @@ jobs:
       with:
         flutter-version: '1.21.0-9.2.pre'
         channel: beta
+    
+    # Initial build and test
     - run: flutter pub get
-    # - run: flutter test
+    - run: flutter test
+    
+    #  Build iOS and Android
+    - run: flutter build ios --release --no-codesign
     - run: flutter build appbundle
 
+    # Publish Android
     - name: Sign release
       id: sign_release
       uses: r0adkll/sign-android-release@v1
@@ -41,4 +47,3 @@ jobs:
         releaseFile: build/app/outputs/bundle/release/app-release.aab
         track: internal
 
-    - run: flutter build ios --release --no-codesign
