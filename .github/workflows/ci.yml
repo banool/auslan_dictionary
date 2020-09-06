@@ -20,7 +20,7 @@ jobs:
         channel: beta
     - run: flutter pub get
     # - run: flutter test
-    - run: flutter build appbundle --target-platform android-arm,android-arm64,android-x64
+    - run: flutter build appbundle --release
 
     - name: Deploy to Alpha
       uses: r0adkll/upload-google-play@v1
