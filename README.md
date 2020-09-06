@@ -13,6 +13,5 @@ flutter pub run flutter_launcher_icons:main
 Run this before committing:
 ```
 ./bump_version.sh
-flutter build ios
-flutter build appbundle
 ```
+Update: Now there is a hook that does this, you don't need to do it manually.
