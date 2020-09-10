@@ -25,6 +25,7 @@ import argparse
 import asyncio
 import logging
 import json
+import string
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
@@ -38,6 +39,10 @@ formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 ch = logging.StreamHandler()
 ch.setFormatter(formatter)
 LOG.addHandler(ch)
+
+
+SITE_ROOT = "http://www.auslan.org.au"
+LETTER_PAGE_TEMPLATE = SITE_ROOT + "/dictionary/search/?query={letter}&page={page}"
 
 
 @dataclass
@@ -61,22 +66,77 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--debug", action="store_true")
     parser.add_argument("--urls", nargs="*", help="Specific URLs to look at")
+    parser.add_argument("--letters", nargs="*", help="Fetch only these letters")
     output_args = parser.add_mutually_exclusive_group(required=True)
     output_args.add_argument("--output-file")
     output_args.add_argument("--stdout", action="store_true")
     return parser.parse_args()
 
 
-def load_url(url, timeout=15):
+def load_url(url, timeout=120):
     return requests.get(url, timeout=timeout)
 
 
-async def get_word_page_urls(executor) -> List[str]:
+async def get_word_page_urls(executor, letters=None) -> List[str]:
     """
-    Scanning through all of the per-letter pages, get links to
-    all the pages for each of the words.
+    This scrapes the site pretty much like this:
+
+    words_urls = []
+    for letter:
+        for results_page in letter:
+            for word_url in results_page:
+                words_urls.append(word_url)
     """
-    return []
+
+    letters = letters or string.ascii_lowercase
+
+    # Get the HTML for the first page of each letter.
+    first_letter_pages_urls = [
+        LETTER_PAGE_TEMPLATE.format(letter=letter, page=1)
+        for letter in letters
+    ]
+    first_letter_pages_html = await get_pages_html(executor, first_letter_pages_urls)
+
+    # Count how many pages there are for each letter.
+    letters_to_num_pages = {}
+    for idx, html in enumerate(first_letter_pages_html):
+        letter = letters[idx]
+
+        soup = BeautifulSoup(html.text, 'html.parser')
+        pages_list = soup.find_all("ul")[-1]
+        last_pages_button = pages_list.find_all("li")[-1]
+        try:
+            num_pages = int(last_pages_button.text)
+        except ValueError:
+            LOG.debug(f"Only one page for letter {letter}")
+            num_pages = 1
+
+        letters_to_num_pages[letter] = num_pages
+
+    # Get the URLs for all of the letter pages.
+    other_letter_pages_urls = []
+    for letter in letters:
+        num_pages = letters_to_num_pages[letter]
+        for page in range(2, num_pages + 1):
+            url = LETTER_PAGE_TEMPLATE.format(letter=letter, page=page)
+            other_letter_pages_urls.append(url)
+
+    # Get the HTML for all of the letter pages.
+    letter_pages_html = first_letter_pages_html
+    other_letter_pages_html = await get_pages_html(executor, other_letter_pages_urls)
+    letter_pages_html += other_letter_pages_html
+
+    # Get the word URLs from all the letter pages' HTML.
+    word_page_urls = []
+    for html in letter_pages_html:
+        soup = BeautifulSoup(html.text, 'html.parser')
+        url_suffixes = [
+            u["href"] for u in soup.find_all("a") if "dictionary/words/" in u["href"]
+        ]
+        full_urls = [SITE_ROOT + u for u in url_suffixes]
+        word_page_urls += full_urls
+
+    return word_page_urls
 
 
 async def get_pages_html(executor, urls: List[str]) -> List[str]:
@@ -84,6 +144,7 @@ async def get_pages_html(executor, urls: List[str]) -> List[str]:
     Get the HTML of a list of URLs. If getting the HTML of any URL fails,
     this function will throw an exception.
     """
+    LOG.debug(f"Getting HTML for these URLs: {urls}")
     loop = asyncio.get_running_loop()
     futures = [loop.run_in_executor(executor, load_url, url) for url in urls]
     return await asyncio.gather(*futures)
@@ -143,13 +204,13 @@ async def main():
     else:
         LOG.setLevel("INFO")
 
-    executor = ThreadPoolExecutor(max_workers=16)
+    executor = ThreadPoolExecutor(max_workers=8)
 
     # Get the URLs for all the word pages.
     if args.urls:
         urls = args.urls
     else:
-        urls = await get_word_page_urls(executor)
+        urls = await get_word_page_urls(executor, letters=args.letters)
 
     # Get the HTML for each of the word pages.
     word_pages_html = await get_pages_html(executor, urls)
