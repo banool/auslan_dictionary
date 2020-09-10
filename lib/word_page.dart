@@ -1,29 +1,37 @@
+import 'package:auslan_dictionary/types.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 class WordPage extends StatelessWidget {
   WordPage({this.word});
 
-  final String word;
+  final Word word;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text(word),
+          title: Text(word.word),
         ),
-        body: VideoPlayerScreen());
+        body: VideoPlayerScreen(videoLink: word.videoLinks[0]));
   }
 }
 
 class VideoPlayerScreen extends StatefulWidget {
-  VideoPlayerScreen({Key key}) : super(key: key);
+  VideoPlayerScreen({Key key, this.videoLink}) : super(key: key);
+
+  final String videoLink;
 
   @override
-  _VideoPlayerScreenState createState() => _VideoPlayerScreenState();
+  _VideoPlayerScreenState createState() =>
+      _VideoPlayerScreenState(videoLink: videoLink);
 }
 
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
+  _VideoPlayerScreenState({this.videoLink});
+
+  final String videoLink;
+
   VideoPlayerController _controller;
   Future<void> _initializeVideoPlayerFuture;
 
@@ -33,7 +41,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     // offers several different constructors to play videos from assets, files,
     // or the internet.
     _controller = VideoPlayerController.network(
-      'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
+      videoLink,
     );
 
     // Initialize the controller and store the Future for later use.

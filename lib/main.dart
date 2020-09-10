@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:auslan_dictionary/types.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -63,27 +64,19 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<String> items = [];
   bool wordsLoaded = false;
-  Map<String, dynamic> words;
+  List<Word> words = [];
+  List<Word> wordsSearched = [];
 
   final _formSearchKey = GlobalKey<FormState>();
-
-  void search(String value) {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      items = searchKeys(value);
-    });
-  }
 
   Future<void> loadWords() async {
     String data = await DefaultAssetBundle.of(context)
         .loadString("assets/data/words.json");
-    words = json.decode(data);
+    dynamic wordsJson = json.decode(data);
+    for (MapEntry e in wordsJson.entries) {
+      words.add(Word.fromJson(e.key, e.value));
+    }
     setState(() {
       wordsLoaded = true;
     });
@@ -96,11 +89,22 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
-  List<String> searchKeys(String searchString) {
-    List<String> out = [];
-    for (String k in words.keys) {
-      if (k.contains(searchString)) {
-        out.add(k);
+  void search(String searchTerm) {
+    setState(() {
+      // This call to setState tells the Flutter framework that something has
+      // changed in this State, which causes it to rerun the build method below
+      // so that the display can reflect the updated values. If we changed
+      // _counter without calling setState(), then the build method would not be
+      // called again, and so nothing would appear to happen.
+      wordsSearched = searchWords(searchTerm);
+    });
+  }
+
+  List<Word> searchWords(String searchTerm) {
+    List<Word> out = [];
+    for (Word w in words) {
+      if (w.word.contains(searchTerm)) {
+        out.add(w);
       }
     }
     return out;
@@ -159,11 +163,12 @@ class _MyHomePageState extends State<MyHomePage> {
                                   search(value);
                                 },
                                 autofocus: true,
-                                textInputAction: TextInputAction.search),
+                                textInputAction: TextInputAction.search,
+                                keyboardType: TextInputType.visiblePassword),
                           ])),
                     ),
                     new Expanded(
-                      child: listWidget(context, items),
+                      child: listWidget(context, wordsSearched),
                     ),
                   ],
                 ),
@@ -176,18 +181,18 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-Widget listWidget(BuildContext context, List<String> items) {
+Widget listWidget(BuildContext context, List<Word> wordsSearched) {
   return ListView.builder(
-    itemCount: items.length,
+    itemCount: wordsSearched.length,
     itemBuilder: (context, index) {
-      return ListTile(title: listItem(context, items[index]));
+      return ListTile(title: listItem(context, wordsSearched[index]));
     },
   );
 }
 
-Widget listItem(BuildContext context, String word) {
+Widget listItem(BuildContext context, Word word) {
   return FlatButton(
-    child: Align(alignment: Alignment.topLeft, child: Text('$word')),
+    child: Align(alignment: Alignment.topLeft, child: Text("${word.word}")),
     onPressed: () {
       Navigator.push(
         context,
