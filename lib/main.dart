@@ -155,16 +155,18 @@ class _MyHomePageState extends State<MyHomePage> {
                           key: _formSearchKey,
                           child: Column(children: <Widget>[
                             TextField(
-                                decoration: const InputDecoration(
-                                  hintText: 'Search for a word',
-                                ),
-                                // The validator receives the text that the user has entered.
-                                onSubmitted: (String value) {
-                                  search(value);
-                                },
-                                autofocus: true,
-                                textInputAction: TextInputAction.search,
-                                keyboardType: TextInputType.visiblePassword),
+                              decoration: const InputDecoration(
+                                hintText: 'Search for a word',
+                              ),
+                              // The validator receives the text that the user has entered.
+                              onSubmitted: (String value) {
+                                search(value);
+                              },
+                              autofocus: true,
+                              textInputAction: TextInputAction.search,
+                              keyboardType: TextInputType.visiblePassword,
+                              autocorrect: false,
+                            ),
                           ])),
                     ),
                     new Expanded(
