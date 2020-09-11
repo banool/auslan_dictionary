@@ -102,6 +102,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<Word> searchWords(String searchTerm) {
     List<Word> out = [];
+    if (searchTerm == "") {
+      return out;
+    }
     for (Word w in words) {
       if (w.word.contains(searchTerm)) {
         out.add(w);
