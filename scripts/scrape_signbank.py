@@ -43,6 +43,40 @@ LOG.addHandler(ch)
 SITE_ROOT = "http://www.auslan.org.au"
 LETTER_PAGE_TEMPLATE = SITE_ROOT + "/dictionary/search/?query={letter}&page={page}"
 
+# Words to ignore because the page isn't actually there.
+DENYLIST = [
+    r"http://www.auslan.org.au/dictionary/words/at%20last-1.html",
+    r"http://www.auslan.org.au/dictionary/words/athletics-1.html",
+    r"http://www.auslan.org.au/dictionary/words/blazer-1.html",
+    r"http://www.auslan.org.au/dictionary/words/buttons-1.html",
+    r"http://www.auslan.org.au/dictionary/words/competed-1.html",
+    r"http://www.auslan.org.au/dictionary/words/completion-1.html",
+    r"http://www.auslan.org.au/dictionary/words/contiue-1.html",
+    r"http://www.auslan.org.au/dictionary/words/continous-1.html",
+    r"http://www.auslan.org.au/dictionary/words/coordinate-1.html",
+    r"http://www.auslan.org.au/dictionary/words/coordinator-1.html",
+    r"http://www.auslan.org.au/dictionary/words/dimension-1.html",
+    r"http://www.auslan.org.au/dictionary/words/distance%20(long%20distance)-1.html",
+    r"http://www.auslan.org.au/dictionary/words/distant%20(very%20distant)-1.html",
+    r"http://www.auslan.org.au/dictionary/words/end-point-1.html",
+    r"http://www.auslan.org.au/dictionary/words/far%20(very%20far)-1.html",
+    r"http://www.auslan.org.au/dictionary/words/full%20stops-1.html",
+    r"http://www.auslan.org.au/dictionary/words/oneself-1.html",
+    r"http://www.auslan.org.au/dictionary/words/ongoing-1.html",
+    r"http://www.auslan.org.au/dictionary/words/panel-1.html",
+    r"http://www.auslan.org.au/dictionary/words/periods%20(full%20stops)-1.html",
+    r"http://www.auslan.org.au/dictionary/words/point%20(tip)-1.html",
+    r"http://www.auslan.org.au/dictionary/words/points%20(dots)-1.html",
+    r"http://www.auslan.org.au/dictionary/words/predominant-1.html",
+    r"http://www.auslan.org.au/dictionary/words/ricochet-1.html",
+    r"http://www.auslan.org.au/dictionary/words/size%20(in%20height)-1.html",
+    r"http://www.auslan.org.au/dictionary/words/size%20(packet)-1.html",
+    r"http://www.auslan.org.au/dictionary/words/sprint-1.html",
+    r"http://www.auslan.org.au/dictionary/words/specifically-1.html",
+    r"http://www.auslan.org.au/dictionary/words/sports%20jacket-1.html",
+    r"http://www.auslan.org.au/dictionary/words/sports%20coat-1.html",
+]
+
 
 @dataclass
 class Word:
@@ -74,8 +108,12 @@ def parse_args():
     return parser.parse_args()
 
 
-def load_url(url, timeout=120):
-    return requests.get(url, timeout=timeout)
+def load_url(url, timeout=180):
+    LOG.debug(f"Getting HTML for URL: {url}")
+    response = requests.get(url, timeout=timeout)
+    if response.status_code != 200:
+        raise RuntimeError(f"Got status code {response.status_code} for {url}")
+    return response
 
 
 async def get_word_page_urls(executor, letters=None) -> List[str]:
@@ -144,6 +182,7 @@ async def get_pages_html(executor, urls: List[str]) -> List[str]:
     Get the HTML of a list of URLs. If getting the HTML of any URL fails,
     this function will throw an exception.
     """
+    urls = [u for u in urls if u not in DENYLIST]
     LOG.debug(f"Getting HTML for these URLs: {urls}")
     loop = asyncio.get_running_loop()
     futures = [loop.run_in_executor(executor, load_url, url) for url in urls]
@@ -159,6 +198,8 @@ def parse_definition(definition_div_html) -> Dict[str, List[str]]:
 
     definitions = []
     for span in definition_div_html.find_all("span"):
+        if not span.next_sibling:
+            continue
         definition = span.next_sibling.lstrip().rstrip()
         definitions.append(definition)
 
@@ -204,7 +245,7 @@ async def main():
     else:
         LOG.setLevel("INFO")
 
-    executor = ThreadPoolExecutor(max_workers=8)
+    executor = ThreadPoolExecutor(max_workers=32)
 
     # Get the URLs for all the word pages.
     if args.urls:
