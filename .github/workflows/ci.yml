@@ -11,39 +11,79 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1
+
+    - name: Select Xcode version 11.6
+      run: sudo xcode-select -s '/Applications/Xcode_11.6.app/Contents/Developer'
+
     - uses: actions/setup-java@v1
       with:
         java-version: '12.x'
+
     - uses: subosito/flutter-action@v1
       with:
-        flutter-version: '1.21.0-9.2.pre'
-        channel: beta
-    
+        flutter-version: '1.22.0-9.0.pre'
+        channel: dev
+
     # Initial build and test
     - run: flutter pub get
+    - run: cd ./ios && pod install && cd ..
     - run: flutter test
-    
-    #  Build iOS and Android
-    - run: flutter build ios --release --no-codesign
+
+    # Build Android
     - run: flutter build appbundle
 
     # Publish Android
-    - name: Sign release
+    - name: Sign Android release
       id: sign_release
       uses: r0adkll/sign-android-release@v1
       with:
           releaseDirectory: build/app/outputs/bundle/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
           alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}       
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
 
-    - name: Publish build to internal track
+    - name: Publish Android build to internal track
       uses: r0adkll/upload-google-play@v1
       with:
         serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
         packageName: com.banool.auslan_dictionary
-        # releaseFile: ${{ steps.run_tests.outputs.signedReleaseFile }} 
+        # releaseFile: ${{ steps.run_tests.outputs.signedReleaseFile }}
         releaseFile: build/app/outputs/bundle/release/app-release.aab
         track: internal
 
+    #  Build iOS
+    - run: flutter build ios --release --no-codesign
+
+    # Get fastlane working so we can publish to the app store.
+    - name: Run bundle install to get fastlane for iOS
+      run: cd ./ios && bundle install && cd ..
+
+    - name: Setup SSH Keys and known_hosts for iOS fastlane match
+      run: |
+        SSH_PATH="$HOME/.ssh"
+        mkdir -p "$SSH_PATH"
+        touch "$SSH_PATH/known_hosts"
+        echo "$PRIVATE_KEY" > "$SSH_PATH/id_rsa"
+        chmod 700 "$SSH_PATH"
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+        chmod 600 "$SSH_PATH/known_hosts"
+        chmod 600 "$SSH_PATH/id_rsa"
+        eval $(ssh-agent)
+        ssh-add "$SSH_PATH/id_rsa"
+      env:
+        PRIVATE_KEY: ${{ secrets.FASTLANE_MATCH_PRIVATE_KEY }}
+
+    # Publish iOS (skipped for now)
+    - name: Upload iOS build to TestFlight
+      run: |
+        cd ./ios # && bundle exec fastlane ios beta
+      env:
+        FASTLANE_USER: ${{ secrets.FASTLANE_USER }}
+        FASTLANE_PASSWORD: ${{ secrets.FASTLANE_PASSWORD }}
+        FASTLANE_SESSION: ${{ secrets.FASTLANE_SESSION }}
+        FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD }}
+        MATCH_KEYCHAIN_NAME: ${{ secrets.MATCH_KEYCHAIN_NAME }}
+        MATCH_KEYCHAIN_PASSWORD: ${{ secrets.MATCH_KEYCHAIN_PASSWORD }}
+        MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+        # DELIVER_ITMSTRANSPORTER_ADDITIONAL_UPLOAD_PARAMETERS: '-t Signiant'
