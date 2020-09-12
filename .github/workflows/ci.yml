@@ -46,4 +46,13 @@ jobs:
         # releaseFile: ${{ steps.run_tests.outputs.signedReleaseFile }} 
         releaseFile: build/app/outputs/bundle/release/app-release.aab
         track: internal
+    
+    # Publish iOS
+    - name: Upload iOS build to TestFlight
+      uses: apple-actions/upload-testflight-build@v1
+      with: 
+        app-path: build/ios/iphoneos/Runner.app 
+        issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+        api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
+        api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
 
