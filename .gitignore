@@ -1,3 +1,9 @@
+# My stuff
+ios/publish_do_not_check_in.sh
+ios/fastlane/report.xml
+ios/Runner.ipa
+ios/Runner.app.*
+
 # Miscellaneous
 *.class
 *.log

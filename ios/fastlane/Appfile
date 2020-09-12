@@ -1,0 +1,11 @@
+# The bundle identifier of your app
+app_identifier("com.banool.auslanDictionary")
+
+# Your Apple email address
+apple_id(ENV['FASTLANE_USER'])
+
+# App Store Connect Team ID
+itc_team_id("122099387") # App Store Connect Team ID
+
+# Developer Portal Team ID
+team_id("9N3SNHTGL7") # Developer Portal Team ID
