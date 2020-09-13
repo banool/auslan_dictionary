@@ -4,12 +4,26 @@ class Word {
   String word;
   List<String> keywords;
   List<String> videoLinks;
-  Map<String, List<String>> definitions;
+  List<Definition> definitions;
 
   Word.fromJson(String word, dynamic wordJson) {
     this.word = word;
     this.keywords = wordJson["keywords"].cast<String>();
     this.videoLinks = wordJson["video_links"].cast<String>();
-    this.definitions = wordJson["definitions"].cast<List<String>>();
+
+    List<Definition> definitions = [];
+    wordJson["definitions"].forEach((heading, value) {
+      List<String> subdefinitions = value.cast<String>();
+      definitions
+          .add(Definition(heading: heading, subdefinitions: subdefinitions));
+    });
+    this.definitions = definitions;
   }
+}
+
+class Definition {
+  Definition({this.heading, this.subdefinitions});
+
+  final String heading;
+  final List<String> subdefinitions;
 }

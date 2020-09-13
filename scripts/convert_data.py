@@ -10,6 +10,7 @@ now outputs the data in the latter format.
 """
 
 import argparse
+import collections
 import json
 
 
@@ -23,10 +24,10 @@ with open(args.file, "r") as f:
 
 out = {}
 for k, v in data.items():
-    definitions = {}
+    definitions = collections.defaultdict(list)
     for x in v["definitions"]:
         for subk, subv in x.items():
-            definitions.setdefault(subk, []).append(subv)
+            definitions[subk] += subv
     v["definitions"] = definitions
     out[k] = v
 
