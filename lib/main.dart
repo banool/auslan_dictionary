@@ -72,6 +72,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final _formSearchKey = GlobalKey<FormState>();
 
+  final _searchFieldController = TextEditingController();
+
   Future<void> loadWords() async {
     String data = await DefaultAssetBundle.of(context)
         .loadString("assets/data/words.json");
@@ -159,8 +161,14 @@ class _MyHomePageState extends State<MyHomePage> {
                           key: _formSearchKey,
                           child: Column(children: <Widget>[
                             TextField(
-                              decoration: const InputDecoration(
+                              controller: _searchFieldController,
+                              decoration: InputDecoration(
                                 hintText: 'Search for a word',
+                                suffixIcon: IconButton(
+                                  onPressed: () =>
+                                      _searchFieldController.clear(),
+                                  icon: Icon(Icons.clear),
+                                ),
                               ),
                               // The validator receives the text that the user has entered.
                               onSubmitted: (String value) {
