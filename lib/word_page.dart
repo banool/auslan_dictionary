@@ -2,20 +2,66 @@ import 'package:auslan_dictionary/types.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
-class WordPage extends StatelessWidget {
-  WordPage({this.word});
+class WordPage extends StatefulWidget {
+  WordPage({Key key, this.word}) : super(key: key);
 
   final Word word;
 
   @override
+  _WordPageState createState() => _WordPageState(word: word);
+}
+
+class _WordPageState extends State<WordPage> {
+  _WordPageState({this.word});
+
+  final Word word;
+
+  bool shouldPlay = true;
+  final GlobalKey<_VideoPlayerScreenState> _key = GlobalKey();
+
+  void togglePlay(VideoPlayerScreen videoPlayerScreen) {
+    setState(() {
+      // If the video is playing, pause it.
+      shouldPlay = !shouldPlay;
+      _key.currentState.reactToShouldPlay(shouldPlay);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    var videoPlayerScreen = VideoPlayerScreen(word: word, key: _key);
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(word.word),
-      ),
-      // TODO: Don't just show first video, make a video swiper thingo.
-      body: VideoPlayerScreen(word: word),
-    );
+        appBar: AppBar(
+          title: Text(word.word),
+        ),
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            videoPlayerScreen,
+            if (word.keywords.length > 0)
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+                child: Text("Keywords: ${word.keywords.join(', ')}"),
+              ),
+            Expanded(
+              child: definitions(context, word.definitions),
+            ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            // Wrap the play or pause in a call to `setState`. This ensures the
+            // correct icon is shown.
+            togglePlay(videoPlayerScreen);
+          },
+          // Display the correct icon depending on the state of the player.
+          child: Icon(
+            shouldPlay ? Icons.pause : Icons.play_arrow,
+          ),
+        ));
   }
 }
 
@@ -54,7 +100,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     // Turn off the sound (some videos have sound for some reason).
     _controller.setVolume(0.0);
 
-    // Start playing the video immediately on load.
+    // Play or pause the video based on shouldPlay.
     _controller.play();
 
     super.initState();
@@ -68,68 +114,39 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     super.dispose();
   }
 
+  void reactToShouldPlay(bool shouldPlay) {
+    if (shouldPlay) {
+      _controller.play();
+    } else {
+      // If the video is paused, play it.
+      _controller.pause();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // Use a FutureBuilder to display a loading spinner while waiting for the
-      // VideoPlayerController to finish initializing.
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          FutureBuilder(
-            future: _initializeVideoPlayerFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                // If the VideoPlayerController has finished initialization, use
-                // the data it provides to limit the aspect ratio of the video.
-                return AspectRatio(
-                  aspectRatio: _controller.value.aspectRatio,
-                  // Use the VideoPlayer widget to display the video.
-                  child: VideoPlayer(_controller),
-                );
-              } else {
-                // If the VideoPlayerController is still initializing, show a
-                // loading spinner.
-                return Padding(
-                    padding: EdgeInsets.only(top: 100),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [CircularProgressIndicator()],
-                    ));
-              }
-            },
-          ),
-          if (word.keywords.length > 0)
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-              child: Text("Keywords: ${word.keywords.join(', ')}"),
-            ),
-          Expanded(
-            child: definitions(context, word.definitions),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Wrap the play or pause in a call to `setState`. This ensures the
-          // correct icon is shown.
-          setState(() {
-            // If the video is playing, pause it.
-            if (_controller.value.isPlaying) {
-              _controller.pause();
-            } else {
-              // If the video is paused, play it.
-              _controller.play();
-            }
-          });
-        },
-        // Display the correct icon depending on the state of the player.
-        child: Icon(
-          _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
-        ),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    return FutureBuilder(
+      future: _initializeVideoPlayerFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          // If the VideoPlayerController has finished initialization, use
+          // the data it provides to limit the aspect ratio of the video.
+          return AspectRatio(
+            aspectRatio: _controller.value.aspectRatio,
+            // Use the VideoPlayer widget to display the video.
+            child: VideoPlayer(_controller),
+          );
+        } else {
+          // If the VideoPlayerController is still initializing, show a
+          // loading spinner.
+          return Padding(
+              padding: EdgeInsets.only(top: 150),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [CircularProgressIndicator()],
+              ));
+        }
+      },
     );
   }
 }
