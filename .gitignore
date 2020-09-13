@@ -4,6 +4,7 @@ ios/fastlane/report.xml
 ios/Runner.ipa
 ios/Runner.app.*
 .vscode
+ios/*.cer
 
 # Miscellaneous
 *.class

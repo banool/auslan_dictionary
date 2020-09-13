@@ -102,8 +102,18 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
               },
             ),
             Padding(
-              child: Text("Keywords: ${word.keywords.join(', ')}"),
               padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Keywords: ${word.keywords.join(', ')}"),
+                  new Expanded(
+                    child: definitions(context, word.definitions),
+                  )
+                ],
+              ),
             ),
           ]),
       floatingActionButton: FloatingActionButton(
@@ -128,3 +138,32 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     );
   }
 }
+
+Widget definitions(BuildContext context, List<Map<String, List<String>>> definitions) {
+  return ListView.builder(
+    itemCount: definitions.length,
+    itemBuilder: (context, index) {
+      return definition(context, definitions[index]);
+    },
+  );
+}
+
+Widget definition(BuildContext context, Map<String, List<String>> definition) {
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.start,
+    mainAxisSize: MainAxisSize.max,
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(definition.ke)
+  Text(
+    child: Align(alignment: Alignment.topLeft, child: Text("${word.word}")),
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => WordPage(word: word)),
+      );
+    },
+    splashColor: MAIN_COLOR,
+  );
+}
+*/

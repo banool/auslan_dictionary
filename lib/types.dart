@@ -10,7 +10,7 @@ class Word {
     this.word = word;
     this.keywords = wordJson["keywords"].cast<String>();
     this.videoLinks = wordJson["video_links"].cast<String>();
-    //this.definitions =
-    //   wordJson["definitions"].cast<Map<String, List<String>>>();
+    this.definitions =
+        wordJson["definitions"].cast<Map<String, List<String>>>();
   }
 }

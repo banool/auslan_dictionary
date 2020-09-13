@@ -83,7 +83,7 @@ class Word:
     word: str
     keywords: List[str]
     video_links: List[str]
-    definitions: List[Dict[str, List[str]]]
+    definitions: Dict[str, List[str]]
 
     def get_dict(self):
         return {
@@ -225,9 +225,9 @@ def parse_information(html) -> Word:
 
     # Get the definitions
     definition_divs_html = soup.find_all("div", {"class": "definition-panel"})
-    definitions = []
+    definitions = {}
     for definition_div_html in definition_divs_html:
-        definitions.append(parse_definition(definition_div_html))
+        definitions.update(parse_definition(definition_div_html))
 
     return Word(
         word=word,
