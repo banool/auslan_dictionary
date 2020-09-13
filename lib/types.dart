@@ -4,13 +4,12 @@ class Word {
   String word;
   List<String> keywords;
   List<String> videoLinks;
-  List<Map<String, List<String>>> definitions;
+  Map<String, List<String>> definitions;
 
   Word.fromJson(String word, dynamic wordJson) {
     this.word = word;
     this.keywords = wordJson["keywords"].cast<String>();
     this.videoLinks = wordJson["video_links"].cast<String>();
-    this.definitions =
-        wordJson["definitions"].cast<Map<String, List<String>>>();
+    this.definitions = wordJson["definitions"].cast<List<String>>();
   }
 }
