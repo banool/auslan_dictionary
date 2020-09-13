@@ -2,9 +2,9 @@ import "dart:collection";
 import 'dart:convert';
 
 import 'package:auslan_dictionary/types.dart';
+import 'package:edit_distance/edit_distance.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:string_similarity/string_similarity.dart';
 
 import 'word_page.dart';
 
@@ -105,15 +105,25 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   List<Word> searchWords(String searchTerm) {
-    final SplayTreeMap<double, Word> st = SplayTreeMap<double, Word>();
+    final SplayTreeMap<double, List<Word>> st =
+        SplayTreeMap<double, List<Word>>();
     if (searchTerm == "") {
       return [];
     }
+    JaroWinkler d = new JaroWinkler();
     for (Word w in words) {
-      double difference = 1 - searchTerm.similarityTo(w.word);
-      st[difference] = w;
+      String normalisedWord = w.word.replaceAll(" ", "").replaceAll(",", "");
+      double difference = d.normalizedDistance(normalisedWord, searchTerm);
+      st.putIfAbsent(difference, () => []).add(w);
     }
-    return st.values.take(10).toList();
+    List<Word> out = [];
+    for (List<Word> words in st.values) {
+      out.addAll(words);
+      if (out.length > 10) {
+        break;
+      }
+    }
+    return out;
   }
 
   @override

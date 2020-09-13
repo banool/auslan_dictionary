@@ -78,6 +78,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.3"
+  edit_distance:
+    dependency: "direct main"
+    description:
+      name: edit_distance
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.4.1"
   fake_async:
     dependency: transitive
     description:
@@ -175,13 +182,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.0-nullsafety"
-  string_similarity:
-    dependency: "direct main"
-    description:
-      name: string_similarity
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.1.0"
   term_glyph:
     dependency: transitive
     description:
