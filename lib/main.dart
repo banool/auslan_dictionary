@@ -1,9 +1,10 @@
+import "dart:collection";
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:auslan_dictionary/types.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:string_similarity/string_similarity.dart';
 
 import 'word_page.dart';
 
@@ -102,16 +103,15 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   List<Word> searchWords(String searchTerm) {
-    List<Word> out = [];
+    final SplayTreeMap<double, Word> st = SplayTreeMap<double, Word>();
     if (searchTerm == "") {
-      return out;
+      return [];
     }
     for (Word w in words) {
-      if (w.word.contains(searchTerm)) {
-        out.add(w);
-      }
+      double difference = 1 - searchTerm.similarityTo(w.word);
+      st[difference] = w;
     }
-    return out;
+    return st.values.take(10).toList();
   }
 
   @override
