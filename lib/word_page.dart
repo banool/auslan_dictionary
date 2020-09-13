@@ -51,6 +51,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     // Use the controller to loop the video.
     _controller.setLooping(true);
 
+    // Turn off the sound (some videos have sound for some reason).
+    _controller.setVolume(0.0);
+
     // Start playing the video immediately on load.
     _controller.play();
 
