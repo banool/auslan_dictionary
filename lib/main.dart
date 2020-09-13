@@ -121,9 +121,18 @@ class _MyHomePageState extends State<MyHomePage> {
     if (searchTerm == "") {
       return [];
     }
+    searchTerm = searchTerm.toLowerCase();
     JaroWinkler d = new JaroWinkler();
+    RegExp noParenthesesRegExp = new RegExp(
+      r"^[^ (]*",
+      caseSensitive: false,
+      multiLine: false,
+    );
     for (Word w in words) {
-      String normalisedWord = w.word.replaceAll(" ", "").replaceAll(",", "");
+      String noPunctuation = w.word.replaceAll(" ", "").replaceAll(",", "");
+      String lowerCase = noPunctuation.toLowerCase();
+      String noParenthesesContent = noParenthesesRegExp.stringMatch(lowerCase);
+      String normalisedWord = noParenthesesContent;
       double difference = d.normalizedDistance(normalisedWord, searchTerm);
       st.putIfAbsent(difference, () => []).add(w);
     }
