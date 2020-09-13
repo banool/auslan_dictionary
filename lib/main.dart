@@ -153,7 +153,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   // horizontal).
                   mainAxisAlignment: MainAxisAlignment.start,
                   mainAxisSize: MainAxisSize.max,
-                  children: <Widget>[
+                  children: [
                     Padding(
                       padding: EdgeInsets.only(
                           bottom: 10, left: 32, right: 32, top: 0),
