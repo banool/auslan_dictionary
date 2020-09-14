@@ -1,4 +1,5 @@
 import 'package:auslan_dictionary/types.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -29,7 +30,8 @@ class _WordPageState extends State<WordPage> {
 
   @override
   Widget build(BuildContext context) {
-    var videoPlayerScreen = VideoPlayerScreen(word: word, key: _key);
+    var videoPlayerScreen =
+        VideoPlayerScreen(videoLinks: word.videoLinks, key: _key);
 
     return Scaffold(
         appBar: AppBar(
@@ -66,75 +68,117 @@ class _WordPageState extends State<WordPage> {
 }
 
 class VideoPlayerScreen extends StatefulWidget {
-  VideoPlayerScreen({Key key, this.word}) : super(key: key);
+  VideoPlayerScreen({Key key, this.videoLinks}) : super(key: key);
 
-  final Word word;
+  final List<String> videoLinks;
 
   @override
-  _VideoPlayerScreenState createState() => _VideoPlayerScreenState(word: word);
+  _VideoPlayerScreenState createState() =>
+      _VideoPlayerScreenState(videoLinks: videoLinks);
 }
 
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
-  _VideoPlayerScreenState({this.word});
+  _VideoPlayerScreenState({this.videoLinks});
 
-  final Word word;
+  final List<String> videoLinks;
 
-  VideoPlayerController _controller;
+  List<VideoPlayerController> controllers = [];
+
+  CarouselController carouselController;
+
   Future<void> _initializeVideoPlayerFuture;
+
+  int currentPage = 0;
 
   @override
   void initState() {
-    // Create and store the VideoPlayerController. The VideoPlayerController
-    // offers several different constructors to play videos from assets, files,
-    // or the internet.
-    _controller = VideoPlayerController.network(
-      word.videoLinks[0],
-    );
+    for (String v in videoLinks) {
+      var controller = VideoPlayerController.network(
+        v,
+      );
+
+      // Use the controller to loop the video.
+      controller.setLooping(true);
+
+      // Turn off the sound (some videos have sound for some reason).
+      controller.setVolume(0.0);
+
+      // Play or pause the video based on shouldPlay.
+      controller.pause();
+
+      controllers.add(controller);
+    }
 
     // Initialize the controller and store the Future for later use.
-    _initializeVideoPlayerFuture = _controller.initialize();
+    _initializeVideoPlayerFuture = controllers[0].initialize();
 
-    // Use the controller to loop the video.
-    _controller.setLooping(true);
+    // Initialize the rest but don't store the futures.
+    for (var i = 1; i < controllers.length; i += 1) {
+      controllers[i].initialize();
+    }
 
-    // Turn off the sound (some videos have sound for some reason).
-    _controller.setVolume(0.0);
+    // Start playing first video in carousel.
+    controllers[0].play();
 
-    // Play or pause the video based on shouldPlay.
-    _controller.play();
+    // Make carousel slider controller.
+    carouselController = CarouselController();
 
     super.initState();
+  }
+
+  void onPageChanged(int newPage) {
+    setState(() {
+      for (VideoPlayerController c in controllers) {
+        c.pause();
+      }
+      currentPage = newPage;
+      controllers[currentPage].play();
+    });
   }
 
   @override
   void dispose() {
     // Ensure disposing of the VideoPlayerController to free up resources.
-    _controller.dispose();
+    for (VideoPlayerController c in controllers) {
+      c.dispose();
+    }
 
     super.dispose();
   }
 
   void reactToShouldPlay(bool shouldPlay) {
     if (shouldPlay) {
-      _controller.play();
+      controllers[currentPage].play();
     } else {
       // If the video is paused, play it.
-      _controller.pause();
+      controllers[currentPage].pause();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> items = [];
+    for (VideoPlayerController c in controllers) {
+      var player = VideoPlayer(c);
+      var container =
+          Container(padding: EdgeInsets.only(top: 20), child: player);
+      items.add(container);
+    }
     return FutureBuilder(
       future: _initializeVideoPlayerFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
-          // If the VideoPlayerController has finished initialization, use
-          // the data it provides to limit the aspect ratio of the video.
-          return AspectRatio(
-            aspectRatio: _controller.value.aspectRatio,
-            // Use the VideoPlayer widget to display the video.
-            child: VideoPlayer(_controller),
+          return CarouselSlider(
+            carouselController: carouselController,
+            items: items,
+            options: CarouselOptions(
+              aspectRatio: controllers[currentPage].value.aspectRatio,
+              autoPlay: false,
+              viewportFraction: 0.8,
+              enableInfiniteScroll: false,
+              onPageChanged: (index, reason) => onPageChanged(index),
+              enlargeCenterPage: true,
+            ),
           );
         } else {
           // If the VideoPlayerController is still initializing, show a
