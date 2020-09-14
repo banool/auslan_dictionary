@@ -5,6 +5,8 @@ ios/Runner.ipa
 ios/Runner.app.*
 .vscode
 ios/*.cer
+ios/fastlane/screenshots
+ios/fastlane/Preview.html
 
 # Miscellaneous
 *.class

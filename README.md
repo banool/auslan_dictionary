@@ -12,6 +12,12 @@ flutter build ios --release --no-codesign
 ./publish_do_not_check_in.sh
 ```
 
+To generate and upload screenshots:
+```
+fastlane screenshots
+```
+This invokes the `screenshots` lane we defined in the Fastfile.
+
 ## General dev guide
 
 Run this before committing:
