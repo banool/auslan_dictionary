@@ -4,6 +4,7 @@ import 'package:auslan_dictionary/types.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
 
 class WordPage extends StatefulWidget {
@@ -109,20 +110,30 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   Future<void> initSingleVideo(String videoLink, int idx) async {
-    FileInfo fileInfo = await DefaultCacheManager().getFileFromCache(videoLink);
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool shouldCache = prefs.getBool(KEY_SHOULD_CACHE);
 
-    File file;
-    if (fileInfo == null || fileInfo.file == null) {
-      print("Video for $videoLink not in cache, fetching and caching now");
-      file = await DefaultCacheManager().getSingleFile(videoLink);
+    VideoPlayerController controller;
+    if (shouldCache == null || shouldCache) {
+      FileInfo fileInfo =
+          await DefaultCacheManager().getFileFromCache(videoLink);
+
+      File file;
+      if (fileInfo == null || fileInfo.file == null) {
+        print("Video for $videoLink not in cache, fetching and caching now");
+        file = await DefaultCacheManager().getSingleFile(videoLink);
+      } else {
+        print("Video for $videoLink is in cache, reading from there");
+        setState(() {
+          file = fileInfo.file;
+        });
+      }
+
+      controller = VideoPlayerController.file(file);
     } else {
-      print("Video for $videoLink is in cache, reading from there");
-      setState(() {
-        file = fileInfo.file;
-      });
+      print("Caching is disabled, pulling from the network");
+      controller = VideoPlayerController.network(videoLink);
     }
-
-    var controller = VideoPlayerController.file(file);
 
     // Use the controller to loop the video.
     controller.setLooping(true);

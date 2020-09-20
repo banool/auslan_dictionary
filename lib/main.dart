@@ -6,6 +6,7 @@ import 'package:edit_distance/edit_distance.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'word_page.dart';
 
@@ -269,20 +270,77 @@ Widget listItem(BuildContext context, Word word) {
   );
 }
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
+  SettingsPage({Key key}) : super(key: key);
+
+  @override
+  SettingsPageState createState() => SettingsPageState();
+}
+
+class SettingsPageState extends State<SettingsPage> {
+  Future<void> initStateAsyncFuture;
+
+  SharedPreferences prefs;
+
+  @override
+  void initState() {
+    initStateAsyncFuture = initStateAsync();
+    super.initState();
+  }
+
+  Future<void> initStateAsync() async {
+    prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(KEY_SHOULD_CACHE) == null) {
+      prefs.setBool(KEY_SHOULD_CACHE, true);
+    }
+  }
+
+  void onChangeShouldCache(bool newValue) {
+    setState(() {
+      prefs.setBool(KEY_SHOULD_CACHE, newValue);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-        child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
-            child: FlatButton(
-                child: Text("Drop cache"),
-                onPressed: () async {
-                  await DefaultCacheManager().emptyCache();
-                  Scaffold.of(context).showSnackBar(SnackBar(
-                      content: Text("Cache dropped"),
-                      backgroundColor: MAIN_COLOR));
-                },
-                color: MAIN_COLOR)));
+    return Padding(
+        padding: EdgeInsets.only(bottom: 10, left: 20, right: 32, top: 20),
+        child: FutureBuilder(
+            future: initStateAsyncFuture,
+            builder: (context, snapshot) {
+              var waitingWidget = Padding(
+                  padding: EdgeInsets.only(top: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [CircularProgressIndicator()],
+                  ));
+              if (snapshot.connectionState != ConnectionState.done) {
+                return waitingWidget;
+              }
+              return Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    FlatButton(
+                        child: Text("Drop cache"),
+                        onPressed: () async {
+                          await DefaultCacheManager().emptyCache();
+                          Scaffold.of(context).showSnackBar(SnackBar(
+                              content: Text("Cache dropped"),
+                              backgroundColor: MAIN_COLOR));
+                        },
+                        color: MAIN_COLOR),
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Text("Cache videos:"),
+                          Switch(
+                            value: prefs.getBool(KEY_SHOULD_CACHE),
+                            onChanged: onChangeShouldCache,
+                          )
+                        ])
+                  ]);
+            }));
   }
 }

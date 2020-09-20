@@ -27,3 +27,5 @@ class Definition {
   final String heading;
   final List<String> subdefinitions;
 }
+
+const String KEY_SHOULD_CACHE = "shouldCache";
