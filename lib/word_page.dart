@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:auslan_dictionary/types.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:video_player/video_player.dart';
 
 class WordPage extends StatefulWidget {
@@ -82,53 +85,73 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   final List<String> videoLinks;
 
-  List<VideoPlayerController> controllers = [];
+  Map<int, VideoPlayerController> controllers = {};
+
+  List<Future<void>> initializeVideoPlayerFutures = [];
+
+  Future<void> firstInitVideosFuture;
 
   CarouselController carouselController;
-
-  Future<void> _initializeVideoPlayerFuture;
 
   int currentPage = 0;
 
   @override
   void initState() {
-    for (String v in videoLinks) {
-      var controller = VideoPlayerController.network(
-        v,
-      );
-
-      // Use the controller to loop the video.
-      controller.setLooping(true);
-
-      // Turn off the sound (some videos have sound for some reason).
-      controller.setVolume(0.0);
-
-      // Play or pause the video based on shouldPlay.
-      controller.pause();
-
-      controllers.add(controller);
+    // Initialise the videos, reading from cache if possible.
+    int idx = 0;
+    for (String videoLink in videoLinks) {
+      initializeVideoPlayerFutures.add(initSingleVideo(videoLink, idx));
+      idx += 1;
     }
-
-    // Initialize the controller and store the Future for later use.
-    _initializeVideoPlayerFuture = controllers[0].initialize();
-
-    // Initialize the rest but don't store the futures.
-    for (var i = 1; i < controllers.length; i += 1) {
-      controllers[i].initialize();
-    }
-
-    // Start playing first video in carousel.
-    controllers[0].play();
-
     // Make carousel slider controller.
     carouselController = CarouselController();
-
     super.initState();
+  }
+
+  Future<void> initSingleVideo(String videoLink, int idx) async {
+    FileInfo fileInfo = await DefaultCacheManager().getFileFromCache(videoLink);
+
+    File file;
+    if (fileInfo == null || fileInfo.file == null) {
+      print("Video for $videoLink not in cache, fetching and caching now");
+      file = await DefaultCacheManager().getSingleFile(videoLink);
+    } else {
+      print("Video for $videoLink is in cache, reading from there");
+      setState(() {
+        file = fileInfo.file;
+      });
+    }
+
+    var controller = VideoPlayerController.file(file);
+
+    // Use the controller to loop the video.
+    controller.setLooping(true);
+
+    // Turn off the sound (some videos have sound for some reason).
+    controller.setVolume(0.0);
+
+    // Play or pause the video based on whether this is the first video.
+    if (idx == 0) {
+      controller.play();
+    } else {
+      controller.pause();
+    }
+
+    // Store the controller for later.
+    setState(() {
+      controllers[idx] = controller;
+    });
+
+    // Initialize the controller.
+    await controller.initialize();
+
+    // Set state again so it rebuilds and adjusts the aspect ratio.
+    setState(() {});
   }
 
   void onPageChanged(int newPage) {
     setState(() {
-      for (VideoPlayerController c in controllers) {
+      for (VideoPlayerController c in controllers.values) {
         c.pause();
       }
       currentPage = newPage;
@@ -139,7 +162,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   @override
   void dispose() {
     // Ensure disposing of the VideoPlayerController to free up resources.
-    for (VideoPlayerController c in controllers) {
+    for (VideoPlayerController c in controllers.values) {
       c.dispose();
     }
 
@@ -158,39 +181,47 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   @override
   Widget build(BuildContext context) {
     List<Widget> items = [];
-    for (VideoPlayerController c in controllers) {
-      var player = VideoPlayer(c);
-      var container =
-          Container(padding: EdgeInsets.only(top: 20), child: player);
-      items.add(container);
+    for (int idx = 0; idx < videoLinks.length; idx++) {
+      var futureBuilder = FutureBuilder(
+          future: initializeVideoPlayerFutures[idx],
+          builder: (context, snapshot) {
+            var waitingWidget = Padding(
+                padding: EdgeInsets.only(top: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [CircularProgressIndicator()],
+                ));
+            if (snapshot.connectionState != ConnectionState.done) {
+              return waitingWidget;
+            }
+            if (!controllers.containsKey(idx)) {
+              return waitingWidget;
+            }
+            var controller = controllers[idx];
+            var player = VideoPlayer(controller);
+            var videoContainer =
+                Container(padding: EdgeInsets.only(top: 20), child: player);
+            return videoContainer;
+          });
+      items.add(futureBuilder);
     }
-    return FutureBuilder(
-      future: _initializeVideoPlayerFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          return CarouselSlider(
-            carouselController: carouselController,
-            items: items,
-            options: CarouselOptions(
-              aspectRatio: controllers[currentPage].value.aspectRatio,
-              autoPlay: false,
-              viewportFraction: 0.8,
-              enableInfiniteScroll: false,
-              onPageChanged: (index, reason) => onPageChanged(index),
-              enlargeCenterPage: true,
-            ),
-          );
-        } else {
-          // If the VideoPlayerController is still initializing, show a
-          // loading spinner.
-          return Padding(
-              padding: EdgeInsets.only(top: 150),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [CircularProgressIndicator()],
-              ));
-        }
-      },
+    double aspectRatio;
+    if (controllers.containsKey(currentPage)) {
+      aspectRatio = controllers[currentPage].value.aspectRatio;
+    } else {
+      aspectRatio = 16 / 9;
+    }
+    return CarouselSlider(
+      carouselController: carouselController,
+      items: items,
+      options: CarouselOptions(
+        aspectRatio: aspectRatio,
+        autoPlay: false,
+        viewportFraction: 0.8,
+        enableInfiniteScroll: false,
+        onPageChanged: (index, reason) => onPageChanged(index),
+        enlargeCenterPage: true,
+      ),
     );
   }
 }
