@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'common.dart';
 import 'word_page.dart';
 
 const Color MAIN_COLOR = Colors.blue;
@@ -236,7 +237,7 @@ class _SearchPageState extends State<SearchPage> {
                         ])),
                   ),
                   new Expanded(
-                    child: listWidget(context, wordsSearched),
+                    child: listWidget(context, wordsSearched, words),
                   ),
                 ],
               ),
@@ -248,24 +249,20 @@ class _SearchPageState extends State<SearchPage> {
   }
 }
 
-Widget listWidget(BuildContext context, List<Word> wordsSearched) {
+Widget listWidget(
+    BuildContext context, List<Word> wordsSearched, List<Word> allWords) {
   return ListView.builder(
     itemCount: wordsSearched.length,
     itemBuilder: (context, index) {
-      return ListTile(title: listItem(context, wordsSearched[index]));
+      return ListTile(title: listItem(context, wordsSearched[index], allWords));
     },
   );
 }
 
-Widget listItem(BuildContext context, Word word) {
+Widget listItem(BuildContext context, Word word, List<Word> allWords) {
   return FlatButton(
     child: Align(alignment: Alignment.topLeft, child: Text("${word.word}")),
-    onPressed: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => WordPage(word: word)),
-      );
-    },
+    onPressed: () => navigateToWordPage(context, word, allWords),
     splashColor: MAIN_COLOR,
   );
 }
@@ -321,15 +318,6 @@ class SettingsPageState extends State<SettingsPage> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    FlatButton(
-                        child: Text("Drop cache"),
-                        onPressed: () async {
-                          await DefaultCacheManager().emptyCache();
-                          Scaffold.of(context).showSnackBar(SnackBar(
-                              content: Text("Cache dropped"),
-                              backgroundColor: MAIN_COLOR));
-                        },
-                        color: MAIN_COLOR),
                     Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.max,
@@ -339,7 +327,16 @@ class SettingsPageState extends State<SettingsPage> {
                             value: prefs.getBool(KEY_SHOULD_CACHE),
                             onChanged: onChangeShouldCache,
                           )
-                        ])
+                        ]),
+                    FlatButton(
+                        child: Text("Drop cache"),
+                        onPressed: () async {
+                          await DefaultCacheManager().emptyCache();
+                          Scaffold.of(context).showSnackBar(SnackBar(
+                              content: Text("Cache dropped"),
+                              backgroundColor: MAIN_COLOR));
+                        },
+                        color: MAIN_COLOR),
                   ]);
             }));
   }

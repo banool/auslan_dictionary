@@ -1,25 +1,32 @@
 import 'dart:io';
 
+import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/types.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
 
+import 'common.dart';
+
 class WordPage extends StatefulWidget {
-  WordPage({Key key, this.word}) : super(key: key);
+  WordPage({Key key, this.word, this.allWords}) : super(key: key);
 
   final Word word;
+  final List<Word> allWords;
 
   @override
-  _WordPageState createState() => _WordPageState(word: word);
+  _WordPageState createState() =>
+      _WordPageState(word: word, allWords: allWords);
 }
 
 class _WordPageState extends State<WordPage> {
-  _WordPageState({this.word});
+  _WordPageState({this.word, this.allWords});
 
   final Word word;
+  final List<Word> allWords;
 
   bool shouldPlay = true;
   final GlobalKey<_VideoPlayerScreenState> _key = GlobalKey();
@@ -30,6 +37,54 @@ class _WordPageState extends State<WordPage> {
       shouldPlay = !shouldPlay;
       _key.currentState.reactToShouldPlay(shouldPlay);
     });
+  }
+
+  TextSpan getRelatedWords() {
+    Map<String, Word> allWordsMap = {};
+    for (Word word in allWords) {
+      allWordsMap[word.word] = word;
+    }
+    List<WidgetSpan> relatedWordsButtons = [];
+
+    int idx = 0;
+    for (String keyword in word.keywords) {
+      if (keyword == word.word) {
+        idx += 1;
+        continue;
+      }
+      Color color;
+      Function navFunction;
+      if (allWordsMap.containsKey(keyword)) {
+        Word relatedWord = allWordsMap[keyword];
+        color =
+            MAIN_COLOR; // TODO: Or just hyperlink blue, or black since it seems they all link.
+        navFunction = () => navigateToWordPage(context, relatedWord, allWords);
+      } else {
+        color = Colors.black;
+        navFunction = null;
+      }
+      String suffix;
+      if (idx < word.keywords.length - 1) {
+        suffix = ", ";
+      } else {
+        suffix = "";
+      }
+      relatedWordsButtons.add(WidgetSpan(
+          child: TextButton(
+              onPressed: navFunction,
+              style: ButtonStyle(
+                  visualDensity: VisualDensity(
+                      horizontal: VisualDensity.minimumDensity,
+                      vertical: VisualDensity.minimumDensity)),
+              child: Text("$keyword$suffix", style: TextStyle(color: color)))));
+      idx += 1;
+    }
+    List<InlineSpan> children = [];
+    children.add(TextSpan(
+        text: "Related words: ",
+        style: TextStyle(fontWeight: FontWeight.bold)));
+    children.addAll(relatedWordsButtons);
+    return TextSpan(children: children);
   }
 
   @override
@@ -49,9 +104,9 @@ class _WordPageState extends State<WordPage> {
             videoPlayerScreen,
             if (word.keywords.length > 0)
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-                child: Text("Keywords: ${word.keywords.join(', ')}"),
-              ),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+                  child: Text.rich(getRelatedWords())),
             Expanded(
               child: definitions(context, word.definitions),
             ),
