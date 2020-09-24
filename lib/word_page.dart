@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/types.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -73,6 +72,7 @@ class _WordPageState extends State<WordPage> {
           child: TextButton(
               onPressed: navFunction,
               style: ButtonStyle(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   visualDensity: VisualDensity(
                       horizontal: VisualDensity.minimumDensity,
                       vertical: VisualDensity.minimumDensity)),
