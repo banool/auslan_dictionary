@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/types.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -25,19 +26,70 @@ class WordPage extends StatefulWidget {
 class _WordPageState extends State<WordPage> {
   _WordPageState({this.word, this.allWords});
 
+  int currentPage = 0;
+
+  void onPageChanged(int index) {
+    setState(() {
+      currentPage = index;
+      print("CURRENT PAGE BABY $currentPage");
+    });
+  }
+
   final Word word;
   final List<Word> allWords;
 
-  bool shouldPlay = true;
-  final GlobalKey<_VideoPlayerScreenState> _key = GlobalKey();
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> pages = [];
+    for (int i = 0; i < word.subWords.length; i++) {
+      SubWord subWord = word.subWords[i];
+      SubWordPage subWordPage =
+          SubWordPage(word: word, allWords: allWords, subWord: subWord);
+      pages.add(subWordPage);
+    }
 
-  void togglePlay(VideoPlayerScreen videoPlayerScreen) {
-    setState(() {
-      // If the video is playing, pause it.
-      shouldPlay = !shouldPlay;
-      _key.currentState.reactToShouldPlay(shouldPlay);
-    });
+    return Scaffold(
+        appBar: AppBar(
+          title: Text(word.word),
+        ),
+        body: PageView.builder(
+            itemCount: word.subWords.length,
+            itemBuilder: (context, index) => SubWordPage(
+                word: word, allWords: allWords, subWord: word.subWords[index]),
+            onPageChanged: onPageChanged),
+        bottomNavigationBar: Padding(
+          padding: EdgeInsets.only(top: 5, bottom: 5),
+          child: DotsIndicator(
+            dotsCount: word.subWords.length,
+            position: currentPage.toDouble(),
+            decorator: DotsDecorator(
+              color: Colors.black, // Inactive color
+              activeColor: MAIN_COLOR,
+            ),
+          ),
+        ));
   }
+}
+
+class SubWordPage extends StatefulWidget {
+  SubWordPage({Key key, this.word, this.allWords, this.subWord})
+      : super(key: key);
+
+  final Word word;
+  final List<Word> allWords;
+  final SubWord subWord;
+
+  @override
+  _SubWordPageState createState() =>
+      _SubWordPageState(word: word, allWords: allWords, subWord: subWord);
+}
+
+class _SubWordPageState extends State<SubWordPage> {
+  _SubWordPageState({this.word, this.allWords, this.subWord});
+
+  final Word word;
+  final List<Word> allWords;
+  final SubWord subWord;
 
   RichText getRelatedWords() {
     Map<String, Word> allWordsMap = {};
@@ -50,7 +102,7 @@ class _WordPageState extends State<WordPage> {
         style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)));
 
     int idx = 0;
-    for (String keyword in word.keywords) {
+    for (String keyword in subWord.keywords) {
       if (keyword == word.word) {
         idx += 1;
         continue;
@@ -68,7 +120,7 @@ class _WordPageState extends State<WordPage> {
         navFunction = null;
       }
       String suffix;
-      if (idx < word.keywords.length - 1) {
+      if (idx < subWord.keywords.length - 1) {
         suffix = ", ";
       } else {
         suffix = "";
@@ -85,40 +137,23 @@ class _WordPageState extends State<WordPage> {
 
   @override
   Widget build(BuildContext context) {
-    var videoPlayerScreen =
-        VideoPlayerScreen(videoLinks: word.videoLinks, key: _key);
+    var videoPlayerScreen = VideoPlayerScreen(videoLinks: subWord.videoLinks);
 
-    return Scaffold(
-        appBar: AppBar(
-          title: Text(word.word),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      mainAxisSize: MainAxisSize.max,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        videoPlayerScreen,
+        if (subWord.keywords.length > 0)
+          Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+              child: getRelatedWords()),
+        Expanded(
+          child: definitions(context, subWord.definitions),
         ),
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            videoPlayerScreen,
-            if (word.keywords.length > 0)
-              Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-                  child: getRelatedWords()),
-            Expanded(
-              child: definitions(context, word.definitions),
-            ),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            // Wrap the play or pause in a call to `setState`. This ensures the
-            // correct icon is shown.
-            togglePlay(videoPlayerScreen);
-          },
-          // Display the correct icon depending on the state of the player.
-          child: Icon(
-            shouldPlay ? Icons.pause : Icons.play_arrow,
-          ),
-        ));
+      ],
+    );
   }
 }
 
@@ -193,7 +228,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     controller.setVolume(0.0);
 
     // Play or pause the video based on whether this is the first video.
-    if (idx == 0) {
+    if (idx == currentPage) {
       controller.play();
     } else {
       controller.pause();
@@ -227,17 +262,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     for (VideoPlayerController c in controllers.values) {
       c.dispose();
     }
-
     super.dispose();
-  }
-
-  void reactToShouldPlay(bool shouldPlay) {
-    if (shouldPlay) {
-      controllers[currentPage].play();
-    } else {
-      // If the video is paused, play it.
-      controllers[currentPage].pause();
-    }
   }
 
   @override
