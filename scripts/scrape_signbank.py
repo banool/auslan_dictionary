@@ -87,6 +87,45 @@ DENYLIST = [
 ]
 DENYLIST = [WORDS_PAGE_BASE + u for u in DENYLIST]
 
+EVERY_REGION = [
+    "everywhere",
+    "southern",
+    "northern",
+    "wa",
+    "nt",
+    "sa",
+    "qld",
+    "nsw",
+    "act",
+    "vic",
+    "tas",
+]
+REGIONS_IMAGE_MAP = {
+    "/static/img/maps/Auslan/AustraliaWide-traditional.png": EVERY_REGION,
+    "/static/img/maps/Auslan/AustraliaWide.png": EVERY_REGION,
+    "/static/img/maps/Auslan/SouthernDialect-traditional.png": [
+        "southern",
+        "wa",
+        "nt",
+        "sa",
+        "vic",
+        "tas",
+    ],
+    "/static/img/maps/Auslan/NorthernDialect-traditional.png": [
+        "northern",
+        "qld",
+        "nsw",
+        "act",
+    ],
+    "/static/img/maps/Auslan/WesternAustralia-traditional.png": ["wa"],
+    "/static/img/maps/Auslan/NorthernTerritory-traditional.png": ["nt"],
+    "/static/img/maps/Auslan/SouthAustralia-traditional.png": ["sa"],
+    "/static/img/maps/Auslan/Queensland-traditional.png": ["qld"],
+    "/static/img/maps/Auslan/NewSouthWales-traditional.png": ["nsw", "act"],
+    "/static/img/maps/Auslan/Victoria-traditional.png": ["vic"],
+    "/static/img/maps/Auslan/Tasmania-traditional.png": ["tas"],
+}
+
 
 @dataclass
 class Word:
@@ -208,7 +247,14 @@ async def get_pages_html(executor, urls: List[str]) -> List[str]:
     LOG.debug(f"Getting HTML for these URLs: {urls}")
     loop = asyncio.get_running_loop()
     futures = [loop.run_in_executor(executor, load_url, url) for url in urls]
-    return await asyncio.gather(*futures)
+    html_or_exceptions = await asyncio.gather(*futures, return_exceptions=True)
+    htmls = []
+    for result in html_or_exceptions:
+        if isinstance(result, Exception):
+            LOG.warning(f"Failed to get a page: {result}")
+            continue
+        htmls.append(result)
+    return htmls
 
 
 def parse_definition(definition_div_html) -> Dict[str, List[str]]:
@@ -275,13 +321,23 @@ def parse_subpage(html) -> SubWord:
     for definition_div_html in definition_divs_html:
         definitions.update(parse_definition(definition_div_html))
 
+    # Get the regions image.
+    regions_img_tags = soup.find_all("img", {"alt": "Region"})
+
+    try:
+        regions_img_link = [t["src"] for t in regions_img_tags if "Auslan/" in t["src"]][0]
+        # Derive the regions based on the image.
+        regions = REGIONS_IMAGE_MAP[regions_img_link]
+    except IndexError:
+        LOG.warning(f"Failed to get regions information for {html.url}")
+        regions = []
+
     return SubWord(
         keywords=keywords,
         video_links=video_links,
         definitions=definitions,
-        regions=[],
+        regions=regions,
     )
-
 
 
 async def main():
