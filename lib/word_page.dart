@@ -139,7 +139,7 @@ class _SubWordPageState extends State<SubWordPage> {
     var videoPlayerScreen = VideoPlayerScreen(videoLinks: subWord.videoLinks);
     String regionsStr;
     if (subWord.regions.length == 0) {
-      regionsStr = "Regional information unknown 😞";
+      regionsStr = "Regional information unknown";
     } else if (subWord.regions[0].toLowerCase() == "everywhere") {
       regionsStr = "All states of Australia";
     } else {

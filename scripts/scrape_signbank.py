@@ -293,7 +293,10 @@ async def parse_information(executor, html) -> Word:
 
     # Fetch their HTML
     # TODO: This part is synchronous and slow, surface this and gather it later.
-    subwords_html = await get_pages_html(executor, subpages_urls)
+    if subpages_urls:
+        subwords_html = await get_pages_html(executor, subpages_urls)
+    else:
+        subwords_html = []
 
     # Pull subwords information from them
     additional_subwords = [parse_subpage(html) for html in subwords_html]
@@ -327,11 +330,16 @@ def parse_subpage(html) -> SubWord:
 
     try:
         regions_img_link = [t["src"] for t in regions_img_tags if "Auslan/" in t["src"]][0]
-        # Derive the regions based on the image.
-        regions = REGIONS_IMAGE_MAP[regions_img_link]
+        try:
+            # Derive the regions based on the image.
+            regions = REGIONS_IMAGE_MAP[regions_img_link]
+        except KeyError:
+            LOG.warning(f"Encountered unexpected regions image URL: {regions_img_link}")
+            regions = []
     except IndexError:
         LOG.warning(f"Failed to get regions information for {html.url}")
         regions = []
+
 
     return SubWord(
         keywords=keywords,
