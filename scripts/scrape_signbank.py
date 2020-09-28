@@ -3,22 +3,30 @@
 """
 This script scrapes the Auslan Signbank website and builds up JSON
 with this format:
+
 {
-    "word": {
-        video_links: ["link1", "link2"],
-        keywords: ["keyword1", "keyword2"],
-        definitions: {
-            "heading1": [
-                "subdefintion1",
-                "subdefinition2",
-            ],
-            "heading2": [
-                "subdefintion1",
-                "subdefinition2",
-            ],
-        }
+    "word": [
+        {
+            video_links: ["link1", "link2"],
+            keywords: ["keyword1", "keyword2"],
+            regions: ["northern", "qld", "nsw", "act"],
+            definitions: {
+                "heading1": [
+                    "subdefintion1",
+                    "subdefinition2",
+                ],
+                "heading2": [
+                    "subdefintion1",
+                    "subdefinition2",
+                ],
+            },
+        ],
     },
 }
+
+Note: For a single word, there can be multiple entries. This means
+the word will have multiple "subwords" that each might have multiple
+videos, their own defitions, and so on.
 """
 
 import argparse
@@ -44,54 +52,66 @@ SITE_ROOT = "http://www.auslan.org.au"
 LETTER_PAGE_TEMPLATE = SITE_ROOT + "/dictionary/search/?query={letter}&page={page}"
 
 # Words to ignore because the page isn't actually there.
+WORDS_PAGE_BASE = r"http://www.auslan.org.au/dictionary/words/"
 DENYLIST = [
-    r"http://www.auslan.org.au/dictionary/words/at%20last-1.html",
-    r"http://www.auslan.org.au/dictionary/words/athletics-1.html",
-    r"http://www.auslan.org.au/dictionary/words/blazer-1.html",
-    r"http://www.auslan.org.au/dictionary/words/buttons-1.html",
-    r"http://www.auslan.org.au/dictionary/words/competed-1.html",
-    r"http://www.auslan.org.au/dictionary/words/completion-1.html",
-    r"http://www.auslan.org.au/dictionary/words/contiue-1.html",
-    r"http://www.auslan.org.au/dictionary/words/continous-1.html",
-    r"http://www.auslan.org.au/dictionary/words/coordinate-1.html",
-    r"http://www.auslan.org.au/dictionary/words/coordinator-1.html",
-    r"http://www.auslan.org.au/dictionary/words/dimension-1.html",
-    r"http://www.auslan.org.au/dictionary/words/distance%20(long%20distance)-1.html",
-    r"http://www.auslan.org.au/dictionary/words/distant%20(very%20distant)-1.html",
-    r"http://www.auslan.org.au/dictionary/words/end-point-1.html",
-    r"http://www.auslan.org.au/dictionary/words/far%20(very%20far)-1.html",
-    r"http://www.auslan.org.au/dictionary/words/full%20stops-1.html",
-    r"http://www.auslan.org.au/dictionary/words/oneself-1.html",
-    r"http://www.auslan.org.au/dictionary/words/ongoing-1.html",
-    r"http://www.auslan.org.au/dictionary/words/panel-1.html",
-    r"http://www.auslan.org.au/dictionary/words/periods%20(full%20stops)-1.html",
-    r"http://www.auslan.org.au/dictionary/words/point%20(tip)-1.html",
-    r"http://www.auslan.org.au/dictionary/words/points%20(dots)-1.html",
-    r"http://www.auslan.org.au/dictionary/words/predominant-1.html",
-    r"http://www.auslan.org.au/dictionary/words/ricochet-1.html",
-    r"http://www.auslan.org.au/dictionary/words/size%20(in%20height)-1.html",
-    r"http://www.auslan.org.au/dictionary/words/size%20(packet)-1.html",
-    r"http://www.auslan.org.au/dictionary/words/sprint-1.html",
-    r"http://www.auslan.org.au/dictionary/words/specifically-1.html",
-    r"http://www.auslan.org.au/dictionary/words/sports%20jacket-1.html",
-    r"http://www.auslan.org.au/dictionary/words/sports%20coat-1.html",
+    r"at%20last-1.html",
+    r"athletics-1.html",
+    r"blazer-1.html",
+    r"buttons-1.html",
+    r"competed-1.html",
+    r"completion-1.html",
+    r"contiue-1.html",
+    r"continous-1.html",
+    r"coordinate-1.html",
+    r"coordinator-1.html",
+    r"dimension-1.html",
+    r"distance%20(long%20distance)-1.html",
+    r"distant%20(very%20distant)-1.html",
+    r"end-point-1.html",
+    r"far%20(very%20far)-1.html",
+    r"full%20stops-1.html",
+    r"oneself-1.html",
+    r"ongoing-1.html",
+    r"panel-1.html",
+    r"periods%20(full%20stops)-1.html",
+    r"point%20(tip)-1.html",
+    r"points%20(dots)-1.html",
+    r"predominant-1.html",
+    r"ricochet-1.html",
+    r"size%20(in%20height)-1.html",
+    r"size%20(packet)-1.html",
+    r"sprint-1.html",
+    r"specifically-1.html",
+    r"sports%20jacket-1.html",
+    r"sports%20coat-1.html",
 ]
+DENYLIST = [WORDS_PAGE_BASE + u for u in DENYLIST]
 
 
 @dataclass
 class Word:
     word: str
-    keywords: List[str]
-    video_links: List[str]
-    definitions: Dict[str, List[str]]
+    subwords: List["SubWord"]
 
     def get_dict(self):
         return {
-            self.word: {
-                "video_links": self.video_links,
-                "keywords": self.keywords,
-                "definitions": self.definitions,
-            }
+            self.word: [sw.get_dict() for sw in self.subwords],
+        }
+
+
+@dataclass
+class SubWord:
+    keywords: List[str]
+    video_links: List[str]
+    definitions: Dict[str, List[str]]
+    regions: List[str]
+
+    def get_dict(self):
+        return {
+            "video_links": self.video_links,
+            "keywords": self.keywords,
+            "definitions": self.definitions,
+            "regions": self.regions,
         }
 
 
@@ -100,7 +120,9 @@ def parse_args():
     parser.add_argument("-d", "--debug", action="store_true")
     urls_args = parser.add_mutually_exclusive_group()
     urls_args.add_argument("--urls", nargs="*", help="Specific URLs to look at")
-    urls_args.add_argument("--urls-file", help="File containing specific URLs to look at")
+    urls_args.add_argument(
+        "--urls-file", help="File containing specific URLs to look at"
+    )
     parser.add_argument("--letters", nargs="*", help="Fetch only these letters")
     output_args = parser.add_mutually_exclusive_group(required=True)
     output_args.add_argument("--output-file")
@@ -206,7 +228,7 @@ def parse_definition(definition_div_html) -> Dict[str, List[str]]:
     return {heading: definitions}
 
 
-def parse_information(html) -> Word:
+async def parse_information(executor, html) -> Word:
     """
     Returns a tuple of the word and the info for the word.
     """
@@ -214,6 +236,30 @@ def parse_information(html) -> Word:
 
     # Get the word
     word = soup.find_all("em")[0].string
+
+    # Get the SubWord for this first page
+    first_subword = parse_subpage(html)
+    subwords = [first_subword]
+
+    # Get links to the subpages
+    subpages_tags = soup.find_all("a", {"class": "btn btn-default navbar-btn"})
+    subpages_urls = [WORDS_PAGE_BASE + t["href"] for t in subpages_tags]
+
+    # Fetch their HTML
+    subwords_html = await get_pages_html(executor, subpages_urls)
+
+    # Pull subwords information from them
+    additional_subwords = [parse_subpage(html) for html in subwords_html]
+    subwords += additional_subwords
+
+    return Word(
+        word=word,
+        subwords=subwords,
+    )
+
+
+def parse_subpage(html) -> SubWord:
+    soup = BeautifulSoup(html.text, "html.parser")
 
     # Get the keywords
     keywords_div = soup.find("div", {"id": "keywords"})
@@ -229,12 +275,13 @@ def parse_information(html) -> Word:
     for definition_div_html in definition_divs_html:
         definitions.update(parse_definition(definition_div_html))
 
-    return Word(
-        word=word,
+    return SubWord(
         keywords=keywords,
         video_links=video_links,
         definitions=definitions,
+        regions=[],
     )
+
 
 
 async def main():
@@ -262,7 +309,7 @@ async def main():
     # Parse the information in each of the pages.
     word_to_info = {}
     for html in word_pages_html:
-        word = parse_information(html)
+        word = await parse_information(executor, html)
         word_dict = word.get_dict()
         word_to_info.update(word_dict)
 
