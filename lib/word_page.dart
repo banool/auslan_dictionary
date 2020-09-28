@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/types.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -38,12 +39,15 @@ class _WordPageState extends State<WordPage> {
     });
   }
 
-  TextSpan getRelatedWords() {
+  RichText getRelatedWords() {
     Map<String, Word> allWordsMap = {};
     for (Word word in allWords) {
       allWordsMap[word.word] = word;
     }
-    List<WidgetSpan> relatedWordsButtons = [];
+    List<TextSpan> textSpans = [];
+    textSpans.add(TextSpan(
+        text: "Related words: ",
+        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)));
 
     int idx = 0;
     for (String keyword in word.keywords) {
@@ -53,12 +57,13 @@ class _WordPageState extends State<WordPage> {
       }
       Color color;
       Function navFunction;
+      Word relatedWord;
       if (allWordsMap.containsKey(keyword)) {
-        Word relatedWord = allWordsMap[keyword];
-        color =
-            MAIN_COLOR; // TODO: Or just hyperlink blue, or black since it seems they all link.
+        relatedWord = allWordsMap[keyword];
+        color = MAIN_COLOR;
         navFunction = () => navigateToWordPage(context, relatedWord, allWords);
       } else {
+        relatedWord = null;
         color = Colors.black;
         navFunction = null;
       }
@@ -68,23 +73,14 @@ class _WordPageState extends State<WordPage> {
       } else {
         suffix = "";
       }
-      relatedWordsButtons.add(WidgetSpan(
-          child: TextButton(
-              onPressed: navFunction,
-              style: ButtonStyle(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  visualDensity: VisualDensity(
-                      horizontal: VisualDensity.minimumDensity,
-                      vertical: VisualDensity.minimumDensity)),
-              child: Text("$keyword$suffix", style: TextStyle(color: color)))));
+      textSpans.add(TextSpan(
+        text: "$keyword$suffix",
+        style: TextStyle(color: color),
+        recognizer: TapGestureRecognizer()..onTap = navFunction,
+      ));
       idx += 1;
     }
-    List<InlineSpan> children = [];
-    children.add(TextSpan(
-        text: "Related words: ",
-        style: TextStyle(fontWeight: FontWeight.bold)));
-    children.addAll(relatedWordsButtons);
-    return TextSpan(children: children);
+    return RichText(text: TextSpan(children: textSpans));
   }
 
   @override
@@ -106,7 +102,7 @@ class _WordPageState extends State<WordPage> {
               Padding(
                   padding:
                       EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-                  child: Text.rich(getRelatedWords())),
+                  child: getRelatedWords()),
             Expanded(
               child: definitions(context, word.definitions),
             ),
