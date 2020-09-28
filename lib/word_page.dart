@@ -31,7 +31,6 @@ class _WordPageState extends State<WordPage> {
   void onPageChanged(int index) {
     setState(() {
       currentPage = index;
-      print("CURRENT PAGE BABY $currentPage");
     });
   }
 
@@ -58,7 +57,7 @@ class _WordPageState extends State<WordPage> {
                 word: word, allWords: allWords, subWord: word.subWords[index]),
             onPageChanged: onPageChanged),
         bottomNavigationBar: Padding(
-          padding: EdgeInsets.only(top: 5, bottom: 5),
+          padding: EdgeInsets.only(top: 5, bottom: 15),
           child: DotsIndicator(
             dotsCount: word.subWords.length,
             position: currentPage.toDouble(),
@@ -138,6 +137,14 @@ class _SubWordPageState extends State<SubWordPage> {
   @override
   Widget build(BuildContext context) {
     var videoPlayerScreen = VideoPlayerScreen(videoLinks: subWord.videoLinks);
+    String regionsStr;
+    if (subWord.regions.length == 0) {
+      regionsStr = "Regional information unknown 😞";
+    } else if (subWord.regions[0].toLowerCase() == "everywhere") {
+      regionsStr = "All states of Australia";
+    } else {
+      regionsStr = subWord.regions.join(", ");
+    }
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -147,11 +154,20 @@ class _SubWordPageState extends State<SubWordPage> {
         videoPlayerScreen,
         if (subWord.keywords.length > 0)
           Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+              padding: EdgeInsets.only(
+                  left: 20.0, right: 20.0, top: 15.0, bottom: 10.0),
               child: getRelatedWords()),
         Expanded(
           child: definitions(context, subWord.definitions),
         ),
+        Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+                padding: EdgeInsets.only(bottom: 5.0, top: 15.0),
+                child: Text(
+                  regionsStr,
+                  textAlign: TextAlign.center,
+                ))),
       ],
     );
   }
@@ -287,7 +303,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             var controller = controllers[idx];
             var player = VideoPlayer(controller);
             var videoContainer =
-                Container(padding: EdgeInsets.only(top: 20), child: player);
+                Container(padding: EdgeInsets.only(top: 15), child: player);
             return videoContainer;
           });
       items.add(futureBuilder);
@@ -333,7 +349,7 @@ Widget definition(BuildContext context, Definition definition) {
         Column(
           children: definition.subdefinitions
               .map((s) => Padding(
-                  padding: EdgeInsets.only(left: 10.0, top: 10.0),
+                  padding: EdgeInsets.only(left: 10.0, top: 8.0),
                   child: Text(s)))
               .toList(),
         )

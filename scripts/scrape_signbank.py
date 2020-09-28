@@ -88,42 +88,42 @@ DENYLIST = [
 DENYLIST = [WORDS_PAGE_BASE + u for u in DENYLIST]
 
 EVERY_REGION = [
-    "everywhere",
-    "southern",
-    "northern",
-    "wa",
-    "nt",
-    "sa",
-    "qld",
-    "nsw",
-    "act",
-    "vic",
-    "tas",
+    "Everywhere",
+    "Southern",
+    "Northern",
+    "WA",
+    "NT",
+    "SA",
+    "QLD",
+    "NSW",
+    "ACT",
+    "VIC",
+    "TAS",
 ]
 REGIONS_IMAGE_MAP = {
     "/static/img/maps/Auslan/AustraliaWide-traditional.png": EVERY_REGION,
     "/static/img/maps/Auslan/AustraliaWide.png": EVERY_REGION,
     "/static/img/maps/Auslan/SouthernDialect-traditional.png": [
-        "southern",
-        "wa",
-        "nt",
-        "sa",
-        "vic",
-        "tas",
+        "Southern",
+        "WA",
+        "NT",
+        "SA",
+        "VIC",
+        "TAS",
     ],
     "/static/img/maps/Auslan/NorthernDialect-traditional.png": [
-        "northern",
-        "qld",
-        "nsw",
-        "act",
+        "Northern",
+        "QLD",
+        "NSW",
+        "ACT",
     ],
-    "/static/img/maps/Auslan/WesternAustralia-traditional.png": ["wa"],
-    "/static/img/maps/Auslan/NorthernTerritory-traditional.png": ["nt"],
-    "/static/img/maps/Auslan/SouthAustralia-traditional.png": ["sa"],
-    "/static/img/maps/Auslan/Queensland-traditional.png": ["qld"],
-    "/static/img/maps/Auslan/NewSouthWales-traditional.png": ["nsw", "act"],
-    "/static/img/maps/Auslan/Victoria-traditional.png": ["vic"],
-    "/static/img/maps/Auslan/Tasmania-traditional.png": ["tas"],
+    "/static/img/maps/Auslan/WesternAustralia-traditional.png": ["WA"],
+    "/static/img/maps/Auslan/NorthernTerritory-traditional.png": ["NT"],
+    "/static/img/maps/Auslan/SouthAustralia-traditional.png": ["SA"],
+    "/static/img/maps/Auslan/Queensland-traditional.png": ["QLD"],
+    "/static/img/maps/Auslan/NewSouthWales-traditional.png": ["NSW", "ACT"],
+    "/static/img/maps/Auslan/Victoria-traditional.png": ["VIC"],
+    "/static/img/maps/Auslan/Tasmania-traditional.png": ["TAS"],
 }
 
 
@@ -292,6 +292,7 @@ async def parse_information(executor, html) -> Word:
     subpages_urls = [WORDS_PAGE_BASE + t["href"] for t in subpages_tags]
 
     # Fetch their HTML
+    # TODO: This part is synchronous and slow, surface this and gather it later.
     subwords_html = await get_pages_html(executor, subpages_urls)
 
     # Pull subwords information from them
