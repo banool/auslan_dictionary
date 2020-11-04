@@ -215,6 +215,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool shouldCache = prefs.getBool(KEY_SHOULD_CACHE);
 
+    VideoPlayerOptions videoPlayerOptions =
+        VideoPlayerOptions(mixWithOthers: true);
+
     VideoPlayerController controller;
     if (shouldCache == null || shouldCache) {
       FileInfo fileInfo =
@@ -231,10 +234,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         });
       }
 
-      controller = VideoPlayerController.file(file);
+      controller = VideoPlayerController.file(file,
+          videoPlayerOptions: videoPlayerOptions);
     } else {
       print("Caching is disabled, pulling from the network");
-      controller = VideoPlayerController.network(videoLink);
+      controller = VideoPlayerController.network(videoLink,
+          videoPlayerOptions: videoPlayerOptions);
     }
 
     // Use the controller to loop the video.
