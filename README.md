@@ -9,7 +9,7 @@ Currently this must be done manually:
 flutter pub get
 flutter pub run flutter_launcher_icons:main
 flutter build ios --release --no-codesign
-./publish_do_not_check_in.sh
+cd ios && ./publish_do_not_check_in.sh
 ```
 
 To generate and upload screenshots:
