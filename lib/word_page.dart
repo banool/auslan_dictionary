@@ -8,6 +8,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
 import 'common.dart';
@@ -50,6 +51,19 @@ class _WordPageState extends State<WordPage> {
     return Scaffold(
         appBar: AppBar(
           title: Text(word.word),
+          actions: <Widget>[
+            FlatButton(
+              textColor: Colors.white,
+              onPressed: () async {
+                var url =
+                    'http://www.auslan.org.au/dictionary/words/${word.word}-1.html';
+                await launch(url, forceSafariVC: false);
+              },
+              child: Icon(Icons.public,
+                  semanticLabel: "Link to sign in Auslan Signbank"),
+              shape: CircleBorder(side: BorderSide(color: Colors.transparent)),
+            ),
+          ],
         ),
         body: PageView.builder(
             itemCount: word.subWords.length,
