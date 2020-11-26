@@ -56,7 +56,7 @@ class _WordPageState extends State<WordPage> {
               textColor: Colors.white,
               onPressed: () async {
                 var url =
-                    'http://www.auslan.org.au/dictionary/words/${word.word}-1.html';
+                    'http://www.auslan.org.au/dictionary/words/${word.word}-${currentPage+1}.html';
                 await launch(url, forceSafariVC: false);
               },
               child: Icon(Icons.public,
