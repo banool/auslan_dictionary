@@ -18,8 +18,6 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -75,6 +73,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void onNavBarItemTapped(int index) {
     setState(() {
       currentNavBarIndex = index;
+      // clearSearch()
     });
   }
 
@@ -146,23 +145,14 @@ class _SearchPageState extends State<SearchPage> {
 
   void search(String searchTerm) {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
       wordsSearched = searchWords(searchTerm);
     });
   }
 
   void clearSearch() {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
       wordsSearched = [];
+      _searchFieldController.clear();
     });
   }
 
@@ -219,14 +209,13 @@ class _SearchPageState extends State<SearchPage> {
                               hintText: 'Search for a word',
                               suffixIcon: IconButton(
                                 onPressed: () {
-                                  _searchFieldController.clear();
                                   clearSearch();
                                 },
                                 icon: Icon(Icons.clear),
                               ),
                             ),
                             // The validator receives the text that the user has entered.
-                            onSubmitted: (String value) {
+                            onChanged: (String value) {
                               search(value);
                             },
                             autofocus: true,
