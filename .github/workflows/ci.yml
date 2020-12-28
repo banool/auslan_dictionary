@@ -26,7 +26,7 @@ jobs:
 
     # Initial build and test
     - run: flutter pub get
-    - run: cd ./ios && pod install && cd ..
+    - run: echo 'skipping ios install' # cd ./ios && pod install && cd ..
     - run: flutter test
 
     # Build Android
@@ -53,11 +53,11 @@ jobs:
         track: internal
 
     #  Build iOS
-    - run: flutter build ios --release --no-codesign
+    - run: echo 'skipping ios build' # flutter build ios --release --no-codesign
 
     # Get fastlane working so we can publish to the app store.
     - name: Run bundle install to get fastlane for iOS
-      run: cd ./ios && bundle install && cd ..
+      run: echo 'skipping fastlane install' # cd ./ios && bundle install && cd ..
 
     - name: Setup SSH Keys and known_hosts for iOS fastlane match
       run: |
