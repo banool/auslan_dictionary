@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/types.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:dots_indicator/dots_indicator.dart';
@@ -28,6 +27,28 @@ class _WordPageState extends State<WordPage> {
   _WordPageState({this.word, this.allWords});
 
   int currentPage = 0;
+  Future<void> initStateAsyncFuture;
+  SharedPreferences prefs;
+
+  final Word word;
+  final List<Word> allWords;
+  bool isFavourited = false;
+
+  @override
+  void initState() {
+    initStateAsyncFuture = initStateAsync();
+    super.initState();
+  }
+
+  Future<void> initStateAsync() async {
+    List<Word> favourites = await loadFavourites(allWords, context);
+    if (favourites.contains(word)) {
+      isFavourited = true;
+    } else {
+      isFavourited = false;
+    }
+    print("isFave: $isFavourited");
+  }
 
   void onPageChanged(int index) {
     setState(() {
@@ -35,52 +56,97 @@ class _WordPageState extends State<WordPage> {
     });
   }
 
-  final Word word;
-  final List<Word> allWords;
-
   @override
   Widget build(BuildContext context) {
-    List<Widget> pages = [];
-    for (int i = 0; i < word.subWords.length; i++) {
-      SubWord subWord = word.subWords[i];
-      SubWordPage subWordPage =
-          SubWordPage(word: word, allWords: allWords, subWord: subWord);
-      pages.add(subWordPage);
-    }
+    return FutureBuilder(
+        future: initStateAsyncFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return new Center(
+              child: new CircularProgressIndicator(),
+            );
+          }
+          List<Widget> pages = [];
+          for (int i = 0; i < word.subWords.length; i++) {
+            SubWord subWord = word.subWords[i];
+            SubWordPage subWordPage =
+                SubWordPage(word: word, allWords: allWords, subWord: subWord);
+            pages.add(subWordPage);
+          }
 
-    return Scaffold(
-        appBar: AppBar(
-          title: Text(word.word),
-          actions: <Widget>[
-            FlatButton(
-              textColor: Colors.white,
-              onPressed: () async {
-                var url =
-                    'http://www.auslan.org.au/dictionary/words/${word.word}-${currentPage+1}.html';
-                await launch(url, forceSafariVC: false);
-              },
-              child: Icon(Icons.public,
-                  semanticLabel: "Link to sign in Auslan Signbank"),
-              shape: CircleBorder(side: BorderSide(color: Colors.transparent)),
+          Icon starIcon;
+          if (isFavourited) {
+            starIcon = Icon(Icons.star, semanticLabel: "Already favourited!");
+          } else {
+            starIcon =
+                Icon(Icons.star_outline, semanticLabel: "Favourite this word");
+          }
+
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(word.word),
+              actions: <Widget>[
+                Container(
+                  padding: const EdgeInsets.all(0),
+                  width: 50.0,
+                  child: FlatButton(
+                    padding: EdgeInsets.zero,
+                    textColor: Colors.white,
+                    onPressed: () async {
+                      setState(() {
+                        isFavourited = !isFavourited;
+                      });
+                      if (isFavourited) {
+                        await addToFavourites(word, allWords, context);
+                      } else {
+                        await removeFromFavourites(word, allWords, context);
+                      }
+                    },
+                    child: starIcon,
+                    shape: CircleBorder(
+                        side: BorderSide(color: Colors.transparent)),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(0),
+                  width: 50.0,
+                  child: FlatButton(
+                    padding: EdgeInsets.zero,
+                    textColor: Colors.white,
+                    onPressed: () async {
+                      var url =
+                          'http://www.auslan.org.au/dictionary/words/${word.word}-${currentPage + 1}.html';
+                      await launch(url, forceSafariVC: false);
+                    },
+                    child: Icon(Icons.public,
+                        semanticLabel: "Link to sign in Auslan Signbank"),
+                    shape: CircleBorder(
+                        side: BorderSide(color: Colors.transparent)),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-        body: PageView.builder(
-            itemCount: word.subWords.length,
-            itemBuilder: (context, index) => SubWordPage(
-                word: word, allWords: allWords, subWord: word.subWords[index]),
-            onPageChanged: onPageChanged),
-        bottomNavigationBar: Padding(
-          padding: EdgeInsets.only(top: 5, bottom: 15),
-          child: DotsIndicator(
-            dotsCount: word.subWords.length,
-            position: currentPage.toDouble(),
-            decorator: DotsDecorator(
-              color: Colors.black, // Inactive color
-              activeColor: MAIN_COLOR,
+            bottomNavigationBar: Padding(
+              padding: EdgeInsets.only(top: 5, bottom: 15),
+              child: DotsIndicator(
+                dotsCount: word.subWords.length,
+                position: currentPage.toDouble(),
+                decorator: DotsDecorator(
+                  color: Colors.black, // Inactive color
+                  activeColor: MAIN_COLOR,
+                ),
+              ),
             ),
-          ),
-        ));
+            body: Center(
+                child: PageView.builder(
+                    itemCount: word.subWords.length,
+                    itemBuilder: (context, index) => SubWordPage(
+                        word: word,
+                        allWords: allWords,
+                        subWord: word.subWords[index]),
+                    onPageChanged: onPageChanged)),
+          );
+        });
   }
 }
 

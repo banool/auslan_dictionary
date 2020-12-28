@@ -1,11 +1,22 @@
+import 'package:auslan_dictionary/favourites_page.dart';
 import 'package:flutter/material.dart';
 
 import 'common.dart';
 import 'search_page.dart';
 import 'settings_page.dart';
 
-void main() {
-  runApp(MyApp());
+Future<void> main() async {
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    await setup();
+    runApp(MyApp());
+  } catch (error) {
+    print("Initial setup failed: $error");
+  }
+}
+
+Future<void> setup() async {
+  await bootstrapFavourites();
 }
 
 class MyApp extends StatelessWidget {
@@ -64,6 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     List<Widget> tabs = [
       SearchPage(controller: searchPageController),
+      FavouritesPage(),
       SettingsPage(),
     ];
     return Scaffold(
@@ -76,6 +88,10 @@ class _MyHomePageState extends State<MyHomePage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.search),
             label: "Dictionary",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.star),
+            label: "Favourites",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),

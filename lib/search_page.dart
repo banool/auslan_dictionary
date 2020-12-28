@@ -1,8 +1,6 @@
-import "dart:collection";
 import 'dart:convert';
 
 import 'package:auslan_dictionary/types.dart';
-import 'package:edit_distance/edit_distance.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -78,7 +76,7 @@ class _SearchPageState extends State<SearchPage> {
 
   void search(String searchTerm) {
     setState(() {
-      wordsSearched = searchWords(searchTerm);
+      wordsSearched = searchList(searchTerm, words, []);
     });
   }
 
@@ -87,37 +85,6 @@ class _SearchPageState extends State<SearchPage> {
       wordsSearched = [];
       _searchFieldController.clear();
     });
-  }
-
-  List<Word> searchWords(String searchTerm) {
-    final SplayTreeMap<double, List<Word>> st =
-        SplayTreeMap<double, List<Word>>();
-    if (searchTerm == "") {
-      return [];
-    }
-    searchTerm = searchTerm.toLowerCase();
-    JaroWinkler d = new JaroWinkler();
-    RegExp noParenthesesRegExp = new RegExp(
-      r"^[^ (]*",
-      caseSensitive: false,
-      multiLine: false,
-    );
-    for (Word w in words) {
-      String noPunctuation = w.word.replaceAll(" ", "").replaceAll(",", "");
-      String lowerCase = noPunctuation.toLowerCase();
-      String noParenthesesContent = noParenthesesRegExp.stringMatch(lowerCase);
-      String normalisedWord = noParenthesesContent;
-      double difference = d.normalizedDistance(normalisedWord, searchTerm);
-      st.putIfAbsent(difference, () => []).add(w);
-    }
-    List<Word> out = [];
-    for (List<Word> words in st.values) {
-      out.addAll(words);
-      if (out.length > 10) {
-        break;
-      }
-    }
-    return out;
   }
 
   @override
