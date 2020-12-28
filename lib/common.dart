@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'types.dart';
 import 'word_page.dart';
 
+const String APP_NAME = "Auslan Dictionary";
+
 const Color MAIN_COLOR = Colors.blue;
 
 const String KEY_SHOULD_CACHE = "shouldCache";
