@@ -67,20 +67,24 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final SearchPageController searchPageController = SearchPageController();
+
   bool wordsLoaded = false;
   int currentNavBarIndex = 0;
 
   void onNavBarItemTapped(int index) {
     setState(() {
       currentNavBarIndex = index;
-      // clearSearch()
+      if (searchPageController.isMounted) {
+        searchPageController.clearSearch();
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
     List<Widget> tabs = [
-      SearchPage(),
+      SearchPage(controller: searchPageController),
       SettingsPage(),
     ];
     return Scaffold(
@@ -107,14 +111,40 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
+class SearchPageController {
+  bool isMounted = false;
+
+  void onMount() {
+    isMounted = true;
+  }
+
+  void dispose() {
+    isMounted = false;
+  }
+
+  void Function() clearSearch;
+}
+
 class SearchPage extends StatefulWidget {
-  SearchPage({Key key}) : super(key: key);
+  final SearchPageController controller;
+
+  SearchPage({Key key, this.controller}) : super(key: key);
 
   @override
-  _SearchPageState createState() => _SearchPageState();
+  _SearchPageState createState() => _SearchPageState(controller);
 }
 
 class _SearchPageState extends State<SearchPage> {
+  SearchPageController controller;
+
+  // We do this so the parent can call clearSearch
+  // https://stackoverflow.com/a/60869283/3846032
+  _SearchPageState(SearchPageController _controller) {
+    controller = _controller;
+    controller.clearSearch = clearSearch;
+    controller.onMount();
+  }
+
   bool wordsLoaded = false;
   List<Word> words = [];
   List<Word> wordsSearched = [];
@@ -141,6 +171,12 @@ class _SearchPageState extends State<SearchPage> {
   void initState() {
     loadWords();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
   }
 
   void search(String searchTerm) {
