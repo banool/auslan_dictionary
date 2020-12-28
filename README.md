@@ -15,6 +15,7 @@ cd ios && ./publish_do_not_check_in.sh
 If you run into problems with this, run:
 ```
 brew reinstall fastlane
+rm Gemfile.lock
 ```
 
 To generate and upload screenshots:
