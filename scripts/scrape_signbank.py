@@ -40,6 +40,7 @@ from typing import Dict, List, Tuple
 
 import requests
 from bs4 import BeautifulSoup
+from retry import retry
 
 LOG = logging.getLogger(__name__)
 formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
@@ -169,6 +170,7 @@ def parse_args():
     return parser.parse_args()
 
 
+@retry(RuntimeError, delay=1, backoff=3, tries=5)
 def load_url(url, timeout=180):
     LOG.debug(f"Getting HTML for URL: {url}")
     response = requests.get(url, timeout=timeout)
@@ -249,11 +251,17 @@ async def get_pages_html(executor, urls: List[str]) -> List[str]:
     futures = [loop.run_in_executor(executor, load_url, url) for url in urls]
     html_or_exceptions = await asyncio.gather(*futures, return_exceptions=True)
     htmls = []
+    failed = []
     for result in html_or_exceptions:
         if isinstance(result, Exception):
             LOG.warning(f"Failed to get a page: {result}")
+            failed.append(result)
             continue
         htmls.append(result)
+    if failed:
+        LOG.debug("Pages we failed to get")
+        for fa in failed:
+            LOG.debug(f"Failed to get: {fa}")
     return htmls
 
 
@@ -357,7 +365,7 @@ async def main():
     else:
         LOG.setLevel("INFO")
 
-    executor = ThreadPoolExecutor(max_workers=32)
+    executor = ThreadPoolExecutor(max_workers=16)
 
     # Get the URLs for all the word pages.
     if args.urls:
