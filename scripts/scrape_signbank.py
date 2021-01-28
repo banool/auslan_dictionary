@@ -118,6 +118,14 @@ REGIONS_IMAGE_MAP = {
         "NSW",
         "ACT",
     ],
+    "/static/img/maps/Auslan/WesternAustralia.png": ["WA"],
+    "/static/img/maps/Auslan/NorthernTerritory.png": ["NT"],
+    "/static/img/maps/Auslan/SouthAustralia.png": ["SA"],
+    "/static/img/maps/Auslan/Queensland.png": ["QLD"],
+    "/static/img/maps/Auslan/NewSouthWales.png": ["NSW", "ACT"],
+    "/static/img/maps/Auslan/Victoria.png": ["VIC"],
+    "/static/img/maps/Auslan/Tasmania.png": ["TAS"],
+    # Traditional suffix.
     "/static/img/maps/Auslan/WesternAustralia-traditional.png": ["WA"],
     "/static/img/maps/Auslan/NorthernTerritory-traditional.png": ["NT"],
     "/static/img/maps/Auslan/SouthAustralia-traditional.png": ["SA"],
@@ -153,21 +161,6 @@ class SubWord:
             "definitions": self.definitions,
             "regions": self.regions,
         }
-
-
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--debug", action="store_true")
-    urls_args = parser.add_mutually_exclusive_group()
-    urls_args.add_argument("--urls", nargs="*", help="Specific URLs to look at")
-    urls_args.add_argument(
-        "--urls-file", help="File containing specific URLs to look at"
-    )
-    parser.add_argument("--letters", nargs="*", help="Fetch only these letters")
-    output_args = parser.add_mutually_exclusive_group(required=True)
-    output_args.add_argument("--output-file")
-    output_args.add_argument("--stdout", action="store_true")
-    return parser.parse_args()
 
 
 @retry(RuntimeError, delay=1, backoff=3, tries=5)
@@ -357,6 +350,29 @@ def parse_subpage(html) -> SubWord:
     )
 
 
+def get_existing_data(filename):
+    with open(filename, "r") as f:
+        existing_data = json.loads(f.read())
+    LOG.debug(f"Loaded existing data: {existing_data}")
+    return existing_data
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--debug", action="store_true")
+    urls_args = parser.add_mutually_exclusive_group()
+    urls_args.add_argument("--urls", nargs="*", help="Specific URLs to look at")
+    urls_args.add_argument(
+        "--urls-file", help="File containing specific URLs to look at"
+    )
+    parser.add_argument("--letters", nargs="*", help="Fetch only these letters")
+    output_args = parser.add_mutually_exclusive_group(required=True)
+    output_args.add_argument("--output-file")
+    output_args.add_argument("--stdout", action="store_true")
+    parser.add_argument("--existing-file", help="Start with this file as the base")
+    return parser.parse_args()
+
+
 async def main():
     args = parse_args()
 
@@ -364,6 +380,12 @@ async def main():
         LOG.setLevel("DEBUG")
     else:
         LOG.setLevel("INFO")
+
+    # Load up data from the existing file if given.
+    if args.existing_file:
+        word_to_info = get_existing_data(args.existing_file)
+    else:
+        word_to_info = {}
 
     executor = ThreadPoolExecutor(max_workers=16)
 
@@ -380,7 +402,6 @@ async def main():
     word_pages_html = await get_pages_html(executor, urls)
 
     # Parse the information in each of the pages.
-    word_to_info = {}
     for html in word_pages_html:
         word = await parse_information(executor, html)
         word_dict = word.get_dict()
