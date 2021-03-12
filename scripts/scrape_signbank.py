@@ -387,6 +387,9 @@ async def main():
     else:
         word_to_info = {}
 
+    if args.existing_file == args.output_file and args.existing_file is not None:
+        raise RuntimeError("--existing-file and --output-file cannot be the same file")
+
     executor = ThreadPoolExecutor(max_workers=16)
 
     # Get the URLs for all the word pages.
