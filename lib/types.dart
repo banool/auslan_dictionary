@@ -1,8 +1,8 @@
 class Word {
   Word({this.word, this.subWords});
 
-  String word;
-  List<SubWord> subWords;
+  String? word;
+  List<SubWord>? subWords;
 
   Word.fromJson(String word, dynamic wordJson) {
     this.word = word;
@@ -20,10 +20,10 @@ class Word {
 class SubWord {
   SubWord({this.keywords, this.videoLinks, this.definitions, this.regions});
 
-  List<String> keywords;
-  List<String> videoLinks;
-  List<Definition> definitions;
-  List<String> regions;
+  List<String>? keywords;
+  List<String>? videoLinks;
+  List<Definition>? definitions;
+  List<String>? regions;
 
   SubWord.fromJson(dynamic wordJson) {
     this.keywords = wordJson["keywords"].cast<String>();
@@ -31,7 +31,7 @@ class SubWord {
 
     List<Definition> definitions = [];
     wordJson["definitions"].forEach((heading, value) {
-      List<String> subdefinitions = value.cast<String>();
+      List<String>? subdefinitions = value.cast<String>();
       definitions
           .add(Definition(heading: heading, subdefinitions: subdefinitions));
     });
@@ -44,6 +44,6 @@ class SubWord {
 class Definition {
   Definition({this.heading, this.subdefinitions});
 
-  final String heading;
-  final List<String> subdefinitions;
+  final String? heading;
+  final List<String>? subdefinitions;
 }

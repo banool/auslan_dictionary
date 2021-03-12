@@ -13,10 +13,10 @@ import 'package:video_player/video_player.dart';
 import 'common.dart';
 
 class WordPage extends StatefulWidget {
-  WordPage({Key key, this.word, this.allWords}) : super(key: key);
+  WordPage({Key? key, this.word, this.allWords}) : super(key: key);
 
-  final Word word;
-  final List<Word> allWords;
+  final Word? word;
+  final List<Word>? allWords;
 
   @override
   _WordPageState createState() =>
@@ -27,11 +27,11 @@ class _WordPageState extends State<WordPage> {
   _WordPageState({this.word, this.allWords});
 
   int currentPage = 0;
-  Future<void> initStateAsyncFuture;
-  SharedPreferences prefs;
+  Future<void>? initStateAsyncFuture;
+  SharedPreferences? prefs;
 
-  final Word word;
-  final List<Word> allWords;
+  final Word? word;
+  final List<Word>? allWords;
   bool isFavourited = false;
 
   @override
@@ -41,7 +41,7 @@ class _WordPageState extends State<WordPage> {
   }
 
   Future<void> initStateAsync() async {
-    List<Word> favourites = await loadFavourites(allWords, context);
+    List<Word?> favourites = await loadFavourites(allWords, context);
     if (favourites.contains(word)) {
       isFavourited = true;
     } else {
@@ -67,8 +67,8 @@ class _WordPageState extends State<WordPage> {
             );
           }
           List<Widget> pages = [];
-          for (int i = 0; i < word.subWords.length; i++) {
-            SubWord subWord = word.subWords[i];
+          for (int i = 0; i < word!.subWords!.length; i++) {
+            SubWord subWord = word!.subWords![i];
             SubWordPage subWordPage =
                 SubWordPage(word: word, allWords: allWords, subWord: subWord);
             pages.add(subWordPage);
@@ -84,7 +84,7 @@ class _WordPageState extends State<WordPage> {
 
           return Scaffold(
             appBar: AppBar(
-              title: Text(word.word),
+              title: Text(word!.word!),
               actions: <Widget>[
                 Container(
                   padding: const EdgeInsets.all(0),
@@ -115,7 +115,7 @@ class _WordPageState extends State<WordPage> {
                     textColor: Colors.white,
                     onPressed: () async {
                       var url =
-                          'http://www.auslan.org.au/dictionary/words/${word.word}-${currentPage + 1}.html';
+                          'http://www.auslan.org.au/dictionary/words/${word!.word}-${currentPage + 1}.html';
                       await launch(url, forceSafariVC: false);
                     },
                     child: Icon(Icons.public,
@@ -129,7 +129,7 @@ class _WordPageState extends State<WordPage> {
             bottomNavigationBar: Padding(
               padding: EdgeInsets.only(top: 5, bottom: 15),
               child: DotsIndicator(
-                dotsCount: word.subWords.length,
+                dotsCount: word!.subWords!.length,
                 position: currentPage.toDouble(),
                 decorator: DotsDecorator(
                   color: Colors.black, // Inactive color
@@ -139,11 +139,11 @@ class _WordPageState extends State<WordPage> {
             ),
             body: Center(
                 child: PageView.builder(
-                    itemCount: word.subWords.length,
+                    itemCount: word!.subWords!.length,
                     itemBuilder: (context, index) => SubWordPage(
                         word: word,
                         allWords: allWords,
-                        subWord: word.subWords[index]),
+                        subWord: word!.subWords![index]),
                     onPageChanged: onPageChanged)),
           );
         });
@@ -151,12 +151,12 @@ class _WordPageState extends State<WordPage> {
 }
 
 class SubWordPage extends StatefulWidget {
-  SubWordPage({Key key, this.word, this.allWords, this.subWord})
+  SubWordPage({Key? key, this.word, this.allWords, this.subWord})
       : super(key: key);
 
-  final Word word;
-  final List<Word> allWords;
-  final SubWord subWord;
+  final Word? word;
+  final List<Word>? allWords;
+  final SubWord? subWord;
 
   @override
   _SubWordPageState createState() =>
@@ -166,13 +166,13 @@ class SubWordPage extends StatefulWidget {
 class _SubWordPageState extends State<SubWordPage> {
   _SubWordPageState({this.word, this.allWords, this.subWord});
 
-  final Word word;
-  final List<Word> allWords;
-  final SubWord subWord;
+  final Word? word;
+  final List<Word>? allWords;
+  final SubWord? subWord;
 
   RichText getRelatedWords() {
-    Map<String, Word> allWordsMap = {};
-    for (Word word in allWords) {
+    Map<String?, Word> allWordsMap = {};
+    for (Word word in allWords!) {
       allWordsMap[word.word] = word;
     }
     List<TextSpan> textSpans = [];
@@ -181,14 +181,14 @@ class _SubWordPageState extends State<SubWordPage> {
         style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)));
 
     int idx = 0;
-    for (String keyword in subWord.keywords) {
-      if (keyword == word.word) {
+    for (String keyword in subWord!.keywords!) {
+      if (keyword == word!.word) {
         idx += 1;
         continue;
       }
       Color color;
-      Function navFunction;
-      Word relatedWord;
+      Function? navFunction;
+      Word? relatedWord;
       if (allWordsMap.containsKey(keyword)) {
         relatedWord = allWordsMap[keyword];
         color = MAIN_COLOR;
@@ -199,7 +199,7 @@ class _SubWordPageState extends State<SubWordPage> {
         navFunction = null;
       }
       String suffix;
-      if (idx < subWord.keywords.length - 1) {
+      if (idx < subWord!.keywords!.length - 1) {
         suffix = ", ";
       } else {
         suffix = "";
@@ -207,7 +207,7 @@ class _SubWordPageState extends State<SubWordPage> {
       textSpans.add(TextSpan(
         text: "$keyword$suffix",
         style: TextStyle(color: color),
-        recognizer: TapGestureRecognizer()..onTap = navFunction,
+        recognizer: TapGestureRecognizer()..onTap = navFunction as void Function()?,
       ));
       idx += 1;
     }
@@ -216,14 +216,14 @@ class _SubWordPageState extends State<SubWordPage> {
 
   @override
   Widget build(BuildContext context) {
-    var videoPlayerScreen = VideoPlayerScreen(videoLinks: subWord.videoLinks);
+    var videoPlayerScreen = VideoPlayerScreen(videoLinks: subWord!.videoLinks);
     String regionsStr;
-    if (subWord.regions.length == 0) {
+    if (subWord!.regions!.length == 0) {
       regionsStr = "Regional information unknown";
-    } else if (subWord.regions[0].toLowerCase() == "everywhere") {
+    } else if (subWord!.regions![0].toLowerCase() == "everywhere") {
       regionsStr = "All states of Australia";
     } else {
-      regionsStr = subWord.regions.join(", ");
+      regionsStr = subWord!.regions!.join(", ");
     }
 
     return Column(
@@ -232,13 +232,13 @@ class _SubWordPageState extends State<SubWordPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         videoPlayerScreen,
-        if (subWord.keywords.length > 0)
+        if (subWord!.keywords!.length > 0)
           Padding(
               padding: EdgeInsets.only(
                   left: 20.0, right: 20.0, top: 15.0, bottom: 10.0),
               child: getRelatedWords()),
         Expanded(
-          child: definitions(context, subWord.definitions),
+          child: definitions(context, subWord!.definitions!),
         ),
         Align(
             alignment: Alignment.bottomCenter,
@@ -254,9 +254,9 @@ class _SubWordPageState extends State<SubWordPage> {
 }
 
 class VideoPlayerScreen extends StatefulWidget {
-  VideoPlayerScreen({Key key, this.videoLinks}) : super(key: key);
+  VideoPlayerScreen({Key? key, this.videoLinks}) : super(key: key);
 
-  final List<String> videoLinks;
+  final List<String>? videoLinks;
 
   @override
   _VideoPlayerScreenState createState() =>
@@ -266,15 +266,15 @@ class VideoPlayerScreen extends StatefulWidget {
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   _VideoPlayerScreenState({this.videoLinks});
 
-  final List<String> videoLinks;
+  final List<String>? videoLinks;
 
   Map<int, VideoPlayerController> controllers = {};
 
   List<Future<void>> initializeVideoPlayerFutures = [];
 
-  Future<void> firstInitVideosFuture;
+  Future<void>? firstInitVideosFuture;
 
-  CarouselController carouselController;
+  CarouselController? carouselController;
 
   int currentPage = 0;
 
@@ -282,7 +282,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   void initState() {
     // Initialise the videos, reading from cache if possible.
     int idx = 0;
-    for (String videoLink in videoLinks) {
+    for (String videoLink in videoLinks!) {
       initializeVideoPlayerFutures.add(initSingleVideo(videoLink, idx));
       idx += 1;
     }
@@ -293,17 +293,17 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   Future<void> initSingleVideo(String videoLink, int idx) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool shouldCache = prefs.getBool(KEY_SHOULD_CACHE);
+    bool? shouldCache = prefs.getBool(KEY_SHOULD_CACHE);
 
     VideoPlayerOptions videoPlayerOptions =
         VideoPlayerOptions(mixWithOthers: true);
 
     VideoPlayerController controller;
     if (shouldCache == null || shouldCache) {
-      FileInfo fileInfo =
+      FileInfo? fileInfo =
           await DefaultCacheManager().getFileFromCache(videoLink);
 
-      File file;
+      late File file;
       if (fileInfo == null || fileInfo.file == null) {
         print("Video for $videoLink not in cache, fetching and caching now");
         file = await DefaultCacheManager().getSingleFile(videoLink);
@@ -353,7 +353,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         c.pause();
       }
       currentPage = newPage;
-      controllers[currentPage].play();
+      controllers[currentPage]!.play();
     });
   }
 
@@ -369,7 +369,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   @override
   Widget build(BuildContext context) {
     List<Widget> items = [];
-    for (int idx = 0; idx < videoLinks.length; idx++) {
+    for (int idx = 0; idx < videoLinks!.length; idx++) {
       var futureBuilder = FutureBuilder(
           future: initializeVideoPlayerFutures[idx],
           builder: (context, snapshot) {
@@ -385,7 +385,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             if (!controllers.containsKey(idx)) {
               return waitingWidget;
             }
-            var controller = controllers[idx];
+            var controller = controllers[idx]!;
             var player = VideoPlayer(controller);
             var videoContainer =
                 Container(padding: EdgeInsets.only(top: 15), child: player);
@@ -395,7 +395,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
     double aspectRatio;
     if (controllers.containsKey(currentPage)) {
-      aspectRatio = controllers[currentPage].value.aspectRatio;
+      aspectRatio = controllers[currentPage]!.value.aspectRatio;
     } else {
       aspectRatio = 16 / 9;
     }
@@ -428,11 +428,11 @@ Widget definition(BuildContext context, Definition definition) {
       padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(
-          definition.heading,
+          definition.heading!,
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         Column(
-          children: definition.subdefinitions
+          children: definition.subdefinitions!
               .map((s) => Padding(
                   padding: EdgeInsets.only(left: 10.0, top: 8.0),
                   child: Text(s)))

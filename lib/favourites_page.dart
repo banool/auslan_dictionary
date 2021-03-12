@@ -10,7 +10,7 @@ import 'common.dart';
 // todo add ability to sort by time added and alphabetically
 
 class FavouritesPage extends StatefulWidget {
-  FavouritesPage({Key key}) : super(key: key);
+  FavouritesPage({Key? key}) : super(key: key);
 
   @override
   _FavouritesPageState createState() => _FavouritesPageState();
@@ -21,17 +21,17 @@ class _FavouritesPageState extends State<FavouritesPage> {
   List<Word> words = [];
 
   // All the user's favourites.
-  List<Word> favourites = [];
+  List<Word?> favourites = [];
 
   // The favourites that match the user's search term.
-  List<Word> favouritesSearched = [];
+  List<Word?> favouritesSearched = [];
 
   String currentSearchTerm = "";
 
   final _favouritesFieldController = TextEditingController();
 
-  Future<void> initStateAsyncFuture;
-  SharedPreferences prefs;
+  Future<void>? initStateAsyncFuture;
+  SharedPreferences? prefs;
 
   @override
   void initState() {
@@ -78,7 +78,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
   void removeFavourite(Word word) {
     removeFromFavourites(word, words, context);
     setState(() {
-      favourites.removeWhere((element) => element.word == word.word);
+      favourites.removeWhere((element) => element!.word == word.word);
     });
   }
 
@@ -145,7 +145,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
 
 Widget listWidget(
     BuildContext context,
-    List<Word> favouritesSearched,
+    List<Word?> favouritesSearched,
     List<Word> allWords,
     Function removeFavouriteFn,
     Function refreshFavouritesFn) {
@@ -153,7 +153,7 @@ Widget listWidget(
     itemCount: favouritesSearched.length,
     itemBuilder: (context, index) {
       return ListTile(
-          title: listItem(context, favouritesSearched[index], allWords,
+          title: listItem(context, favouritesSearched[index]!, allWords,
               removeFavouriteFn, refreshFavouritesFn));
     },
   );

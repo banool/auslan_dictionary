@@ -17,32 +17,32 @@ class SearchPageController {
     isMounted = false;
   }
 
-  void Function() clearSearch;
+  late void Function() clearSearch;
 }
 
 class SearchPage extends StatefulWidget {
-  final SearchPageController controller;
+  final SearchPageController? controller;
 
-  SearchPage({Key key, this.controller}) : super(key: key);
+  SearchPage({Key? key, this.controller}) : super(key: key);
 
   @override
   _SearchPageState createState() => _SearchPageState(controller);
 }
 
 class _SearchPageState extends State<SearchPage> {
-  SearchPageController controller;
+  SearchPageController? controller;
 
   // We do this so the parent can call clearSearch
   // https://stackoverflow.com/a/60869283/3846032
-  _SearchPageState(SearchPageController _controller) {
+  _SearchPageState(SearchPageController? _controller) {
     controller = _controller;
-    controller.clearSearch = clearSearch;
-    controller.onMount();
+    controller!.clearSearch = clearSearch;
+    controller!.onMount();
   }
 
   bool wordsLoaded = false;
   List<Word> words = [];
-  List<Word> wordsSearched = [];
+  List<Word?> wordsSearched = [];
   int currentNavBarIndex = 0;
 
   final _formSearchKey = GlobalKey<FormState>();
@@ -70,7 +70,7 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   void dispose() {
-    controller.dispose();
+    controller!.dispose();
     super.dispose();
   }
 
@@ -139,11 +139,11 @@ class _SearchPageState extends State<SearchPage> {
 }
 
 Widget listWidget(
-    BuildContext context, List<Word> wordsSearched, List<Word> allWords) {
+    BuildContext context, List<Word?> wordsSearched, List<Word> allWords) {
   return ListView.builder(
     itemCount: wordsSearched.length,
     itemBuilder: (context, index) {
-      return ListTile(title: listItem(context, wordsSearched[index], allWords));
+      return ListTile(title: listItem(context, wordsSearched[index]!, allWords));
     },
   );
 }

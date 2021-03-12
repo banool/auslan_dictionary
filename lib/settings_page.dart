@@ -6,16 +6,16 @@ import 'package:url_launcher/url_launcher.dart';
 import 'common.dart';
 
 class SettingsPage extends StatefulWidget {
-  SettingsPage({Key key}) : super(key: key);
+  SettingsPage({Key? key}) : super(key: key);
 
   @override
   SettingsPageState createState() => SettingsPageState();
 }
 
 class SettingsPageState extends State<SettingsPage> {
-  Future<void> initStateAsyncFuture;
+  Future<void>? initStateAsyncFuture;
 
-  SharedPreferences prefs;
+  late SharedPreferences prefs;
 
   @override
   void initState() {
@@ -62,7 +62,7 @@ class SettingsPageState extends State<SettingsPage> {
                         children: [
                           Text("Cache videos:"),
                           Switch(
-                            value: prefs.getBool(KEY_SHOULD_CACHE),
+                            value: prefs.getBool(KEY_SHOULD_CACHE)!,
                             onChanged: onChangeShouldCache,
                           )
                         ]),

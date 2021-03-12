@@ -28,14 +28,14 @@ class MyApp extends StatelessWidget {
 
           if (!currentFocus.hasPrimaryFocus &&
               currentFocus.focusedChild != null) {
-            FocusManager.instance.primaryFocus.unfocus();
+            FocusManager.instance.primaryFocus!.unfocus();
           }
         },
         child: MaterialApp(
           title: APP_NAME,
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-              primarySwatch: MAIN_COLOR,
+              primarySwatch: MAIN_COLOR as MaterialColor?,
               visualDensity: VisualDensity.adaptivePlatformDensity,
               // Make swiping to pop back the navigation work.
               pageTransitionsTheme: PageTransitionsTheme(builders: {
@@ -48,9 +48,9 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key? key, this.title}) : super(key: key);
 
-  final String title;
+  final String? title;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -80,7 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
     ];
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(widget.title!),
       ),
       body: tabs[currentNavBarIndex],
       bottomNavigationBar: BottomNavigationBar(
