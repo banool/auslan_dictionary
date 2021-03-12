@@ -21,17 +21,17 @@ class _FavouritesPageState extends State<FavouritesPage> {
   List<Word> words = [];
 
   // All the user's favourites.
-  List<Word?> favourites = [];
+  List<Word> favourites = [];
 
   // The favourites that match the user's search term.
-  List<Word?> favouritesSearched = [];
+  List<Word> favouritesSearched = [];
 
   String currentSearchTerm = "";
 
   final _favouritesFieldController = TextEditingController();
 
-  Future<void>? initStateAsyncFuture;
-  SharedPreferences? prefs;
+  late Future<void> initStateAsyncFuture;
+  late SharedPreferences prefs;
 
   @override
   void initState() {
@@ -78,7 +78,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
   void removeFavourite(Word word) {
     removeFromFavourites(word, words, context);
     setState(() {
-      favourites.removeWhere((element) => element!.word == word.word);
+      favourites.removeWhere((element) => element.word == word.word);
     });
   }
 

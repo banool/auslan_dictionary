@@ -17,7 +17,7 @@ const String KEY_SHOULD_CACHE = "shouldCache";
 const String KEY_FAVOURITES_WORDS = "favourites_words";
 
 Future<void> navigateToWordPage(
-    BuildContext context, Word? word, List<Word>? allWords) {
+    BuildContext context, Word word, List<Word> allWords) {
   return Navigator.push(
     context,
     MaterialPageRoute(
@@ -26,10 +26,10 @@ Future<void> navigateToWordPage(
 }
 
 // Search a list of words and return top matching items.
-List<Word?> searchList(
-    String searchTerm, List<Word?> words, List<Word?> fallback) {
-  final SplayTreeMap<double, List<Word?>> st =
-      SplayTreeMap<double, List<Word?>>();
+List<Word> searchList(
+    String searchTerm, List<Word> words, List<Word> fallback) {
+  final SplayTreeMap<double, List<Word>> st =
+      SplayTreeMap<double, List<Word>>();
   if (searchTerm == "") {
     return fallback;
   }
@@ -40,16 +40,16 @@ List<Word?> searchList(
     caseSensitive: false,
     multiLine: false,
   );
-  for (Word? w in words) {
-    String noPunctuation = w!.word!.replaceAll(" ", "").replaceAll(",", "");
+  for (Word w in words) {
+    String noPunctuation = w.word.replaceAll(" ", "").replaceAll(",", "");
     String lowerCase = noPunctuation.toLowerCase();
     String noParenthesesContent = noParenthesesRegExp.stringMatch(lowerCase)!;
     String normalisedWord = noParenthesesContent;
     double difference = d.normalizedDistance(normalisedWord, searchTerm);
     st.putIfAbsent(difference, () => []).add(w);
   }
-  List<Word?> out = [];
-  for (List<Word?> words in st.values) {
+  List<Word> out = [];
+  for (List<Word> words in st.values) {
     out.addAll(words);
     if (out.length > 10) {
       break;
@@ -71,16 +71,15 @@ Future<void> bootstrapFavourites() async {
 }
 
 // Load up favourites.
-Future<List<Word?>> loadFavourites(
-    List<Word>? words, BuildContext context) async {
+Future<List<Word>> loadFavourites(
+    List<Word> words, BuildContext context) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  List<Word?> favourites = [];
+  List<Word> favourites = [];
   // Load up the Words for the favourites (inefficiently).
   List<String> favouritesRaw = prefs.getStringList(KEY_FAVOURITES_WORDS) ?? [];
   print("Loaded favourites: $favouritesRaw");
   for (String s in favouritesRaw) {
-    Word? matchingWord =
-        words!.firstWhereOrNull((element) => element.word == s);
+    Word? matchingWord = words.firstWhereOrNull((element) => element.word == s);
     if (matchingWord != null) {
       favourites.add(matchingWord);
     } else {
@@ -91,27 +90,27 @@ Future<List<Word?>> loadFavourites(
     }
   }
   // Write back the favourites, without the missing entries.
-  List<String?> newFavourites = [];
-  for (Word? w in favourites) {
-    newFavourites.add(w!.word);
+  List<String> newFavourites = [];
+  for (Word w in favourites) {
+    newFavourites.add(w.word);
   }
-  prefs.setStringList(KEY_FAVOURITES_WORDS, newFavourites as List<String>);
+  prefs.setStringList(KEY_FAVOURITES_WORDS, newFavourites);
   return favourites;
 }
 
 // Write favourites to prefs.
 void writeFavourites(List<Word?> favourites, SharedPreferences prefs) {
-  List<String?> newFavourites = [];
+  List<String> newFavourites = [];
   for (Word? w in favourites) {
     newFavourites.add(w!.word);
   }
-  prefs.setStringList(KEY_FAVOURITES_WORDS, newFavourites as List<String>);
+  prefs.setStringList(KEY_FAVOURITES_WORDS, newFavourites);
 }
 
 // Add to favourites.
 Future<void> addToFavourites(
-    Word? favouriteToAdd, List<Word>? words, BuildContext context) async {
-  List<Word?> favourites = await loadFavourites(words, context);
+    Word favouriteToAdd, List<Word> words, BuildContext context) async {
+  List<Word> favourites = await loadFavourites(words, context);
   favourites.add(favouriteToAdd);
   SharedPreferences prefs = await SharedPreferences.getInstance();
   writeFavourites(favourites, prefs);
@@ -119,9 +118,9 @@ Future<void> addToFavourites(
 
 // Remove from favourites.
 Future<void> removeFromFavourites(
-    Word? favouriteToRemove, List<Word>? words, BuildContext context) async {
-  List<Word?> favourites = await loadFavourites(words, context);
-  favourites.removeWhere((element) => element!.word == favouriteToRemove!.word);
+    Word favouriteToRemove, List<Word> words, BuildContext context) async {
+  List<Word> favourites = await loadFavourites(words, context);
+  favourites.removeWhere((element) => element.word == favouriteToRemove.word);
   SharedPreferences prefs = await SharedPreferences.getInstance();
   writeFavourites(favourites, prefs);
 }

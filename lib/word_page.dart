@@ -13,10 +13,11 @@ import 'package:video_player/video_player.dart';
 import 'common.dart';
 
 class WordPage extends StatefulWidget {
-  WordPage({Key? key, this.word, this.allWords}) : super(key: key);
+  WordPage({Key? key, required this.word, required this.allWords})
+      : super(key: key);
 
-  final Word? word;
-  final List<Word>? allWords;
+  final Word word;
+  final List<Word> allWords;
 
   @override
   _WordPageState createState() =>
@@ -24,14 +25,14 @@ class WordPage extends StatefulWidget {
 }
 
 class _WordPageState extends State<WordPage> {
-  _WordPageState({this.word, this.allWords});
+  _WordPageState({required this.word, required this.allWords});
 
   int currentPage = 0;
   Future<void>? initStateAsyncFuture;
   SharedPreferences? prefs;
 
-  final Word? word;
-  final List<Word>? allWords;
+  final Word word;
+  final List<Word> allWords;
   bool isFavourited = false;
 
   @override
@@ -67,8 +68,8 @@ class _WordPageState extends State<WordPage> {
             );
           }
           List<Widget> pages = [];
-          for (int i = 0; i < word!.subWords!.length; i++) {
-            SubWord subWord = word!.subWords![i];
+          for (int i = 0; i < word.subWords.length; i++) {
+            SubWord subWord = word.subWords[i];
             SubWordPage subWordPage =
                 SubWordPage(word: word, allWords: allWords, subWord: subWord);
             pages.add(subWordPage);
@@ -84,7 +85,7 @@ class _WordPageState extends State<WordPage> {
 
           return Scaffold(
             appBar: AppBar(
-              title: Text(word!.word!),
+              title: Text(word.word),
               actions: <Widget>[
                 Container(
                   padding: const EdgeInsets.all(0),
@@ -115,7 +116,7 @@ class _WordPageState extends State<WordPage> {
                     textColor: Colors.white,
                     onPressed: () async {
                       var url =
-                          'http://www.auslan.org.au/dictionary/words/${word!.word}-${currentPage + 1}.html';
+                          'http://www.auslan.org.au/dictionary/words/${word.word}-${currentPage + 1}.html';
                       await launch(url, forceSafariVC: false);
                     },
                     child: Icon(Icons.public,
@@ -129,7 +130,7 @@ class _WordPageState extends State<WordPage> {
             bottomNavigationBar: Padding(
               padding: EdgeInsets.only(top: 5, bottom: 15),
               child: DotsIndicator(
-                dotsCount: word!.subWords!.length,
+                dotsCount: word.subWords.length,
                 position: currentPage.toDouble(),
                 decorator: DotsDecorator(
                   color: Colors.black, // Inactive color
@@ -139,11 +140,11 @@ class _WordPageState extends State<WordPage> {
             ),
             body: Center(
                 child: PageView.builder(
-                    itemCount: word!.subWords!.length,
+                    itemCount: word.subWords.length,
                     itemBuilder: (context, index) => SubWordPage(
                         word: word,
                         allWords: allWords,
-                        subWord: word!.subWords![index]),
+                        subWord: word.subWords[index]),
                     onPageChanged: onPageChanged)),
           );
         });
@@ -151,12 +152,16 @@ class _WordPageState extends State<WordPage> {
 }
 
 class SubWordPage extends StatefulWidget {
-  SubWordPage({Key? key, this.word, this.allWords, this.subWord})
+  SubWordPage(
+      {Key? key,
+      required this.word,
+      required this.allWords,
+      required this.subWord})
       : super(key: key);
 
-  final Word? word;
-  final List<Word>? allWords;
-  final SubWord? subWord;
+  final Word word;
+  final List<Word> allWords;
+  final SubWord subWord;
 
   @override
   _SubWordPageState createState() =>
@@ -164,15 +169,16 @@ class SubWordPage extends StatefulWidget {
 }
 
 class _SubWordPageState extends State<SubWordPage> {
-  _SubWordPageState({this.word, this.allWords, this.subWord});
+  _SubWordPageState(
+      {required this.word, required this.allWords, required this.subWord});
 
-  final Word? word;
-  final List<Word>? allWords;
-  final SubWord? subWord;
+  final Word word;
+  final List<Word> allWords;
+  final SubWord subWord;
 
   RichText getRelatedWords() {
     Map<String?, Word> allWordsMap = {};
-    for (Word word in allWords!) {
+    for (Word word in allWords) {
       allWordsMap[word.word] = word;
     }
     List<TextSpan> textSpans = [];
@@ -181,8 +187,8 @@ class _SubWordPageState extends State<SubWordPage> {
         style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)));
 
     int idx = 0;
-    for (String keyword in subWord!.keywords!) {
-      if (keyword == word!.word) {
+    for (String keyword in subWord.keywords) {
+      if (keyword == word.word) {
         idx += 1;
         continue;
       }
@@ -192,14 +198,14 @@ class _SubWordPageState extends State<SubWordPage> {
       if (allWordsMap.containsKey(keyword)) {
         relatedWord = allWordsMap[keyword];
         color = MAIN_COLOR;
-        navFunction = () => navigateToWordPage(context, relatedWord, allWords);
+        navFunction = () => navigateToWordPage(context, relatedWord!, allWords);
       } else {
         relatedWord = null;
         color = Colors.black;
         navFunction = null;
       }
       String suffix;
-      if (idx < subWord!.keywords!.length - 1) {
+      if (idx < subWord.keywords.length - 1) {
         suffix = ", ";
       } else {
         suffix = "";
@@ -207,7 +213,8 @@ class _SubWordPageState extends State<SubWordPage> {
       textSpans.add(TextSpan(
         text: "$keyword$suffix",
         style: TextStyle(color: color),
-        recognizer: TapGestureRecognizer()..onTap = navFunction as void Function()?,
+        recognizer: TapGestureRecognizer()
+          ..onTap = navFunction as void Function()?,
       ));
       idx += 1;
     }
@@ -216,14 +223,14 @@ class _SubWordPageState extends State<SubWordPage> {
 
   @override
   Widget build(BuildContext context) {
-    var videoPlayerScreen = VideoPlayerScreen(videoLinks: subWord!.videoLinks);
+    var videoPlayerScreen = VideoPlayerScreen(videoLinks: subWord.videoLinks);
     String regionsStr;
-    if (subWord!.regions!.length == 0) {
+    if (subWord.regions.length == 0) {
       regionsStr = "Regional information unknown";
-    } else if (subWord!.regions![0].toLowerCase() == "everywhere") {
+    } else if (subWord.regions[0].toLowerCase() == "everywhere") {
       regionsStr = "All states of Australia";
     } else {
-      regionsStr = subWord!.regions!.join(", ");
+      regionsStr = subWord.regions.join(", ");
     }
 
     return Column(
@@ -232,13 +239,13 @@ class _SubWordPageState extends State<SubWordPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         videoPlayerScreen,
-        if (subWord!.keywords!.length > 0)
+        if (subWord.keywords.length > 0)
           Padding(
               padding: EdgeInsets.only(
                   left: 20.0, right: 20.0, top: 15.0, bottom: 10.0),
               child: getRelatedWords()),
         Expanded(
-          child: definitions(context, subWord!.definitions!),
+          child: definitions(context, subWord.definitions),
         ),
         Align(
             alignment: Alignment.bottomCenter,
