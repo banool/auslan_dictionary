@@ -102,9 +102,9 @@ EVERY_REGION = [
     "TAS",
 ]
 REGIONS_IMAGE_MAP = {
-    "/static/img/maps/Auslan/AustraliaWide-traditional.png": EVERY_REGION,
-    "/static/img/maps/Auslan/AustraliaWide.png": EVERY_REGION,
-    "/static/img/maps/Auslan/SouthernDialect-traditional.png": [
+    "/static/img/maps/Auslan/AustraliaWide-traditional": EVERY_REGION,
+    "/static/img/maps/Auslan/AustraliaWide": EVERY_REGION,
+    "/static/img/maps/Auslan/SouthernDialect-traditional": [
         "Southern",
         "WA",
         "NT",
@@ -112,27 +112,27 @@ REGIONS_IMAGE_MAP = {
         "VIC",
         "TAS",
     ],
-    "/static/img/maps/Auslan/NorthernDialect-traditional.png": [
+    "/static/img/maps/Auslan/NorthernDialect-traditional": [
         "Northern",
         "QLD",
         "NSW",
         "ACT",
     ],
-    "/static/img/maps/Auslan/WesternAustralia.png": ["WA"],
-    "/static/img/maps/Auslan/NorthernTerritory.png": ["NT"],
-    "/static/img/maps/Auslan/SouthAustralia.png": ["SA"],
-    "/static/img/maps/Auslan/Queensland.png": ["QLD"],
-    "/static/img/maps/Auslan/NewSouthWales.png": ["NSW", "ACT"],
-    "/static/img/maps/Auslan/Victoria.png": ["VIC"],
-    "/static/img/maps/Auslan/Tasmania.png": ["TAS"],
+    "/static/img/maps/Auslan/WesternAustralia": ["WA"],
+    "/static/img/maps/Auslan/NorthernTerritory": ["NT"],
+    "/static/img/maps/Auslan/SouthAustralia": ["SA"],
+    "/static/img/maps/Auslan/Queensland": ["QLD"],
+    "/static/img/maps/Auslan/NewSouthWales": ["NSW", "ACT"],
+    "/static/img/maps/Auslan/Victoria": ["VIC"],
+    "/static/img/maps/Auslan/Tasmania": ["TAS"],
     # Traditional suffix.
-    "/static/img/maps/Auslan/WesternAustralia-traditional.png": ["WA"],
-    "/static/img/maps/Auslan/NorthernTerritory-traditional.png": ["NT"],
-    "/static/img/maps/Auslan/SouthAustralia-traditional.png": ["SA"],
-    "/static/img/maps/Auslan/Queensland-traditional.png": ["QLD"],
-    "/static/img/maps/Auslan/NewSouthWales-traditional.png": ["NSW", "ACT"],
-    "/static/img/maps/Auslan/Victoria-traditional.png": ["VIC"],
-    "/static/img/maps/Auslan/Tasmania-traditional.png": ["TAS"],
+    "/static/img/maps/Auslan/WesternAustralia-traditional": ["WA"],
+    "/static/img/maps/Auslan/NorthernTerritory-traditional": ["NT"],
+    "/static/img/maps/Auslan/SouthAustralia-traditional": ["SA"],
+    "/static/img/maps/Auslan/Queensland-traditional": ["QLD"],
+    "/static/img/maps/Auslan/NewSouthWales-traditional": ["NSW", "ACT"],
+    "/static/img/maps/Auslan/Victoria-traditional": ["VIC"],
+    "/static/img/maps/Auslan/Tasmania-traditional": ["TAS"],
 }
 
 
@@ -333,7 +333,12 @@ def parse_subpage(html) -> SubWord:
         regions_img_link = [t["src"] for t in regions_img_tags if "Auslan/" in t["src"]][0]
         try:
             # Derive the regions based on the image.
-            regions = REGIONS_IMAGE_MAP[regions_img_link]
+            regions = None
+            for link_substring in REGIONS_IMAGE_MAP.keys():
+                if link_substring in regions_img_link:
+                    regions = REGIONS_IMAGE_MAP[link_substring]
+            if not regions:
+                raise KeyError()
         except KeyError:
             LOG.warning(f"Encountered unexpected regions image URL: {regions_img_link}")
             regions = []
