@@ -1,0 +1,57 @@
+  buildmac:
+    runs-on: macos-latest
+    steps:
+
+    # Skip the iOS build for now.
+    - run: exit 1
+
+    - uses: actions/checkout@v1
+
+    - uses: subosito/flutter-action@v1
+      with:
+        flutter-version: '2.0.4'
+        channel: stable
+
+    - name: Select Xcode version 12.4
+      run: sudo xcode-select -s '/Applications/Xcode_12.4.app/Contents/Developer'
+
+    # Initial build and test
+    - run: flutter pub get
+    - run: cd ./ios && pod install && cd ..
+    - run: flutter test
+
+    #  Build iOS
+    - run: flutter build ios --release --no-codesign
+
+    # Get fastlane working so we can publish to the app store.
+    - name: Run bundle install to get fastlane for iOS
+      run: cd ./ios && bundle install && cd ..
+
+    - name: Setup SSH Keys and known_hosts for iOS fastlane match
+      run: |
+        SSH_PATH="$HOME/.ssh"
+        mkdir -p "$SSH_PATH"
+        touch "$SSH_PATH/known_hosts"
+        echo "$PRIVATE_KEY" > "$SSH_PATH/id_rsa"
+        chmod 700 "$SSH_PATH"
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+        chmod 600 "$SSH_PATH/known_hosts"
+        chmod 600 "$SSH_PATH/id_rsa"
+        eval $(ssh-agent)
+        ssh-add "$SSH_PATH/id_rsa"
+      env:
+        PRIVATE_KEY: ${{ secrets.FASTLANE_MATCH_PRIVATE_KEY }}
+
+    # Publish iOS (skipped for now)
+    - name: Upload iOS build to TestFlight
+      run: |
+        bundle exec fastlane ios beta
+      env:
+        FASTLANE_USER: ${{ secrets.FASTLANE_USER }}
+        FASTLANE_PASSWORD: ${{ secrets.FASTLANE_PASSWORD }}
+        FASTLANE_SESSION: ${{ secrets.FASTLANE_SESSION }}
+        FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD }}
+        MATCH_KEYCHAIN_NAME: ${{ secrets.MATCH_KEYCHAIN_NAME }}
+        MATCH_KEYCHAIN_PASSWORD: ${{ secrets.MATCH_KEYCHAIN_PASSWORD }}
+        MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+        # DELIVER_ITMSTRANSPORTER_ADDITIONAL_UPLOAD_PARAMETERS: '-t Signiant'
