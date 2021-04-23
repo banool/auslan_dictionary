@@ -46,6 +46,9 @@ List<Word> searchList(
     String noParenthesesContent = noParenthesesRegExp.stringMatch(lowerCase)!;
     String normalisedWord = noParenthesesContent;
     double difference = d.normalizedDistance(normalisedWord, searchTerm);
+    if (difference == 1.0) {
+      continue;
+    }
     st.putIfAbsent(difference, () => []).add(w);
   }
   List<Word> out = [];
