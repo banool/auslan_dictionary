@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:auslan_dictionary/types.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -128,7 +129,7 @@ class _WordPageState extends State<WordPage> {
               ],
             ),
             bottomNavigationBar: Padding(
-              padding: EdgeInsets.only(top: 5, bottom: 15),
+              padding: EdgeInsets.only(top: 5, bottom: 10),
               child: DotsIndicator(
                 dotsCount: word.subWords.length,
                 position: currentPage.toDouble(),
@@ -176,15 +177,12 @@ class _SubWordPageState extends State<SubWordPage> {
   final List<Word> allWords;
   final SubWord subWord;
 
-  RichText getRelatedWords() {
+  RichText? getRelatedWords() {
     Map<String?, Word> allWordsMap = {};
     for (Word word in allWords) {
       allWordsMap[word.word] = word;
     }
     List<TextSpan> textSpans = [];
-    textSpans.add(TextSpan(
-        text: "Related words: ",
-        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)));
 
     int idx = 0;
     for (String keyword in subWord.keywords) {
@@ -218,7 +216,16 @@ class _SubWordPageState extends State<SubWordPage> {
       ));
       idx += 1;
     }
-    return RichText(text: TextSpan(children: textSpans));
+
+    if (textSpans.length == 0) {
+      return null;
+    } else {
+      var initial = TextSpan(
+          text: "Related words: ",
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold));
+      textSpans = [initial] + textSpans;
+      return RichText(text: TextSpan(children: textSpans));
+    }
   }
 
   @override
@@ -233,24 +240,28 @@ class _SubWordPageState extends State<SubWordPage> {
       regionsStr = subWord.regions.join(", ");
     }
 
+    Widget? relatedWordsWidget;
+    if (subWord.keywords.length > 0) {
+      relatedWordsWidget = getRelatedWords();
+    }
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       mainAxisSize: MainAxisSize.max,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         videoPlayerScreen,
-        if (subWord.keywords.length > 0)
+        if (relatedWordsWidget != null)
           Padding(
-              padding: EdgeInsets.only(
-                  left: 20.0, right: 20.0, top: 15.0, bottom: 10.0),
-              child: getRelatedWords()),
+              padding: EdgeInsets.only(left: 20.0, right: 20.0, top: 15.0),
+              child: relatedWordsWidget),
         Expanded(
           child: definitions(context, subWord.definitions),
         ),
         Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
-                padding: EdgeInsets.only(bottom: 5.0, top: 15.0),
+                padding: EdgeInsets.only(top: 15.0),
                 child: Text(
                   regionsStr,
                   textAlign: TextAlign.center,
@@ -375,6 +386,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Get height of screen to ensure that the video only takes up
+    // a certain proportion of it.
     List<Widget> items = [];
     for (int idx = 0; idx < videoLinks!.length; idx++) {
       var futureBuilder = FutureBuilder(
@@ -406,8 +419,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     } else {
       aspectRatio = 16 / 9;
     }
-    double screenHeight = MediaQuery.of(context).size.height;
-    return CarouselSlider(
+
+    var slider = CarouselSlider(
       carouselController: carouselController,
       items: items,
       options: CarouselOptions(
@@ -420,6 +433,18 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         enlargeCenterPage: true,
       ),
     );
+
+    // Ensure that the video doesn't take up the whole screen.
+    // This only applies a maximum bound.
+    var screenHeight = MediaQuery.of(context).size.height;
+    var sliderContainer = Container(
+        alignment: Alignment.center,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: screenHeight * 0.46),
+          child: slider,
+        ));
+
+    return sliderContainer;
   }
 }
 
