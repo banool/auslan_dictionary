@@ -7,13 +7,10 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-    runs-on: macos-latest
+  buildandroid:
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-
-    - name: Select Xcode version 12.4
-      run: sudo xcode-select -s '/Applications/Xcode_12.4.app/Contents/Developer'
 
     - uses: actions/setup-java@v1
       with:
@@ -21,13 +18,34 @@ jobs:
 
     - uses: subosito/flutter-action@v1
       with:
-        flutter-version: '2.0.4'
+        flutter-version: '2.0.5'
         channel: stable
 
     # Initial build and test
     - run: flutter pub get
-    - run: echo 'skipping ios install' # cd ./ios && pod install && cd ..
-    - run: flutter test
+
+    # For the apk build to Github Packages
+    - run: flutter build apk
+
+    # Sign apk release.
+    - name: Sign Android apk release
+      id: sign_release_apk
+      uses: r0adkll/sign-android-release@v1
+      with:
+          releaseDirectory: build/app/outputs/flutter-apk/
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+
+    # Publish apk to Github Packages.
+    - uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
+        prerelease: false
+        title: "latest apk build"
+        files: build/app/outputs/flutter-apk/app-release-signed.apk
 
     # Build Android
     - run: flutter build appbundle
@@ -51,50 +69,3 @@ jobs:
         # releaseFile: ${{ steps.run_tests.outputs.signedReleaseFile }}
         releaseFile: build/app/outputs/bundle/release/app-release.aab
         track: internal
-
-    # For the apk build to Github Packages
-    - run: flutter build apk
-
-    # Publish apk to Github Packages.
-    - name: Publish apk to Github Actions
-      uses: ShaunLWM/action-release-debugapk@master
-      env:
-       GITHUB_TOKEN: GITHUB_TOKEN
-       APP_FOLDER: build/app/outputs/flutter-apk/
-       RELEASE_TITLE: auslan_dictionary
-
-    #  Build iOS
-    - run: echo 'skipping ios build' # flutter build ios --release --no-codesign
-
-    # Get fastlane working so we can publish to the app store.
-    - name: Run bundle install to get fastlane for iOS
-      run: echo 'skipping fastlane install' # cd ./ios && bundle install && cd ..
-
-    - name: Setup SSH Keys and known_hosts for iOS fastlane match
-      run: |
-        SSH_PATH="$HOME/.ssh"
-        mkdir -p "$SSH_PATH"
-        touch "$SSH_PATH/known_hosts"
-        echo "$PRIVATE_KEY" > "$SSH_PATH/id_rsa"
-        chmod 700 "$SSH_PATH"
-        ssh-keyscan github.com >> ~/.ssh/known_hosts
-        chmod 600 "$SSH_PATH/known_hosts"
-        chmod 600 "$SSH_PATH/id_rsa"
-        eval $(ssh-agent)
-        ssh-add "$SSH_PATH/id_rsa"
-      env:
-        PRIVATE_KEY: ${{ secrets.FASTLANE_MATCH_PRIVATE_KEY }}
-
-    # Publish iOS (skipped for now)
-    - name: Upload iOS build to TestFlight
-      run: |
-        cd ./ios # && bundle exec fastlane ios beta
-      env:
-        FASTLANE_USER: ${{ secrets.FASTLANE_USER }}
-        FASTLANE_PASSWORD: ${{ secrets.FASTLANE_PASSWORD }}
-        FASTLANE_SESSION: ${{ secrets.FASTLANE_SESSION }}
-        FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD }}
-        MATCH_KEYCHAIN_NAME: ${{ secrets.MATCH_KEYCHAIN_NAME }}
-        MATCH_KEYCHAIN_PASSWORD: ${{ secrets.MATCH_KEYCHAIN_PASSWORD }}
-        MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-        # DELIVER_ITMSTRANSPORTER_ADDITIONAL_UPLOAD_PARAMETERS: '-t Signiant'

@@ -406,10 +406,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     } else {
       aspectRatio = 16 / 9;
     }
+    double screenHeight = MediaQuery.of(context).size.height;
     return CarouselSlider(
       carouselController: carouselController,
       items: items,
       options: CarouselOptions(
+        //height: screenHeight * 0.8,
         aspectRatio: aspectRatio,
         autoPlay: false,
         viewportFraction: 0.8,
