@@ -52,6 +52,17 @@ jobs:
         releaseFile: build/app/outputs/bundle/release/app-release.aab
         track: internal
 
+    # For the apk build to Github Packages
+    - run: flutter build apk
+
+    # Publish apk to Github Packages.
+    - name: Publish apk to Github Actions
+      uses: ShaunLWM/action-release-debugapk@master
+      env:
+       GITHUB_TOKEN: GITHUB_TOKEN
+       APP_FOLDER: build/app/outputs/flutter-apk/
+       RELEASE_TITLE: auslan_dictionary
+
     #  Build iOS
     - run: echo 'skipping ios build' # flutter build ios --release --no-codesign
 
