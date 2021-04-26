@@ -103,7 +103,6 @@ EVERY_REGION = [
 ]
 REGIONS_IMAGE_MAP = {
     "/static/img/maps/Auslan/AustraliaWide-traditional": EVERY_REGION,
-    "/static/img/maps/Auslan/AustraliaWide": EVERY_REGION,
     "/static/img/maps/Auslan/SouthernDialect-traditional": [
         "Southern",
         "WA",
@@ -118,14 +117,6 @@ REGIONS_IMAGE_MAP = {
         "NSW",
         "ACT",
     ],
-    "/static/img/maps/Auslan/WesternAustralia": ["WA"],
-    "/static/img/maps/Auslan/NorthernTerritory": ["NT"],
-    "/static/img/maps/Auslan/SouthAustralia": ["SA"],
-    "/static/img/maps/Auslan/Queensland": ["QLD"],
-    "/static/img/maps/Auslan/NewSouthWales": ["NSW", "ACT"],
-    "/static/img/maps/Auslan/Victoria": ["VIC"],
-    "/static/img/maps/Auslan/Tasmania": ["TAS"],
-    # Traditional suffix.
     "/static/img/maps/Auslan/WesternAustralia-traditional": ["WA"],
     "/static/img/maps/Auslan/NorthernTerritory-traditional": ["NT"],
     "/static/img/maps/Auslan/SouthAustralia-traditional": ["SA"],
@@ -340,12 +331,13 @@ def parse_subpage(html) -> SubWord:
             if not regions:
                 raise KeyError()
         except KeyError:
+            # This implies a new img src.
             LOG.warning(f"Encountered unexpected regions image URL: {regions_img_link}")
             regions = []
     except IndexError:
+        # This implies that there is no regions img, or an issue with the scraper.
         LOG.warning(f"Failed to get regions information for {html.url}")
         regions = []
-
 
     return SubWord(
         keywords=keywords,
