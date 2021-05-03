@@ -284,7 +284,7 @@ class _SubWordPageState extends State<SubWordPage> {
       var screenWidth = size.width;
       var screenHeight = size.height;
       return Row(
-        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             videoPlayerScreen,
@@ -303,7 +303,7 @@ class _SubWordPageState extends State<SubWordPage> {
             List<Widget> children = [];
             if (subWord.keywords.length > 0) {
               children.add(Padding(
-                  padding: EdgeInsets.only(left: 15.0, top: 20.0, bottom: 5.0),
+                  padding: EdgeInsets.only(left: 10.0, top: 20.0, bottom: 5.0),
                   child: getRelatedWords()));
             }
             children.add(
@@ -488,9 +488,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     var boxConstraints;
     if (shouldUseHorizontalDisplay) {
       boxConstraints = BoxConstraints(
-          maxWidth: screenWidth * 0.55, maxHeight: screenHeight * 0.68);
+          maxWidth: screenWidth * 0.55, maxHeight: screenHeight * 0.67);
     } else {
-      boxConstraints = BoxConstraints(maxHeight: screenHeight * 0.4);
+      boxConstraints = BoxConstraints(maxHeight: screenHeight * 0.46);
     }
 
     // Ensure that the video doesn't take up the whole screen.
