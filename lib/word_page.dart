@@ -13,6 +13,13 @@ import 'package:video_player/video_player.dart';
 
 import 'common.dart';
 
+bool getShouldUseHorizontalLayout(BuildContext context) {
+  var screenSize = MediaQuery.of(context).size;
+  var shouldUseHorizontalDisplay = screenSize.width > screenSize.height * 1.2;
+  print("shouldUseHorizontalDisplay: $shouldUseHorizontalDisplay");
+  return shouldUseHorizontalDisplay;
+}
+
 class WordPage extends StatefulWidget {
   WordPage({Key? key, required this.word, required this.allWords})
       : super(key: key);
@@ -224,7 +231,10 @@ class _SubWordPageState extends State<SubWordPage> {
           text: "Related words: ",
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold));
       textSpans = [initial] + textSpans;
-      return RichText(text: TextSpan(children: textSpans));
+      return RichText(
+        text: TextSpan(children: textSpans),
+        textAlign: TextAlign.center,
+      );
     }
   }
 
@@ -240,34 +250,74 @@ class _SubWordPageState extends State<SubWordPage> {
       regionsStr = subWord.regions.join(", ");
     }
 
-    Widget? relatedWordsWidget;
-    if (subWord.keywords.length > 0) {
-      relatedWordsWidget = getRelatedWords();
-    }
+    // If the display is wide enough, show the video beside the words instead
+    // of above the words (as well as other layout changes).
+    var shouldUseHorizontalDisplay = getShouldUseHorizontalLayout(context);
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      mainAxisSize: MainAxisSize.max,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        videoPlayerScreen,
-        if (relatedWordsWidget != null)
-          Padding(
-              padding: EdgeInsets.only(left: 20.0, right: 20.0, top: 15.0),
-              child: relatedWordsWidget),
-        Expanded(
-          child: definitions(context, subWord.definitions),
-        ),
-        Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
+    if (!shouldUseHorizontalDisplay) {
+      List<Widget> children = [];
+      children.add(videoPlayerScreen);
+      if (subWord.keywords.length > 0) {
+        children.add(Padding(
+            padding: EdgeInsets.only(left: 20.0, right: 20.0, top: 15.0),
+            child: getRelatedWords()));
+      }
+      children.add(Expanded(
+        child: definitions(context, subWord.definitions),
+      ));
+      children.add(Align(
+          alignment: Alignment.bottomCenter,
+          child: Padding(
+              padding: EdgeInsets.only(top: 15.0),
+              child: Text(
+                regionsStr,
+                textAlign: TextAlign.center,
+              ))));
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      );
+    } else {
+      var size = MediaQuery.of(context).size;
+      var screenWidth = size.width;
+      var screenHeight = size.height;
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            videoPlayerScreen,
+            Padding(
                 padding: EdgeInsets.only(top: 15.0),
                 child: Text(
                   regionsStr,
                   textAlign: TextAlign.center,
-                ))),
-      ],
-    );
+                )),
+          ]),
+          new LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+            // TODO Make this less janky and hardcoded.
+            // The issue is the parent has infinite width and height
+            // and Expanded doesn't seem to be working.
+            List<Widget> children = [];
+            if (subWord.keywords.length > 0) {
+              children.add(Padding(
+                  padding: EdgeInsets.only(left: 15.0, top: 20.0, bottom: 5.0),
+                  child: getRelatedWords()));
+            }
+            children.add(
+                Expanded(child: definitions(context, subWord.definitions)));
+            return ConstrainedBox(
+                constraints: BoxConstraints(
+                    maxWidth: screenWidth * 0.4, maxHeight: screenHeight * 0.7),
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: children));
+          })
+        ],
+      );
+    }
   }
 }
 
@@ -395,9 +445,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           builder: (context, snapshot) {
             var waitingWidget = Padding(
                 padding: EdgeInsets.only(top: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [CircularProgressIndicator()],
+                child: Center(
+                  child: CircularProgressIndicator(),
                 ));
             if (snapshot.connectionState != ConnectionState.done) {
               return waitingWidget;
@@ -432,13 +481,24 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       ),
     );
 
+    var size = MediaQuery.of(context).size;
+    var screenWidth = size.width;
+    var screenHeight = size.height;
+    var shouldUseHorizontalDisplay = getShouldUseHorizontalLayout(context);
+    var boxConstraints;
+    if (shouldUseHorizontalDisplay) {
+      boxConstraints = BoxConstraints(
+          maxWidth: screenWidth * 0.55, maxHeight: screenHeight * 0.68);
+    } else {
+      boxConstraints = BoxConstraints(maxHeight: screenHeight * 0.4);
+    }
+
     // Ensure that the video doesn't take up the whole screen.
     // This only applies a maximum bound.
-    var screenHeight = MediaQuery.of(context).size.height;
     var sliderContainer = Container(
         alignment: Alignment.center,
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: screenHeight * 0.46),
+          constraints: boxConstraints,
           child: slider,
         ));
 
