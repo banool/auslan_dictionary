@@ -38,5 +38,6 @@ done
 
 mv previous.json all_letters.json
 
-echo "Scraped all letters, now make sure all_letters.json looks good and move it to ../assets/data/words.json if it does"
+echo "Scraped all letters, now make sure all_letters.json looks good. If it does, run move_data.sh"
+
 
