@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:auslan_dictionary/types.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -41,7 +39,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
 
   Future<void> initStateAsync() async {
     // I assume that we load the words first, don't change this order.
-    await loadWords();
+    words = await loadWords(context);
     await loadFavouritesInner();
   }
 
@@ -49,16 +47,6 @@ class _FavouritesPageState extends State<FavouritesPage> {
     favourites = await loadFavourites(words, context);
     favouritesSearched = favourites;
     search(currentSearchTerm);
-  }
-
-  Future<void> loadWords() async {
-    String data = await DefaultAssetBundle.of(context)
-        .loadString("assets/data/words.json");
-    dynamic wordsJson = json.decode(data);
-    for (MapEntry e in wordsJson.entries) {
-      words.add(Word.fromJson(e.key, e.value));
-    }
-    print("Loaded ${words.length} words");
   }
 
   void search(String searchTerm) {

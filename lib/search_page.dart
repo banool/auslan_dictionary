@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:auslan_dictionary/types.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -49,23 +47,21 @@ class _SearchPageState extends State<SearchPage> {
 
   final _searchFieldController = TextEditingController();
 
-  Future<void> loadWords() async {
-    String data = await DefaultAssetBundle.of(context)
-        .loadString("assets/data/words.json");
-    dynamic wordsJson = json.decode(data);
-    for (MapEntry e in wordsJson.entries) {
-      words.add(Word.fromJson(e.key, e.value));
-    }
-    setState(() {
-      wordsLoaded = true;
-    });
-    print("Loaded ${words.length} words");
-  }
-
   @override
   void initState() {
-    loadWords();
+    // We don't care about waiting for the future, we check wordsLoaded
+    // instead and use that to determine whether to show the content.
+    // Not really good practice, but it's how I did it.
+    initStateAsync();
     super.initState();
+  }
+
+  Future<void> initStateAsync() async {
+    var loadedWords = await loadWords(context);
+    setState(() {
+      words = loadedWords;
+      wordsLoaded = true;
+    });
   }
 
   @override
@@ -143,7 +139,8 @@ Widget listWidget(
   return ListView.builder(
     itemCount: wordsSearched.length,
     itemBuilder: (context, index) {
-      return ListTile(title: listItem(context, wordsSearched[index]!, allWords));
+      return ListTile(
+          title: listItem(context, wordsSearched[index]!, allWords));
     },
   );
 }

@@ -16,6 +16,10 @@ Future<void> main() async {
 }
 
 Future<void> setup() async {
+  // Don't await getting new data, it's too slow.
+  getNewData(false).catchError((e, s) {
+    print("Failed to check for new data: $e and $s");
+  });
   await bootstrapFavourites();
 }
 

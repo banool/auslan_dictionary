@@ -75,6 +75,27 @@ class SettingsPageState extends State<SettingsPage> {
                               backgroundColor: MAIN_COLOR));
                         },
                         color: MAIN_COLOR),
+                    Divider(
+                      height: 10,
+                      thickness: 2,
+                      indent: 20,
+                      endIndent: 20,
+                    ),
+                    FlatButton(
+                        child: Text("Check for new dictionary data"),
+                        onPressed: () async {
+                          bool updated = await getNewData(true);
+                          String message;
+                          if (updated) {
+                            message = "Successfully updated dictioary data";
+                          } else {
+                            message = "Data is already up to date";
+                          }
+                          Scaffold.of(context).showSnackBar(SnackBar(
+                              content: Text(message),
+                              backgroundColor: MAIN_COLOR));
+                        },
+                        color: MAIN_COLOR),
                     Spacer(),
                     Text(
                         "The Auslan information (including videos) displayed in this app is taken from Auslan Signbank (Johnston, T., & Cassidy, S. (2008). Auslan Signbank (auslan.org.au) Sydney: Macquarie University & Trevor Johnston).\n",
