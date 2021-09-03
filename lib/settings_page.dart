@@ -76,7 +76,7 @@ class SettingsPageState extends State<SettingsPage> {
                         },
                         color: MAIN_COLOR),
                     Divider(
-                      height: 10,
+                      height: 20,
                       thickness: 2,
                       indent: 20,
                       endIndent: 20,
@@ -87,7 +87,7 @@ class SettingsPageState extends State<SettingsPage> {
                           bool updated = await getNewData(true);
                           String message;
                           if (updated) {
-                            message = "Successfully updated dictioary data";
+                            message = "Successfully updated dictionary data";
                           } else {
                             message = "Data is already up to date";
                           }
