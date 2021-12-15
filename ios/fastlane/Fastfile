@@ -15,9 +15,9 @@ update_fastlane
 default_platform(:ios)
 
 if is_ci
-  xcode_select "/Applications/Xcode_12.5.app"
+  xcode_select "/Applications/Xcode_13.0.0.app"
 else
-  xcode_select "/Applications/Xcode_12.5.0_fb.app"
+  xcode_select "/Applications/Xcode_13.0.0_fb.app"
 end
 
 platform :ios do

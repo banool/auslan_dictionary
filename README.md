@@ -12,10 +12,13 @@ flutter build ios --release --no-codesign
 cd ios && ./publish_do_not_check_in.sh
 ```
 
-If you run into problems with this, run:
+If you run into problems with this, run some combination of these commands:
 ```
 brew reinstall fastlane
 rm Gemfile.lock
+sudo gem cleanup
+sudo gem update
+pod install
 ```
 
 To generate and upload screenshots:
