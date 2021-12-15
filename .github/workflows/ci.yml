@@ -14,12 +14,12 @@ jobs:
 
     - uses: actions/setup-java@v1
       with:
-        java-version: '12.x'
+        java-version: '17'
 
     - uses: subosito/flutter-action@v1
       with:
-        flutter-version: '2.6.0-5.2.pre'
-        channel: beta
+        flutter-version: '2.8.0'
+        channel: stable
 
     # Initial build and test
     - run: flutter pub get
