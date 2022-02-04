@@ -18,7 +18,7 @@ git fetch
 git reset --hard origin/master
 
 # Delete PR and branch if it already exists.
-existingpr=`gh pr list --label dataupdate --json number | jq -r .[0]`
+existingpr=`gh pr list --label data_update --json number | jq -r .[0]`
 if [ "$existingpr" != "null" ]; then
     gh pr close $existingpr -d 
 fi
@@ -38,7 +38,7 @@ git commit -m "Update signbank data"
 git push --set-upstream origin update_data
 
 # Make a PR with the commit.
-gh pr create --fill --label dataupdate
+gh pr create --fill --label data_update
 
 # Switch back to master.
 git checkout master
