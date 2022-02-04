@@ -17,11 +17,15 @@ cd ..
 git fetch
 git reset --hard origin/master
 
-# Delete PR and branch if it already exists.
-existingpr=`gh pr list --label data_update --json number | jq -r .[0]`
+# Delete PR if it already exists.
+existingpr=`gh pr list --label data_update --json number | jq -r .[0].number`
 if [ "$existingpr" != "null" ]; then
     gh pr close $existingpr -d 
 fi
+
+# Delete branch if it already exists.
+git push -d origin update_data
+git branch -D update_data
 
 # Switch to a new branch.
 git checkout -b update_data
@@ -44,6 +48,6 @@ gh pr create --fill --label data_update
 git checkout master
 
 # Delete branch.
-git branch -d update_data
+git branch -D update_data
 
 echo 'Done!'
