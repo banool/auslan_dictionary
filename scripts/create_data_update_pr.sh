@@ -2,6 +2,14 @@
 
 set +e
 
+onexit() {
+    # Switch back to master.
+    git checkout master
+
+    # Delete branch.
+    git branch -D update_data
+}
+
 if [ -z "$PIP_PYTHON_PATH" ]
 then
     echo "ERROR: Run this from within the pipenv."
@@ -33,6 +41,14 @@ git checkout -b update_data
 # Scrape for new data.
 scripts/incremental_scrape.sh
 
+# Exit if nothing changed.
+diff all_letters.json ../assets/data/words.json > /dev/null
+if [ $? -eq 0 ]; then
+    echo "No new data, exiting..."
+    onexit
+    exit
+fi
+
 # Move data into place.
 scripts/move_data.sh
 
@@ -47,10 +63,6 @@ git push --set-upstream origin update_data
 # Make a PR with the commit.
 gh pr create --fill --label data_update
 
-# Switch back to master.
-git checkout master
-
-# Delete branch.
-git branch -D update_data
+onexit
 
 echo 'Done!'
