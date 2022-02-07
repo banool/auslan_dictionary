@@ -156,7 +156,7 @@ class SubWord:
 
 @retry(RuntimeError, delay=1, backoff=3, tries=5)
 def load_url(url, timeout=180):
-    LOG.debug(f"Getting HTML for URL: {url}")
+    # LOG.debug(f"Getting HTML for URL: {url}")
     response = requests.get(url, timeout=timeout)
     if response.status_code != 200:
         raise RuntimeError(f"Got status code {response.status_code} for {url}")
@@ -350,7 +350,7 @@ def parse_subpage(html) -> SubWord:
 def get_existing_data(filename):
     with open(filename, "r") as f:
         existing_data = json.loads(f.read())
-    LOG.debug(f"Loaded existing data: {existing_data}")
+    # LOG.debug(f"Loaded existing data: {existing_data}")
     return existing_data
 
 
@@ -407,7 +407,7 @@ async def main():
         word_dict = word.get_dict()
         word_to_info.update(word_dict)
 
-    LOG.debug(word_to_info)
+    # LOG.debug(word_to_info)
 
     # Build and output the JSON.
     json_output = json.dumps(word_to_info, indent=4)
