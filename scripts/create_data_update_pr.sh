@@ -7,7 +7,6 @@ onexit() {
     git checkout master
 
     # Delete branch.
-    git push -d origin update_data
     git branch -D update_data
 }
 
