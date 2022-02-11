@@ -62,7 +62,7 @@ List<Word> searchList(
   final SplayTreeMap<double, List<Word>> st =
       SplayTreeMap<double, List<Word>>();
   if (searchTerm == "") {
-    return fallback;
+    return List.from(fallback);
   }
   searchTerm = searchTerm.toLowerCase();
   JaroWinkler d = new JaroWinkler();

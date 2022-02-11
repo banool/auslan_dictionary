@@ -16,13 +16,16 @@ class FavouritesPage extends StatefulWidget {
 
 class _FavouritesPageState extends State<FavouritesPage> {
   // All the words in the dictionary.
-  List<Word> words = [];
+  late List<Word> words;
 
   // All the user's favourites.
-  List<Word> favourites = [];
+  late List<Word> favourites;
+
+  // TODO: Let users choose to sort list items by default or not.
+  bool viewSortedList = false;
 
   // The favourites that match the user's search term.
-  List<Word> favouritesSearched = [];
+  late List<Word> favouritesSearched;
 
   String currentSearchTerm = "";
 
@@ -30,6 +33,13 @@ class _FavouritesPageState extends State<FavouritesPage> {
 
   late Future<void> initStateAsyncFuture;
   late SharedPreferences prefs;
+
+  void toggleSort() {
+    setState(() {
+      viewSortedList = !viewSortedList;
+      search();
+    });
+  }
 
   @override
   void initState() {
@@ -45,21 +55,35 @@ class _FavouritesPageState extends State<FavouritesPage> {
 
   Future<void> loadFavouritesInner() async {
     favourites = await loadFavourites(words, context);
-    favouritesSearched = favourites;
-    search(currentSearchTerm);
+    favouritesSearched = List.from(favourites);
   }
 
-  void search(String searchTerm) {
+  void updateCurrentSearchTerm(String term) {
     setState(() {
-      currentSearchTerm = searchTerm;
-      favouritesSearched = searchList(searchTerm, favourites, favourites);
+      currentSearchTerm = term;
     });
   }
 
-  void clearFavourites() {
+  void search() {
     setState(() {
-      favouritesSearched = favourites;
+      if (currentSearchTerm.length > 0) {
+        favouritesSearched =
+            searchList(currentSearchTerm, favourites, favourites);
+      } else {
+        favouritesSearched = List.from(favourites);
+        if (viewSortedList) {
+          favouritesSearched.sort();
+        }
+      }
+    });
+  }
+
+  void clearSearch() {
+    setState(() {
+      favouritesSearched = List.from(favourites);
       _favouritesFieldController.clear();
+      currentSearchTerm = "";
+      search();
     });
   }
 
@@ -67,16 +91,23 @@ class _FavouritesPageState extends State<FavouritesPage> {
     removeFromFavourites(word, words, context);
     setState(() {
       favourites.removeWhere((element) => element.word == word.word);
+      search();
     });
   }
 
   Future<void> refreshFavourites() async {
     await loadFavouritesInner();
-    setState(() {});
+    setState(() {
+      search();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    bool enableSortButton = currentSearchTerm.length == 0;
+    Color floatingActionButtonColor =
+        enableSortButton ? MAIN_COLOR : Colors.grey;
+    print(floatingActionButtonColor);
     return FutureBuilder(
         future: initStateAsyncFuture,
         builder: (context, snapshot) {
@@ -85,7 +116,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
               child: new CircularProgressIndicator(),
             );
           }
-          return Center(
+          return Container(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
               child: Column(
@@ -103,14 +134,15 @@ class _FavouritesPageState extends State<FavouritesPage> {
                           hintText: 'Search your favourites',
                           suffixIcon: IconButton(
                             onPressed: () {
-                              clearFavourites();
+                              clearSearch();
                             },
                             icon: Icon(Icons.clear),
                           ),
                         ),
                         // The validator receives the text that the user has entered.
                         onChanged: (String value) {
-                          search(value);
+                          updateCurrentSearchTerm(value);
+                          search();
                         },
                         autofocus: false,
                         textInputAction: TextInputAction.search,
@@ -123,6 +155,22 @@ class _FavouritesPageState extends State<FavouritesPage> {
                     child: listWidget(context, favouritesSearched, words,
                         removeFavourite, refreshFavourites),
                   ),
+                  // TODO: Just do this with a scaffold like a normal person.
+                  Align(
+                    child: Container(
+                      child: FloatingActionButton(
+                          backgroundColor: floatingActionButtonColor,
+                          onPressed: () {
+                            if (!enableSortButton) {
+                              return;
+                            }
+                            toggleSort();
+                          },
+                          child: Icon(Icons.sort)),
+                      padding: EdgeInsets.only(right: 20, bottom: 10),
+                    ),
+                    alignment: Alignment.bottomRight,
+                  )
                 ],
               ),
             ),

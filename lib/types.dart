@@ -1,4 +1,4 @@
-class Word {
+class Word implements Comparable<Word> {
   Word({required this.word, required this.subWords});
 
   late String word;
@@ -14,6 +14,16 @@ class Word {
     });
 
     this.subWords = subWords;
+  }
+
+  @override
+  int compareTo(Word other) {
+    return this.word.compareTo(other.word);
+  }
+
+  @override
+  String toString() {
+    return this.word;
   }
 }
 

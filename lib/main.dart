@@ -2,6 +2,7 @@ import 'package:auslan_dictionary/favourites_page.dart';
 import 'package:flutter/material.dart';
 
 import 'common.dart';
+import 'favourites_page.dart';
 import 'search_page.dart';
 import 'settings_page.dart';
 
