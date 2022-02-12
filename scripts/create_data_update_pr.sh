@@ -46,7 +46,7 @@ diff all_letters.json ../assets/data/words.json > /dev/null
 if [ $? -eq 0 ]; then
     echo "No new data, exiting..."
     onexit
-    exit
+    exit 1
 fi
 
 # Move data into place.
