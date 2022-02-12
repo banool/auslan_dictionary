@@ -5,24 +5,60 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'common.dart';
 
-// todo add ability to sort by time added and alphabetically
+class FavouritesPageController {
+  void Function() refreshParent;
+
+  FavouritesPageController(this.refreshParent);
+
+  bool isMounted = false;
+
+  void onMount() {
+    isMounted = true;
+  }
+
+  void dispose() {
+    isMounted = false;
+  }
+
+  Color getFloatingActionButtonColor() {
+    return enableSortButton ? MAIN_COLOR : Colors.grey;
+  }
+
+  late void Function() toggleSort;
+
+  // TODO: Let users choose to sort list items by default or not.
+  bool viewSortedList = false;
+
+  bool enableSortButton = true;
+
+  void setEnableSortButton(bool value) {
+    enableSortButton = value;
+    refreshParent();
+  }
+}
 
 class FavouritesPage extends StatefulWidget {
-  FavouritesPage({Key? key}) : super(key: key);
+  final FavouritesPageController controller;
+
+  FavouritesPage({Key? key, required this.controller}) : super(key: key);
 
   @override
-  _FavouritesPageState createState() => _FavouritesPageState();
+  _FavouritesPageState createState() => _FavouritesPageState(controller);
 }
 
 class _FavouritesPageState extends State<FavouritesPage> {
+  late FavouritesPageController controller;
+
+  _FavouritesPageState(FavouritesPageController _controller) {
+    controller = _controller;
+    controller.toggleSort = toggleSort;
+  }
+
   // All the words in the dictionary.
   late List<Word> words;
 
   // All the user's favourites.
   late List<Word> favourites;
-
-  // TODO: Let users choose to sort list items by default or not.
-  bool viewSortedList = false;
 
   // The favourites that match the user's search term.
   late List<Word> favouritesSearched;
@@ -36,7 +72,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
 
   void toggleSort() {
     setState(() {
-      viewSortedList = !viewSortedList;
+      controller.viewSortedList = !controller.viewSortedList;
       search();
     });
   }
@@ -51,6 +87,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
     // I assume that we load the words first, don't change this order.
     words = await loadWords(context);
     await loadFavouritesInner();
+    search();
   }
 
   Future<void> loadFavouritesInner() async {
@@ -61,6 +98,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
   void updateCurrentSearchTerm(String term) {
     setState(() {
       currentSearchTerm = term;
+      controller.setEnableSortButton(currentSearchTerm.length == 0);
     });
   }
 
@@ -71,7 +109,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
             searchList(currentSearchTerm, favourites, favourites);
       } else {
         favouritesSearched = List.from(favourites);
-        if (viewSortedList) {
+        if (controller.viewSortedList) {
           favouritesSearched.sort();
         }
       }
@@ -82,7 +120,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
     setState(() {
       favouritesSearched = List.from(favourites);
       _favouritesFieldController.clear();
-      currentSearchTerm = "";
+      updateCurrentSearchTerm("");
       search();
     });
   }
@@ -104,10 +142,6 @@ class _FavouritesPageState extends State<FavouritesPage> {
 
   @override
   Widget build(BuildContext context) {
-    bool enableSortButton = currentSearchTerm.length == 0;
-    Color floatingActionButtonColor =
-        enableSortButton ? MAIN_COLOR : Colors.grey;
-    print(floatingActionButtonColor);
     return FutureBuilder(
         future: initStateAsyncFuture,
         builder: (context, snapshot) {
@@ -155,22 +189,6 @@ class _FavouritesPageState extends State<FavouritesPage> {
                     child: listWidget(context, favouritesSearched, words,
                         removeFavourite, refreshFavourites),
                   ),
-                  // TODO: Just do this with a scaffold like a normal person.
-                  Align(
-                    child: Container(
-                      child: FloatingActionButton(
-                          backgroundColor: floatingActionButtonColor,
-                          onPressed: () {
-                            if (!enableSortButton) {
-                              return;
-                            }
-                            toggleSort();
-                          },
-                          child: Icon(Icons.sort)),
-                      padding: EdgeInsets.only(right: 20, bottom: 10),
-                    ),
-                    alignment: Alignment.bottomRight,
-                  )
                 ],
               ),
             ),

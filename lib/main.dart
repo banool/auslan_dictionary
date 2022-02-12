@@ -62,9 +62,15 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final SearchPageController searchPageController = SearchPageController();
+  late FavouritesPageController favouritesPageController =
+      FavouritesPageController(refresh);
 
   bool wordsLoaded = false;
   int currentNavBarIndex = 0;
+
+  void refresh() {
+    setState(() {});
+  }
 
   void onNavBarItemTapped(int index) {
     setState(() {
@@ -79,14 +85,29 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     List<Widget> tabs = [
       SearchPage(controller: searchPageController),
-      FavouritesPage(),
+      FavouritesPage(controller: favouritesPageController),
       SettingsPage(),
     ];
+    Widget body = tabs[currentNavBarIndex];
+    Widget? floatingActionButton;
+    if (body is FavouritesPage) {
+      floatingActionButton = FloatingActionButton(
+          backgroundColor:
+              favouritesPageController.getFloatingActionButtonColor(),
+          onPressed: () {
+            if (!favouritesPageController.enableSortButton) {
+              return;
+            }
+            favouritesPageController.toggleSort();
+          },
+          child: Icon(Icons.sort));
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title!),
       ),
-      body: tabs[currentNavBarIndex],
+      body: body,
+      floatingActionButton: floatingActionButton,
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
