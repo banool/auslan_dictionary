@@ -8,4 +8,4 @@
 [[ -z "${MATCH_KEYCHAIN_PASSWORD}" ]] && echo 'Please set MATCH_KEYCHAIN_PASSWORD' && exit
 [[ -z "${MATCH_PASSWORD}" ]] && echo 'Please set MATCH_PASSWORD' && exit
 
-bundle exec fastlane ios beta
+fastlane ios beta
