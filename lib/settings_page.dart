@@ -1,5 +1,8 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:launch_review/launch_review.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -51,71 +54,162 @@ class SettingsPageState extends State<SettingsPage> {
           if (snapshot.connectionState != ConnectionState.done) {
             return waitingWidget;
           }
-          return SettingsList(
-              contentPadding: EdgeInsets.only(top: 10),
-              sections: [
-                SettingsSection(
-                  title: Text('Cache'),
-                  tiles: [
-                    SettingsTile.switchTile(
-                      title: Text('Cache videos'),
-                      initialValue: prefs.getBool(KEY_SHOULD_CACHE)!,
-                      onToggle: onChangeShouldCache,
-                    ),
-                    SettingsTile.navigation(
-                        title: Text(
-                          'Drop cache',
-                          textAlign: TextAlign.center,
-                        ),
-                        trailing: Container(),
-                        onPressed: (BuildContext context) async {
-                          await DefaultCacheManager().emptyCache();
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text("Cache dropped"),
-                            backgroundColor: MAIN_COLOR,
-                          ));
-                        }),
-                  ],
+
+          String appStoreTileString;
+          if (Platform.isAndroid) {
+            appStoreTileString = 'Give feedback on Play Store';
+          } else if (Platform.isIOS) {
+            appStoreTileString = 'Give feedback on App Store';
+          } else {
+            appStoreTileString = "N/A";
+          }
+
+          EdgeInsetsDirectional margin = EdgeInsetsDirectional.only(
+              start: 15, end: 15, top: 10, bottom: 10);
+
+          return SettingsList(sections: [
+            SettingsSection(
+              title: Text('Cache'),
+              tiles: [
+                SettingsTile.switchTile(
+                  title: Text(
+                    'Cache videos',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                  initialValue: prefs.getBool(KEY_SHOULD_CACHE)!,
+                  onToggle: onChangeShouldCache,
                 ),
-                SettingsSection(title: Text('Data'), tiles: [
-                  SettingsTile.navigation(
-                    title: Text(
-                      'Check for new dictionary data',
-                      textAlign: TextAlign.center,
+                SettingsTile.navigation(
+                    title: getText(
+                      'Drop cache',
                     ),
                     trailing: Container(),
                     onPressed: (BuildContext context) async {
-                      bool updated = await getNewData(true);
-                      String message;
-                      if (updated) {
-                        message = "Successfully updated dictionary data";
-                      } else {
-                        message = "Data is already up to date";
-                      }
+                      await DefaultCacheManager().emptyCache();
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text(message), backgroundColor: MAIN_COLOR));
-                    },
-                  )
-                ]),
-                SettingsSection(title: Text('Legal'), tiles: [
+                        content: Text("Cache dropped"),
+                        backgroundColor: MAIN_COLOR,
+                      ));
+                    }),
+              ],
+              margin: margin,
+            ),
+            SettingsSection(
+              title: Text('Data'),
+              tiles: [
+                SettingsTile.navigation(
+                  title: getText(
+                    'Check for new dictionary data',
+                  ),
+                  trailing: Container(),
+                  onPressed: (BuildContext context) async {
+                    bool updated = await getNewData(true);
+                    String message;
+                    if (updated) {
+                      message = "Successfully updated dictionary data";
+                    } else {
+                      message = "Data is already up to date";
+                    }
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(message), backgroundColor: MAIN_COLOR));
+                  },
+                )
+              ],
+              margin: margin,
+            ),
+            SettingsSection(
+              title: Text('Legal'),
+              tiles: [
+                SettingsTile.navigation(
+                  title: getText(
+                    'See legal information',
+                  ),
+                  trailing: Container(),
+                  onPressed: (BuildContext context) async {
+                    return await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LegalInformationPage(),
+                        ));
+                  },
+                )
+              ],
+              margin: margin,
+            ),
+            SettingsSection(
+                title: Text('Help'),
+                tiles: [
                   SettingsTile.navigation(
-                    title: Text(
-                      'See legal information',
-                      textAlign: TextAlign.center,
+                    title: getText(
+                      'Report issue with dictionary data',
                     ),
                     trailing: Container(),
                     onPressed: (BuildContext context) async {
-                      return await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => LegalInformationPage(),
-                          ));
+                      var url = 'https://www.auslan.org.au/feedback/';
+                      await launch(url, forceSafariVC: false);
                     },
-                  )
-                ]),
-              ]);
+                  ),
+                  SettingsTile.navigation(
+                    title: getText(
+                      'Report issue with app (GitHub)',
+                    ),
+                    trailing: Container(),
+                    onPressed: (BuildContext context) async {
+                      var url =
+                          'https://github.com/banool/auslan_dictionary/issues';
+                      await launch(url, forceSafariVC: false);
+                    },
+                  ),
+                  SettingsTile.navigation(
+                    title: getText(
+                      'Report issue with app (Email)',
+                    ),
+                    trailing: Container(),
+                    onPressed: (BuildContext context) async {
+                      final Uri params = Uri(
+                          scheme: 'mailto',
+                          path: 'danielporteous1@gmail.com',
+                          queryParameters: {
+                            'subject': 'Issue with Auslan Dictionary',
+                            'body':
+                                'Describe the issue, tell me what device you are using, etc. Thanks!'
+                          });
+                      String url = params.toString();
+                      if (await canLaunch(url)) {
+                        await launch(url);
+                      } else {
+                        print('Could not launch $url');
+                      }
+                    },
+                  ),
+                  SettingsTile.navigation(
+                    title: getText(appStoreTileString),
+                    trailing: Container(),
+                    onPressed: (BuildContext context) async {
+                      await LaunchReview.launch(
+                          iOSAppId: "1531368368", writeReview: true);
+                    },
+                    description: Container(
+                        margin: EdgeInsets.only(top: 5),
+                        child: Text(
+                          "Auslan Dictionary is a solo project I work on for free in my spare time, so positive reviews are very much appreciated :)",
+                          style: TextStyle(fontSize: 14),
+                          textAlign: TextAlign.center,
+                        )),
+                  ),
+                ],
+                margin: margin),
+          ]);
         });
   }
+}
+
+Text getText(String s) {
+  return Text(
+    s,
+    textAlign: TextAlign.center,
+    style: TextStyle(fontSize: 14),
+  );
 }
 
 class LegalInformationPage extends StatelessWidget {
