@@ -276,7 +276,7 @@ async def parse_information(executor, html) -> Word:
     word = soup.find_all("em")[0].string
 
     # Get the SubWord for this first page
-    first_subword = parse_subpage(html)
+    first_subword = parse_subpage(html, word)
     subwords = [first_subword]
 
     # Get links to the subpages
@@ -291,7 +291,7 @@ async def parse_information(executor, html) -> Word:
         subwords_html = []
 
     # Pull subwords information from them
-    additional_subwords = [parse_subpage(html) for html in subwords_html]
+    additional_subwords = [parse_subpage(html, word) for html in subwords_html]
     subwords += additional_subwords
 
     return Word(
@@ -300,13 +300,15 @@ async def parse_information(executor, html) -> Word:
     )
 
 
-def parse_subpage(html) -> SubWord:
+def parse_subpage(html, word_str) -> SubWord:
     soup = BeautifulSoup(html.text, "html.parser")
 
     # Get the keywords
     keywords_div = soup.find("div", {"id": "keywords"})
-    keywords_lines = [l.lstrip() for l in keywords_div.text.split("\n")][4:]
+    keywords_lines = [l.lstrip() for l in keywords_div.text.split("\n")]
     keywords = [k.rstrip(",") for k in keywords_lines if k]
+    keywords.remove("Keywords:")
+    keywords.remove(word_str)
 
     # Get the video links
     video_links = [t["src"] for t in soup.find_all("source")]
