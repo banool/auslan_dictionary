@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:launch_review/launch_review.dart';
+import 'package:mailto/mailto.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -166,15 +167,12 @@ class SettingsPageState extends State<SettingsPage> {
                     ),
                     trailing: Container(),
                     onPressed: (BuildContext context) async {
-                      final Uri params = Uri(
-                          scheme: 'mailto',
-                          path: 'danielporteous1@gmail.com',
-                          queryParameters: {
-                            'subject': 'Issue with Auslan Dictionary',
-                            'body':
-                                'Describe the issue, tell me what device you are using, etc. Thanks!'
-                          });
-                      String url = params.toString();
+                      var mailto = Mailto(
+                          to: ['danielporteous1@gmail.com'],
+                          subject: 'Issue with Auslan Dictionary',
+                          body:
+                              'Please tell me what device you are using and describe the issue in detail. Thanks!');
+                      String url = "$mailto";
                       if (await canLaunch(url)) {
                         await launch(url);
                       } else {
@@ -189,13 +187,6 @@ class SettingsPageState extends State<SettingsPage> {
                       await LaunchReview.launch(
                           iOSAppId: "1531368368", writeReview: true);
                     },
-                    description: Container(
-                        margin: EdgeInsets.only(top: 5),
-                        child: Text(
-                          "Auslan Dictionary is a solo project I work on for free in my spare time, so positive reviews are very much appreciated :)",
-                          style: TextStyle(fontSize: 14),
-                          textAlign: TextAlign.center,
-                        )),
                   ),
                 ],
                 margin: margin),
