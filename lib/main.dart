@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'common.dart';
 import 'favourites_page.dart';
+import 'flashcards_page.dart';
 import 'search_page.dart';
 import 'settings_page.dart';
 
@@ -64,6 +65,8 @@ class _MyHomePageState extends State<MyHomePage> {
   final SearchPageController searchPageController = SearchPageController();
   late FavouritesPageController favouritesPageController =
       FavouritesPageController(refresh);
+  final FlashcardsPageController flashcardsPageController =
+      FlashcardsPageController();
 
   bool wordsLoaded = false;
   int currentNavBarIndex = 0;
@@ -86,6 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
     List<Widget> tabs = [
       SearchPage(controller: searchPageController),
       FavouritesPage(controller: favouritesPageController),
+      FlashcardsPage(controller: flashcardsPageController),
       SettingsPage(),
     ];
     Widget body = tabs[currentNavBarIndex];
@@ -119,6 +123,10 @@ class _MyHomePageState extends State<MyHomePage> {
             label: "Favourites",
           ),
           BottomNavigationBarItem(
+            icon: Icon(Icons.style),
+            label: "Flashcards",
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: "Settings",
           ),
@@ -126,6 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
         currentIndex: currentNavBarIndex,
         selectedItemColor: MAIN_COLOR,
         onTap: onNavBarItemTapped,
+        type: BottomNavigationBarType.fixed,
       ),
     );
   }
