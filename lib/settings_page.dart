@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 
+import 'package:auslan_dictionary/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:launch_review/launch_review.dart';
@@ -107,6 +108,7 @@ class SettingsPageState extends State<SettingsPage> {
                     bool updated = await getNewData(true);
                     String message;
                     if (updated) {
+                      wordsGlobal = await loadWords();
                       message = "Successfully updated dictionary data";
                     } else {
                       message = "Data is already up to date";
