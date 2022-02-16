@@ -189,13 +189,10 @@ class _SubWordPageState extends State<SubWordPage> {
     List<TextSpan> textSpans = [];
 
     int idx = 0;
+    int numKeywords = subWord.keywords.length;
     for (String keyword in subWord.keywords) {
-      if (keyword == word.word) {
-        idx += 1;
-        continue;
-      }
       Color color;
-      Function? navFunction;
+      void Function()? navFunction;
       Word? relatedWord;
       if (allWordsMap.containsKey(keyword)) {
         relatedWord = allWordsMap[keyword];
@@ -207,7 +204,7 @@ class _SubWordPageState extends State<SubWordPage> {
         navFunction = null;
       }
       String suffix;
-      if (idx < subWord.keywords.length - 1) {
+      if (idx < numKeywords - 1) {
         suffix = ", ";
       } else {
         suffix = "";
@@ -215,8 +212,7 @@ class _SubWordPageState extends State<SubWordPage> {
       textSpans.add(TextSpan(
         text: "$keyword$suffix",
         style: TextStyle(color: color),
-        recognizer: TapGestureRecognizer()
-          ..onTap = navFunction as void Function()?,
+        recognizer: TapGestureRecognizer()..onTap = navFunction,
       ));
       idx += 1;
     }

@@ -10,6 +10,7 @@ class Word implements Comparable<Word> {
     List<SubWord> subWords = [];
     wordJson.forEach((subJson) {
       SubWord subWord = SubWord.fromJson(subJson);
+      subWord.keywords.remove(word);
       subWords.add(subWord);
     });
 
@@ -41,6 +42,7 @@ class SubWord {
 
   SubWord.fromJson(dynamic wordJson) {
     this.keywords = wordJson["keywords"].cast<String>();
+
     this.videoLinks = wordJson["video_links"].cast<String>();
 
     List<Definition> definitions = [];
