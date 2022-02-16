@@ -8,6 +8,7 @@ import 'package:edit_distance/edit_distance.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 import 'types.dart';
 import 'word_page.dart';
@@ -24,7 +25,7 @@ const String KEY_DICTIONARY_DATA_CURRENT_VERSION = "current_data_version";
 
 const int DATA_CHECK_INTERVAL = 60 * 60 * 24 * 7; // 1 week.
 
-Future<List<Word>> loadWords(BuildContext context) async {
+Future<List<Word>> loadWords() async {
   List<Word> words = [];
   String data;
   try {
@@ -36,8 +37,7 @@ Future<List<Word>> loadWords(BuildContext context) async {
     // That failed, it probably wasn't there, use data bundled in.
     print(
         "Failed to use data from internet, using local bundled data instead: $e");
-    data = await DefaultAssetBundle.of(context)
-        .loadString("assets/data/words.json");
+    data = await rootBundle.loadString("assets/data/words.json");
   }
   dynamic wordsJson = json.decode(data);
   for (MapEntry e in wordsJson.entries) {

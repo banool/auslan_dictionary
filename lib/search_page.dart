@@ -1,6 +1,6 @@
+import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/types.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'common.dart';
 
@@ -39,7 +39,6 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   bool wordsLoaded = false;
-  List<Word> words = [];
   List<Word?> wordsSearched = [];
   int currentNavBarIndex = 0;
 
@@ -57,9 +56,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> initStateAsync() async {
-    var loadedWords = await loadWords(context);
     setState(() {
-      words = loadedWords;
       wordsLoaded = true;
     });
   }
@@ -72,7 +69,7 @@ class _SearchPageState extends State<SearchPage> {
 
   void search(String searchTerm) {
     setState(() {
-      wordsSearched = searchList(searchTerm, words, []);
+      wordsSearched = searchList(searchTerm, wordsGlobal, []);
     });
   }
 
@@ -122,7 +119,7 @@ class _SearchPageState extends State<SearchPage> {
                         ])),
                   ),
                   new Expanded(
-                    child: listWidget(context, wordsSearched, words),
+                    child: listWidget(context, wordsSearched, wordsGlobal),
                   ),
                 ],
               ),

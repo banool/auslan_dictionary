@@ -1,4 +1,5 @@
 import 'package:auslan_dictionary/favourites_page.dart';
+import 'package:auslan_dictionary/types.dart';
 import 'package:flutter/material.dart';
 
 import 'common.dart';
@@ -7,22 +8,39 @@ import 'flashcards_page.dart';
 import 'search_page.dart';
 import 'settings_page.dart';
 
+late List<Word> wordsGlobal;
+
 Future<void> main() async {
+  print("Start of main");
   try {
     WidgetsFlutterBinding.ensureInitialized();
-    await setup();
+
+    // Get favourites stuff ready if this is the first app launch.
+    await bootstrapFavourites();
+
+    // Load up the words information once at startup from disk.
+    wordsGlobal = await loadWords();
+
+    // Check for new words data if appropriate.
+    // We don't wait for this on startup, it's too slow.
+    updateWordsData();
+
+    // Finally run the app.
     runApp(MyApp());
   } catch (error) {
     print("Initial setup failed: $error");
   }
 }
 
-Future<void> setup() async {
-  // Don't await getting new data, it's too slow.
-  getNewData(false).catchError((e, s) {
-    print("Failed to check for new data: $e and $s");
-  });
-  await bootstrapFavourites();
+Future<void> updateWordsData() async {
+  bool thereWasNewData = await getNewData(false);
+  if (thereWasNewData) {
+    print("There was new data");
+    wordsGlobal = await loadWords();
+    print("Updated wordsGlobal");
+  } else {
+    print("There was no new words data, not updating wordsGlobal");
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -89,7 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
     List<Widget> tabs = [
       SearchPage(controller: searchPageController),
       FavouritesPage(controller: favouritesPageController),
-      FlashcardsPage(controller: flashcardsPageController),
+      //FlashcardsPage(controller: flashcardsPageController),
       SettingsPage(),
     ];
     Widget body = tabs[currentNavBarIndex];
@@ -122,10 +140,12 @@ class _MyHomePageState extends State<MyHomePage> {
             icon: Icon(Icons.star),
             label: "Favourites",
           ),
+          /*
           BottomNavigationBarItem(
             icon: Icon(Icons.style),
             label: "Flashcards",
           ),
+          */
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: "Settings",

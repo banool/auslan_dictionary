@@ -1,6 +1,6 @@
+import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/types.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'common.dart';
@@ -54,9 +54,6 @@ class _FavouritesPageState extends State<FavouritesPage> {
     controller.toggleSort = toggleSort;
   }
 
-  // All the words in the dictionary.
-  late List<Word> words;
-
   // All the user's favourites.
   late List<Word> favourites;
 
@@ -85,13 +82,12 @@ class _FavouritesPageState extends State<FavouritesPage> {
 
   Future<void> initStateAsync() async {
     // I assume that we load the words first, don't change this order.
-    words = await loadWords(context);
     await loadFavouritesInner();
     search();
   }
 
   Future<void> loadFavouritesInner() async {
-    favourites = await loadFavourites(words, context);
+    favourites = await loadFavourites(wordsGlobal, context);
     favouritesSearched = List.from(favourites);
   }
 
@@ -126,7 +122,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
   }
 
   void removeFavourite(Word word) {
-    removeFromFavourites(word, words, context);
+    removeFromFavourites(word, wordsGlobal, context);
     setState(() {
       favourites.removeWhere((element) => element.word == word.word);
       search();
@@ -186,7 +182,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
                     ])),
                   ),
                   new Expanded(
-                    child: listWidget(context, favouritesSearched, words,
+                    child: listWidget(context, favouritesSearched, wordsGlobal,
                         removeFavourite, refreshFavourites),
                   ),
                 ],

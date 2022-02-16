@@ -1,3 +1,4 @@
+import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/types.dart';
 import 'package:flutter/material.dart';
 
@@ -43,8 +44,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
   }
 
   Future<void> initStateAsync() async {
-    var words = await loadWords(context);
-    favourites = await loadFavourites(words, context);
+    favourites = await loadFavourites(wordsGlobal, context);
   }
 
   @override

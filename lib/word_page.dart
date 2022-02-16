@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:auslan_dictionary/types.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -16,7 +15,6 @@ import 'common.dart';
 bool getShouldUseHorizontalLayout(BuildContext context) {
   var screenSize = MediaQuery.of(context).size;
   var shouldUseHorizontalDisplay = screenSize.width > screenSize.height * 1.2;
-  print("shouldUseHorizontalDisplay: $shouldUseHorizontalDisplay");
   return shouldUseHorizontalDisplay;
 }
 
@@ -56,7 +54,6 @@ class _WordPageState extends State<WordPage> {
     } else {
       isFavourited = false;
     }
-    print("isFave: $isFavourited");
   }
 
   void onPageChanged(int index) {
