@@ -201,7 +201,7 @@ Text getText(String s) {
   return Text(
     s,
     textAlign: TextAlign.center,
-    style: TextStyle(fontSize: 14),
+    style: TextStyle(fontSize: 15),
   );
 }
 
