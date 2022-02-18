@@ -56,7 +56,6 @@ class SettingsPageState extends State<SettingsPage> {
     setState(() {
       sharedPreferences.setBool(KEY_HIDE_FLASHCARDS_FEATURE, newValue);
       controller.toggleFlashcards(newValue);
-      controller.refreshParent();
     });
   }
 
@@ -87,7 +86,27 @@ class SettingsPageState extends State<SettingsPage> {
           EdgeInsetsDirectional margin = EdgeInsetsDirectional.only(
               start: 15, end: 15, top: 10, bottom: 10);
 
-          return SettingsList(sections: [
+          SettingsSection? featuresSection;
+          if (GK_ENABLE_FLASHCARDS) {
+            featuresSection = SettingsSection(
+              title: Text('Features'),
+              tiles: [
+                SettingsTile.switchTile(
+                  title: Text(
+                    'Hide flashcards feature',
+                    style: TextStyle(fontSize: 15),
+                  ),
+                  initialValue:
+                      sharedPreferences.getBool(KEY_HIDE_FLASHCARDS_FEATURE) ??
+                          false,
+                  onToggle: onChangeHideFlashcardsFeature,
+                ),
+              ],
+              margin: margin,
+            );
+          }
+
+          List<AbstractSettingsSection?> sections = [
             SettingsSection(
               title: Text('Cache'),
               tiles: [
@@ -138,22 +157,7 @@ class SettingsPageState extends State<SettingsPage> {
               ],
               margin: margin,
             ),
-            SettingsSection(
-              title: Text('Features'),
-              tiles: [
-                SettingsTile.switchTile(
-                  title: Text(
-                    'Hide flashcards feature',
-                    style: TextStyle(fontSize: 15),
-                  ),
-                  initialValue:
-                      sharedPreferences.getBool(KEY_HIDE_FLASHCARDS_FEATURE) ??
-                          false,
-                  onToggle: onChangeHideFlashcardsFeature,
-                ),
-              ],
-              margin: margin,
-            ),
+            featuresSection,
             SettingsSection(
               title: Text('Legal'),
               tiles: [
@@ -226,7 +230,16 @@ class SettingsPageState extends State<SettingsPage> {
                   ),
                 ],
                 margin: margin),
-          ]);
+          ];
+
+          List<AbstractSettingsSection> nonNullSections = [];
+          for (AbstractSettingsSection? section in sections) {
+            if (section != null) {
+              nonNullSections.add(section);
+            }
+          }
+
+          return SettingsList(sections: nonNullSections);
         });
   }
 }

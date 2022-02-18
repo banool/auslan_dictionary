@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:auslan_dictionary/favourites_page.dart';
 import 'package:auslan_dictionary/types.dart';
 import 'package:flutter/material.dart';
@@ -103,9 +101,13 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void toggleFlashcards(bool enabled) {
-    if (enabled) {
-      currentNavBarIndex -= 1;
-    }
+    setState(() {
+      if (enabled) {
+        currentNavBarIndex -= 1;
+      } else {
+        currentNavBarIndex += 1;
+      }
+    });
   }
 
   void goToSettings() {
@@ -140,7 +142,7 @@ class _MyHomePageState extends State<MyHomePage> {
     ));
     tabs.add(FavouritesPage(controller: favouritesPageController));
 
-    if (!(sharedPreferences.getBool(KEY_HIDE_FLASHCARDS_FEATURE) ?? false)) {
+    if (useFlashcards()) {
       items.add(BottomNavigationBarItem(
         icon: Icon(Icons.style),
         label: "Flashcards",

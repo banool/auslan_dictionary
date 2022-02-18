@@ -27,6 +27,15 @@ const String KEY_HIDE_FLASHCARDS_FEATURE = "hide_flashcards_feature";
 
 const int DATA_CHECK_INTERVAL = 60 * 60 * 24 * 7; // 1 week.
 
+const bool GK_ENABLE_FLASHCARDS = false;
+
+bool useFlashcards() {
+  if (!GK_ENABLE_FLASHCARDS) {
+    return false;
+  }
+  return !(sharedPreferences.getBool(KEY_HIDE_FLASHCARDS_FEATURE) ?? false);
+}
+
 Future<List<Word>> loadWords() async {
   List<Word> words = [];
   String data;
