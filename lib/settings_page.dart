@@ -76,7 +76,7 @@ class SettingsPageState extends State<SettingsPage> {
                 SettingsTile.switchTile(
                   title: Text(
                     'Cache videos',
-                    style: TextStyle(fontSize: 14),
+                    style: TextStyle(fontSize: 15),
                   ),
                   initialValue: prefs.getBool(KEY_SHOULD_CACHE)!,
                   onToggle: onChangeShouldCache,

@@ -391,18 +391,18 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
     // Play or pause the video based on whether this is the first video.
     if (idx == currentPage) {
-      controller.play();
+      await controller.play();
     } else {
-      controller.pause();
+      await controller.pause();
     }
+
+    // Initialize the controller.
+    await controller.initialize();
 
     // Store the controller for later.
     setState(() {
       controllers[idx] = controller;
     });
-
-    // Initialize the controller.
-    await controller.initialize();
 
     // Set state again so it rebuilds and adjusts the aspect ratio.
     setState(() {});
