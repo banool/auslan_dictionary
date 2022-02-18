@@ -333,8 +333,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   List<Future<void>> initializeVideoPlayerFutures = [];
 
-  Future<void>? firstInitVideosFuture;
-
   CarouselController? carouselController;
 
   int currentPage = 0;
@@ -365,7 +363,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           await DefaultCacheManager().getFileFromCache(videoLink);
 
       late File file;
-      if (fileInfo == null || fileInfo.file == null) {
+      if (fileInfo == null) {
         print("Video for $videoLink not in cache, fetching and caching now");
         file = await DefaultCacheManager().getSingleFile(videoLink);
       } else {
@@ -399,13 +397,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     // Initialize the controller.
     await controller.initialize();
 
-    // Store the controller for later.
-    setState(() {
-      controllers[idx] = controller;
-    });
-
-    // Set state again so it rebuilds and adjusts the aspect ratio.
-    setState(() {});
+    // Store the controller for later. We check mounted in case the user
+    // navigated away before the video loading, in which case calling setState
+    // would be invalid.
+    if (mounted) {
+      setState(() {
+        controllers[idx] = controller;
+      });
+    } else {
+      print("Not calling setState because not mounted");
+    }
   }
 
   void onPageChanged(int newPage) {
@@ -420,11 +421,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   @override
   void dispose() {
+    super.dispose();
+
     // Ensure disposing of the VideoPlayerController to free up resources.
     for (VideoPlayerController c in controllers.values) {
       c.dispose();
     }
-    super.dispose();
   }
 
   @override
