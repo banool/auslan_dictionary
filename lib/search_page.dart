@@ -119,7 +119,7 @@ class _SearchPageState extends State<SearchPage> {
                         ])),
                   ),
                   new Expanded(
-                    child: listWidget(context, wordsSearched, wordsGlobal),
+                    child: listWidget(context, wordsSearched),
                   ),
                 ],
               ),
@@ -131,21 +131,19 @@ class _SearchPageState extends State<SearchPage> {
   }
 }
 
-Widget listWidget(
-    BuildContext context, List<Word?> wordsSearched, List<Word> allWords) {
+Widget listWidget(BuildContext context, List<Word?> wordsSearched) {
   return ListView.builder(
     itemCount: wordsSearched.length,
     itemBuilder: (context, index) {
-      return ListTile(
-          title: listItem(context, wordsSearched[index]!, allWords));
+      return ListTile(title: listItem(context, wordsSearched[index]!));
     },
   );
 }
 
-Widget listItem(BuildContext context, Word word, List<Word> allWords) {
+Widget listItem(BuildContext context, Word word) {
   return FlatButton(
     child: Align(alignment: Alignment.topLeft, child: Text("${word.word}")),
-    onPressed: () => navigateToWordPage(context, word, allWords),
+    onPressed: () => navigateToWordPage(context, word),
     splashColor: MAIN_COLOR,
   );
 }

@@ -87,7 +87,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
   }
 
   Future<void> loadFavouritesInner() async {
-    favourites = await loadFavourites(wordsGlobal, context);
+    favourites = await loadFavourites(context);
     favouritesSearched = List.from(favourites);
   }
 
@@ -122,7 +122,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
   }
 
   void removeFavourite(Word word) {
-    removeFromFavourites(word, wordsGlobal, context);
+    removeFromFavourites(word, context);
     setState(() {
       favourites.removeWhere((element) => element.word == word.word);
       search();
@@ -214,7 +214,7 @@ Widget listItem(BuildContext context, Word word, List<Word> allWords,
   return FlatButton(
     child: Align(alignment: Alignment.topLeft, child: Text("${word.word}")),
     onPressed: () async => {
-      await navigateToWordPage(context, word, allWords),
+      await navigateToWordPage(context, word),
       await refreshFavouritesFn(),
     },
     onLongPress: () => removeFavouriteFn(word),

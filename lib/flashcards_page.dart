@@ -4,6 +4,12 @@ import 'package:flutter/material.dart';
 
 import 'common.dart';
 
+// - In the settings, let people choose what state(s) they want to see flashcards for.
+//   - What about region unknown case?
+// - In the settings, let people choose sign -> word and word -> sign.
+// - In the flashcards app bar have a history button to see a summary of previous flashcard sessions.
+// - In the settings, let people choose between random revision and spaced repetition.
+
 class FlashcardsPageController {
   bool isMounted = false;
 
@@ -44,7 +50,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
   }
 
   Future<void> initStateAsync() async {
-    favourites = await loadFavourites(wordsGlobal, context);
+    favourites = await loadFavourites(context);
   }
 
   @override

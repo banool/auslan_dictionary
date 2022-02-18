@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/types.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:dots_indicator/dots_indicator.dart';
@@ -19,26 +20,22 @@ bool getShouldUseHorizontalLayout(BuildContext context) {
 }
 
 class WordPage extends StatefulWidget {
-  WordPage({Key? key, required this.word, required this.allWords})
-      : super(key: key);
+  WordPage({Key? key, required this.word}) : super(key: key);
 
   final Word word;
-  final List<Word> allWords;
 
   @override
-  _WordPageState createState() =>
-      _WordPageState(word: word, allWords: allWords);
+  _WordPageState createState() => _WordPageState(word: word);
 }
 
 class _WordPageState extends State<WordPage> {
-  _WordPageState({required this.word, required this.allWords});
+  _WordPageState({required this.word});
 
   int currentPage = 0;
   Future<void>? initStateAsyncFuture;
   SharedPreferences? prefs;
 
   final Word word;
-  final List<Word> allWords;
   bool isFavourited = false;
 
   @override
@@ -48,7 +45,7 @@ class _WordPageState extends State<WordPage> {
   }
 
   Future<void> initStateAsync() async {
-    List<Word?> favourites = await loadFavourites(allWords, context);
+    List<Word?> favourites = await loadFavourites(context);
     if (favourites.contains(word)) {
       isFavourited = true;
     } else {
@@ -75,8 +72,7 @@ class _WordPageState extends State<WordPage> {
           List<Widget> pages = [];
           for (int i = 0; i < word.subWords.length; i++) {
             SubWord subWord = word.subWords[i];
-            SubWordPage subWordPage =
-                SubWordPage(word: word, allWords: allWords, subWord: subWord);
+            SubWordPage subWordPage = SubWordPage(word: word, subWord: subWord);
             pages.add(subWordPage);
           }
 
@@ -103,9 +99,9 @@ class _WordPageState extends State<WordPage> {
                         isFavourited = !isFavourited;
                       });
                       if (isFavourited) {
-                        await addToFavourites(word, allWords, context);
+                        await addToFavourites(word, context);
                       } else {
-                        await removeFromFavourites(word, allWords, context);
+                        await removeFromFavourites(word, context);
                       }
                     },
                     child: starIcon,
@@ -146,90 +142,92 @@ class _WordPageState extends State<WordPage> {
             body: Center(
                 child: PageView.builder(
                     itemCount: word.subWords.length,
-                    itemBuilder: (context, index) => SubWordPage(
-                        word: word,
-                        allWords: allWords,
-                        subWord: word.subWords[index]),
+                    itemBuilder: (context, index) =>
+                        SubWordPage(word: word, subWord: word.subWords[index]),
                     onPageChanged: onPageChanged)),
           );
         });
   }
 }
 
+Widget? getRelatedWordsWidget(
+    BuildContext context, SubWord subWord, bool shouldUseHorizontalDisplay) {
+  int numKeywords = subWord.keywords.length;
+  if (numKeywords == 0) {
+    return null;
+  }
+
+  Map<String?, Word> allWordsMap = {};
+  for (Word word in wordsGlobal) {
+    allWordsMap[word.word] = word;
+  }
+  List<TextSpan> textSpans = [];
+
+  int idx = 0;
+  for (String keyword in subWord.keywords) {
+    Color color;
+    void Function()? navFunction;
+    Word? relatedWord;
+    if (allWordsMap.containsKey(keyword)) {
+      relatedWord = allWordsMap[keyword];
+      color = MAIN_COLOR;
+      navFunction = () => navigateToWordPage(context, relatedWord!);
+    } else {
+      relatedWord = null;
+      color = Colors.black;
+      navFunction = null;
+    }
+    String suffix;
+    if (idx < numKeywords - 1) {
+      suffix = ", ";
+    } else {
+      suffix = "";
+    }
+    textSpans.add(TextSpan(
+      text: "$keyword$suffix",
+      style: TextStyle(color: color),
+      recognizer: TapGestureRecognizer()..onTap = navFunction,
+    ));
+    idx += 1;
+  }
+
+  var initial = TextSpan(
+      text: "Related words: ",
+      style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold));
+  textSpans = [initial] + textSpans;
+  var richText = RichText(
+    text: TextSpan(children: textSpans),
+    textAlign: TextAlign.center,
+  );
+
+  if (shouldUseHorizontalDisplay) {
+    return Padding(
+        padding: EdgeInsets.only(left: 10.0, right: 20.0, top: 5.0),
+        child: richText);
+  } else {
+    return Padding(
+        padding: EdgeInsets.only(left: 20.0, right: 20.0, top: 15.0),
+        child: richText);
+  }
+}
+
 class SubWordPage extends StatefulWidget {
-  SubWordPage(
-      {Key? key,
-      required this.word,
-      required this.allWords,
-      required this.subWord})
+  SubWordPage({Key? key, required this.word, required this.subWord})
       : super(key: key);
 
   final Word word;
-  final List<Word> allWords;
   final SubWord subWord;
 
   @override
   _SubWordPageState createState() =>
-      _SubWordPageState(word: word, allWords: allWords, subWord: subWord);
+      _SubWordPageState(word: word, subWord: subWord);
 }
 
 class _SubWordPageState extends State<SubWordPage> {
-  _SubWordPageState(
-      {required this.word, required this.allWords, required this.subWord});
+  _SubWordPageState({required this.word, required this.subWord});
 
   final Word word;
-  final List<Word> allWords;
   final SubWord subWord;
-
-  RichText? getRelatedWords() {
-    Map<String?, Word> allWordsMap = {};
-    for (Word word in allWords) {
-      allWordsMap[word.word] = word;
-    }
-    List<TextSpan> textSpans = [];
-
-    int idx = 0;
-    int numKeywords = subWord.keywords.length;
-    for (String keyword in subWord.keywords) {
-      Color color;
-      void Function()? navFunction;
-      Word? relatedWord;
-      if (allWordsMap.containsKey(keyword)) {
-        relatedWord = allWordsMap[keyword];
-        color = MAIN_COLOR;
-        navFunction = () => navigateToWordPage(context, relatedWord!, allWords);
-      } else {
-        relatedWord = null;
-        color = Colors.black;
-        navFunction = null;
-      }
-      String suffix;
-      if (idx < numKeywords - 1) {
-        suffix = ", ";
-      } else {
-        suffix = "";
-      }
-      textSpans.add(TextSpan(
-        text: "$keyword$suffix",
-        style: TextStyle(color: color),
-        recognizer: TapGestureRecognizer()..onTap = navFunction,
-      ));
-      idx += 1;
-    }
-
-    if (textSpans.length == 0) {
-      return null;
-    } else {
-      var initial = TextSpan(
-          text: "Related words: ",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold));
-      textSpans = [initial] + textSpans;
-      return RichText(
-        text: TextSpan(children: textSpans),
-        textAlign: TextAlign.center,
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -247,13 +245,13 @@ class _SubWordPageState extends State<SubWordPage> {
     // of above the words (as well as other layout changes).
     var shouldUseHorizontalDisplay = getShouldUseHorizontalLayout(context);
 
+    Widget? keywordsWidget =
+        getRelatedWordsWidget(context, subWord, shouldUseHorizontalDisplay);
     if (!shouldUseHorizontalDisplay) {
       List<Widget> children = [];
       children.add(videoPlayerScreen);
-      if (subWord.keywords.length > 0) {
-        children.add(Padding(
-            padding: EdgeInsets.only(left: 20.0, right: 20.0, top: 15.0),
-            child: getRelatedWords()));
+      if (keywordsWidget != null) {
+        children.add(keywordsWidget);
       }
       children.add(Expanded(
         child: definitions(context, subWord.definitions),
@@ -294,10 +292,8 @@ class _SubWordPageState extends State<SubWordPage> {
             // The issue is the parent has infinite width and height
             // and Expanded doesn't seem to be working.
             List<Widget> children = [];
-            if (subWord.keywords.length > 0) {
-              children.add(Padding(
-                  padding: EdgeInsets.only(left: 10.0, top: 20.0, bottom: 5.0),
-                  child: getRelatedWords()));
+            if (keywordsWidget != null) {
+              children.add(keywordsWidget);
             }
             children.add(
                 Expanded(child: definitions(context, subWord.definitions)));

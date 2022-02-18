@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:auslan_dictionary/main.dart';
 import 'package:http/http.dart' as http;
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:edit_distance/edit_distance.dart';
@@ -47,12 +48,10 @@ Future<List<Word>> loadWords() async {
   return words;
 }
 
-Future<void> navigateToWordPage(
-    BuildContext context, Word word, List<Word> allWords) {
+Future<void> navigateToWordPage(BuildContext context, Word word) {
   return Navigator.push(
     context,
-    MaterialPageRoute(
-        builder: (context) => WordPage(word: word, allWords: allWords)),
+    MaterialPageRoute(builder: (context) => WordPage(word: word)),
   );
 }
 
@@ -154,19 +153,19 @@ Future<File> get _dictionaryDataFilePath async {
 }
 
 // Load up favourites.
-Future<List<Word>> loadFavourites(
-    List<Word> words, BuildContext context) async {
+Future<List<Word>> loadFavourites(BuildContext context) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   List<Word> favourites = [];
   // Load up the Words for the favourites (inefficiently).
   List<String> favouritesRaw = prefs.getStringList(KEY_FAVOURITES_WORDS) ?? [];
   print("Loaded favourites: $favouritesRaw");
   for (String s in favouritesRaw) {
-    Word? matchingWord = words.firstWhereOrNull((element) => element.word == s);
+    Word? matchingWord =
+        wordsGlobal.firstWhereOrNull((element) => element.word == s);
     if (matchingWord != null) {
       favourites.add(matchingWord);
     } else {
-      Scaffold.of(context).showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(
               'Your favourite "$matchingWord" is no longer in the dictionary'),
           backgroundColor: MAIN_COLOR));
@@ -191,9 +190,8 @@ void writeFavourites(List<Word?> favourites, SharedPreferences prefs) {
 }
 
 // Add to favourites.
-Future<void> addToFavourites(
-    Word favouriteToAdd, List<Word> words, BuildContext context) async {
-  List<Word> favourites = await loadFavourites(words, context);
+Future<void> addToFavourites(Word favouriteToAdd, BuildContext context) async {
+  List<Word> favourites = await loadFavourites(context);
   favourites.add(favouriteToAdd);
   SharedPreferences prefs = await SharedPreferences.getInstance();
   writeFavourites(favourites, prefs);
@@ -201,8 +199,8 @@ Future<void> addToFavourites(
 
 // Remove from favourites.
 Future<void> removeFromFavourites(
-    Word favouriteToRemove, List<Word> words, BuildContext context) async {
-  List<Word> favourites = await loadFavourites(words, context);
+    Word favouriteToRemove, BuildContext context) async {
+  List<Word> favourites = await loadFavourites(context);
   favourites.removeWhere((element) => element.word == favouriteToRemove.word);
   SharedPreferences prefs = await SharedPreferences.getInstance();
   writeFavourites(favourites, prefs);
