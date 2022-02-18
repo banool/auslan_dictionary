@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:auslan_dictionary/favourites_page.dart';
 import 'package:auslan_dictionary/types.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'common.dart';
 import 'favourites_page.dart';
@@ -9,6 +12,7 @@ import 'search_page.dart';
 import 'settings_page.dart';
 
 late List<Word> wordsGlobal;
+late SharedPreferences sharedPreferences;
 
 Future<void> main() async {
   print("Start of main");
@@ -24,6 +28,9 @@ Future<void> main() async {
     // Check for new words data if appropriate.
     // We don't wait for this on startup, it's too slow.
     updateWordsData();
+
+    // Load shared preferences.
+    sharedPreferences = await SharedPreferences.getInstance();
 
     // Finally run the app.
     runApp(MyApp());
@@ -83,14 +90,28 @@ class _MyHomePageState extends State<MyHomePage> {
   final SearchPageController searchPageController = SearchPageController();
   late FavouritesPageController favouritesPageController =
       FavouritesPageController(refresh);
-  final FlashcardsPageController flashcardsPageController =
-      FlashcardsPageController();
+  late FlashcardsPageController flashcardsPageController =
+      FlashcardsPageController(goToSettings);
+  late SettingsController settingsPageController =
+      SettingsController(refresh, toggleFlashcards);
 
   bool wordsLoaded = false;
   int currentNavBarIndex = 0;
 
   void refresh() {
     setState(() {});
+  }
+
+  void toggleFlashcards(bool enabled) {
+    if (enabled) {
+      currentNavBarIndex -= 1;
+    }
+  }
+
+  void goToSettings() {
+    setState(() {
+      currentNavBarIndex = 3;
+    });
   }
 
   void onNavBarItemTapped(int index) {
@@ -104,12 +125,35 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> tabs = [
-      SearchPage(controller: searchPageController),
-      FavouritesPage(controller: favouritesPageController),
-      //FlashcardsPage(controller: flashcardsPageController),
-      SettingsPage(),
-    ];
+    List<BottomNavigationBarItem> items = [];
+    List<Widget> tabs = [];
+
+    items.add(BottomNavigationBarItem(
+      icon: Icon(Icons.search),
+      label: "Dictionary",
+    ));
+    tabs.add(SearchPage(controller: searchPageController));
+
+    items.add(BottomNavigationBarItem(
+      icon: Icon(Icons.star),
+      label: "Favourites",
+    ));
+    tabs.add(FavouritesPage(controller: favouritesPageController));
+
+    if (!(sharedPreferences.getBool(KEY_HIDE_FLASHCARDS_FEATURE) ?? false)) {
+      items.add(BottomNavigationBarItem(
+        icon: Icon(Icons.style),
+        label: "Flashcards",
+      ));
+      tabs.add(FlashcardsLandingPage(controller: flashcardsPageController));
+    }
+
+    items.add(BottomNavigationBarItem(
+      icon: Icon(Icons.settings),
+      label: "Settings",
+    ));
+    tabs.add(SettingsPage(controller: settingsPageController));
+
     Widget body = tabs[currentNavBarIndex];
     Widget? floatingActionButton;
     if (body is FavouritesPage) {
@@ -131,26 +175,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: body,
       floatingActionButton: floatingActionButton,
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: "Dictionary",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.star),
-            label: "Favourites",
-          ),
-          /*
-          BottomNavigationBarItem(
-            icon: Icon(Icons.style),
-            label: "Flashcards",
-          ),
-          */
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: "Settings",
-          ),
-        ],
+        items: items,
         currentIndex: currentNavBarIndex,
         selectedItemColor: MAIN_COLOR,
         onTap: onNavBarItemTapped,

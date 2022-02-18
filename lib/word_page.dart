@@ -13,12 +13,6 @@ import 'package:video_player/video_player.dart';
 
 import 'common.dart';
 
-bool getShouldUseHorizontalLayout(BuildContext context) {
-  var screenSize = MediaQuery.of(context).size;
-  var shouldUseHorizontalDisplay = screenSize.width > screenSize.height * 1.2;
-  return shouldUseHorizontalDisplay;
-}
-
 class WordPage extends StatefulWidget {
   WordPage({Key? key, required this.word}) : super(key: key);
 
@@ -211,6 +205,36 @@ Widget? getRelatedWordsWidget(
   }
 }
 
+Widget getRegionalInformationWidget(
+    SubWord subWord, bool shouldUseHorizontalDisplay) {
+  String regionsStr;
+  if (subWord.regions.length == 0) {
+    regionsStr = "Regional information unknown";
+  } else if (subWord.regions[0].toLowerCase() == "everywhere") {
+    regionsStr = "All states of Australia";
+  } else {
+    regionsStr = subWord.regions.join(", ");
+  }
+
+  if (shouldUseHorizontalDisplay) {
+    return Padding(
+        padding: EdgeInsets.only(top: 15.0),
+        child: Text(
+          regionsStr,
+          textAlign: TextAlign.center,
+        ));
+  } else {
+    return Align(
+        alignment: Alignment.bottomCenter,
+        child: Padding(
+            padding: EdgeInsets.only(top: 15.0),
+            child: Text(
+              regionsStr,
+              textAlign: TextAlign.center,
+            )));
+  }
+}
+
 class SubWordPage extends StatefulWidget {
   SubWordPage({Key? key, required this.word, required this.subWord})
       : super(key: key);
@@ -232,21 +256,15 @@ class _SubWordPageState extends State<SubWordPage> {
   @override
   Widget build(BuildContext context) {
     var videoPlayerScreen = VideoPlayerScreen(videoLinks: subWord.videoLinks);
-    String regionsStr;
-    if (subWord.regions.length == 0) {
-      regionsStr = "Regional information unknown";
-    } else if (subWord.regions[0].toLowerCase() == "everywhere") {
-      regionsStr = "All states of Australia";
-    } else {
-      regionsStr = subWord.regions.join(", ");
-    }
-
     // If the display is wide enough, show the video beside the words instead
     // of above the words (as well as other layout changes).
     var shouldUseHorizontalDisplay = getShouldUseHorizontalLayout(context);
 
     Widget? keywordsWidget =
         getRelatedWordsWidget(context, subWord, shouldUseHorizontalDisplay);
+    Widget regionalInformationWidget =
+        getRegionalInformationWidget(subWord, shouldUseHorizontalDisplay);
+
     if (!shouldUseHorizontalDisplay) {
       List<Widget> children = [];
       children.add(videoPlayerScreen);
@@ -256,14 +274,7 @@ class _SubWordPageState extends State<SubWordPage> {
       children.add(Expanded(
         child: definitions(context, subWord.definitions),
       ));
-      children.add(Align(
-          alignment: Alignment.bottomCenter,
-          child: Padding(
-              padding: EdgeInsets.only(top: 15.0),
-              child: Text(
-                regionsStr,
-                textAlign: TextAlign.center,
-              ))));
+      children.add(regionalInformationWidget);
       return Column(
         mainAxisAlignment: MainAxisAlignment.start,
         mainAxisSize: MainAxisSize.max,
@@ -279,12 +290,7 @@ class _SubWordPageState extends State<SubWordPage> {
         children: [
           Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             videoPlayerScreen,
-            Padding(
-                padding: EdgeInsets.only(top: 15.0),
-                child: Text(
-                  regionsStr,
-                  textAlign: TextAlign.center,
-                )),
+            regionalInformationWidget,
           ]),
           new LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {

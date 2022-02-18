@@ -11,17 +11,28 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'common.dart';
 
+class SettingsController {
+  void Function() refreshParent;
+  void Function(bool) toggleFlashcards;
+
+  SettingsController(this.refreshParent, this.toggleFlashcards);
+}
+
 class SettingsPage extends StatefulWidget {
-  SettingsPage({Key? key}) : super(key: key);
+  final SettingsController controller;
+
+  SettingsPage({Key? key, required this.controller}) : super(key: key);
 
   @override
-  SettingsPageState createState() => SettingsPageState();
+  SettingsPageState createState() => SettingsPageState(controller);
 }
 
 class SettingsPageState extends State<SettingsPage> {
-  Future<void>? initStateAsyncFuture;
+  final SettingsController controller;
 
-  late SharedPreferences prefs;
+  SettingsPageState(this.controller);
+
+  Future<void>? initStateAsyncFuture;
 
   @override
   void initState() {
@@ -30,15 +41,22 @@ class SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> initStateAsync() async {
-    prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool(KEY_SHOULD_CACHE) == null) {
-      prefs.setBool(KEY_SHOULD_CACHE, true);
+    if (sharedPreferences.getBool(KEY_SHOULD_CACHE) == null) {
+      sharedPreferences.setBool(KEY_SHOULD_CACHE, true);
     }
   }
 
   void onChangeShouldCache(bool newValue) {
     setState(() {
-      prefs.setBool(KEY_SHOULD_CACHE, newValue);
+      sharedPreferences.setBool(KEY_SHOULD_CACHE, newValue);
+    });
+  }
+
+  void onChangeHideFlashcardsFeature(bool newValue) {
+    setState(() {
+      sharedPreferences.setBool(KEY_HIDE_FLASHCARDS_FEATURE, newValue);
+      controller.toggleFlashcards(newValue);
+      controller.refreshParent();
     });
   }
 
@@ -78,7 +96,7 @@ class SettingsPageState extends State<SettingsPage> {
                     'Cache videos',
                     style: TextStyle(fontSize: 15),
                   ),
-                  initialValue: prefs.getBool(KEY_SHOULD_CACHE)!,
+                  initialValue: sharedPreferences.getBool(KEY_SHOULD_CACHE)!,
                   onToggle: onChangeShouldCache,
                 ),
                 SettingsTile.navigation(
@@ -117,6 +135,22 @@ class SettingsPageState extends State<SettingsPage> {
                         content: Text(message), backgroundColor: MAIN_COLOR));
                   },
                 )
+              ],
+              margin: margin,
+            ),
+            SettingsSection(
+              title: Text('Features'),
+              tiles: [
+                SettingsTile.switchTile(
+                  title: Text(
+                    'Hide flashcards feature',
+                    style: TextStyle(fontSize: 15),
+                  ),
+                  initialValue:
+                      sharedPreferences.getBool(KEY_HIDE_FLASHCARDS_FEATURE) ??
+                          false,
+                  onToggle: onChangeHideFlashcardsFeature,
+                ),
               ],
               margin: margin,
             ),

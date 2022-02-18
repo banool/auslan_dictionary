@@ -23,6 +23,7 @@ const String KEY_SHOULD_CACHE = "shouldCache";
 const String KEY_FAVOURITES_WORDS = "favourites_words";
 const String KEY_LAST_DICTIONARY_DATA_CHECK_TIME = "last_data_check_time";
 const String KEY_DICTIONARY_DATA_CURRENT_VERSION = "current_data_version";
+const String KEY_HIDE_FLASHCARDS_FEATURE = "hide_flashcards_feature";
 
 const int DATA_CHECK_INTERVAL = 60 * 60 * 24 * 7; // 1 week.
 
@@ -204,4 +205,10 @@ Future<void> removeFromFavourites(
   favourites.removeWhere((element) => element.word == favouriteToRemove.word);
   SharedPreferences prefs = await SharedPreferences.getInstance();
   writeFavourites(favourites, prefs);
+}
+
+bool getShouldUseHorizontalLayout(BuildContext context) {
+  var screenSize = MediaQuery.of(context).size;
+  var shouldUseHorizontalDisplay = screenSize.width > screenSize.height * 1.2;
+  return shouldUseHorizontalDisplay;
 }
