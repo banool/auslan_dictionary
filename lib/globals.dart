@@ -5,8 +5,9 @@ import 'types.dart';
 late List<Word> wordsGlobal;
 late SharedPreferences sharedPreferences;
 
-// This is the value of the knob.
+// Values of the knobs.
 late bool enableFlashcardsKnob;
+late bool downloadWordsDataKnob;
 
 // This is whether to show the flashcard stuff as a result of the knob + switch.
 late bool showFlashcards;

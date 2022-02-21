@@ -17,6 +17,10 @@ Future<void> main() async {
     // Load shared preferences.
     sharedPreferences = await SharedPreferences.getInstance();
 
+    // Check knobs.
+    enableFlashcardsKnob = await readKnob("enable_flashcards", false);
+    downloadWordsDataKnob = await readKnob("download_words_data", false);
+
     // Get favourites stuff ready if this is the first app launch.
     await bootstrapFavourites();
 
@@ -25,10 +29,9 @@ Future<void> main() async {
 
     // Check for new words data if appropriate.
     // We don't wait for this on startup, it's too slow.
-    updateWordsData();
-
-    // Check knobs.
-    enableFlashcardsKnob = await readKnob("enable_flashcards", false);
+    if (downloadWordsDataKnob) {
+      updateWordsData();
+    }
 
     // Resolve values based on knobs.
     showFlashcards = getShowFlashcards();
