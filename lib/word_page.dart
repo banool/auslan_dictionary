@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:auslan_dictionary/main.dart';
-import 'package:auslan_dictionary/types.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/gestures.dart';
@@ -12,6 +10,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
 import 'common.dart';
+import 'globals.dart';
+import 'types.dart';
 
 class WordPage extends StatefulWidget {
   WordPage({Key? key, required this.word}) : super(key: key);

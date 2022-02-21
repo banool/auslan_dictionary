@@ -1,13 +1,12 @@
-import 'package:auslan_dictionary/main.dart';
-import 'package:auslan_dictionary/settings_page.dart';
-import 'package:auslan_dictionary/types.dart';
 import 'package:flutter/material.dart';
+import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 import 'common.dart';
+import 'globals.dart';
+import 'settings_page.dart';
+import 'types.dart';
 
-// - Add option to disable flashcards entirely, removes item from bottom nav bar.
-// - Or perhaps only have that setting in settings and then put the others in the flashcards page.
 // - The first screen for flashcards should be something that lets you choose
 //   what list to revise. At first only favourites.
 // - Once you start the review, push navigation, so you can't change the favourites
@@ -94,7 +93,32 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
             onPressed: (BuildContext context) async {
               // TODO
             },
-          )
+          ),
+          SettingsTile.navigation(
+              title: getText("Select flashcard regions"),
+              trailing: Container(),
+              onPressed: (BuildContext context) async {
+                await showDialog(
+                  context: context,
+                  builder: (ctx) {
+                    List<int> initialValues = (sharedPreferences
+                                .getStringList(KEY_FLASHCARD_REGIONS) ??
+                            [])
+                        .map((e) => e as int)
+                        .toList();
+                    return MultiSelectDialog(
+                      items: Region.values
+                          .map((e) => MultiSelectItem(e.index, e.pretty))
+                          .toList(),
+                      initialValue: initialValues,
+                      onConfirm: (values) {
+                        sharedPreferences.setStringList(KEY_FLASHCARD_REGIONS,
+                            values.map((e) => e.toString()).toList());
+                      },
+                    );
+                  },
+                );
+              }),
         ],
         margin: margin,
       ),

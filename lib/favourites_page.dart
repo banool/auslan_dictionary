@@ -1,9 +1,9 @@
-import 'package:auslan_dictionary/main.dart';
-import 'package:auslan_dictionary/types.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'common.dart';
+import 'globals.dart';
+import 'types.dart';
 
 class FavouritesPageController {
   void Function() refreshParent;

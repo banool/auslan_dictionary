@@ -1,8 +1,8 @@
-import 'package:auslan_dictionary/main.dart';
-import 'package:auslan_dictionary/types.dart';
 import 'package:flutter/material.dart';
 
 import 'common.dart';
+import 'globals.dart';
+import 'types.dart';
 
 class SearchPageController {
   bool isMounted = false;

@@ -2,7 +2,6 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:auslan_dictionary/main.dart';
 import 'package:http/http.dart' as http;
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:edit_distance/edit_distance.dart';
@@ -11,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import 'globals.dart';
 import 'types.dart';
 import 'word_page.dart';
 

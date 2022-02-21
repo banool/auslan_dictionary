@@ -1,6 +1,5 @@
 import 'dart:io' show Platform;
 
-import 'package:auslan_dictionary/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:launch_review/launch_review.dart';
@@ -9,6 +8,7 @@ import 'package:settings_ui/settings_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'common.dart';
+import 'globals.dart';
 
 class SettingsController {
   void Function() refreshParent;

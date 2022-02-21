@@ -1,22 +1,13 @@
 import 'package:auslan_dictionary/favourites_page.dart';
-import 'package:auslan_dictionary/types.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'common.dart';
 import 'favourites_page.dart';
 import 'flashcards_page.dart';
+import 'globals.dart';
 import 'search_page.dart';
 import 'settings_page.dart';
-
-late List<Word> wordsGlobal;
-late SharedPreferences sharedPreferences;
-
-// This is the value of the knob.
-late bool enableFlashcardsKnob;
-
-// This is whether to show the flashcard stuff as a result of the knob + switch.
-late bool showFlashcards;
 
 Future<void> main() async {
   print("Start of main");
