@@ -40,7 +40,7 @@ Future<List<Word>> loadWords() async {
     // That failed, it probably wasn't there or it was invalid, use data bundled in.
     print(
         "Failed to use data from internet, using local bundled data instead: $e");
-    data = await rootBundle.loadString("assets/data/words.json");
+    data = await rootBundle.loadString("assets/data/words_latest.json");
     return loadWordsInner(data);
   }
 }
@@ -141,7 +141,7 @@ Future<bool> getNewData(bool forceCheck) async {
   }
   // At this point, we know we need to download the new data. Let's do that.
   String newData = (await http.get(Uri.parse(
-          'https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/data/words.json')))
+          'https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/data/words_latest.json')))
       .body;
   // Assert that the data is valid. This will throw if it's not.
   loadWordsInner(newData);

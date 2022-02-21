@@ -22,18 +22,18 @@ This moves the data and updates `latest_version`, which the app uses to see if t
 ## Old non incremental way
 To run the scraper non-incrementally, do this:
 ```
-python scrape_signbank.py -d --output-file data.json --existing-file ../assets/data/words.json
+python scrape_signbank.py -d --output-file data.json --existing-file ../assets/data/words_latest.json
 ```
 
 This will read in the existing file and apply the changes over the top. If you want to start fresh, remove the `--existing-file` part.
 
 If this looks good, move it into the place of the existing file:
 ```
-mv data.json ../assets/data/words.json
+mv data.json ../assets/data/words_latest.json
 ```
 
 Note, often we fail to load some words or even pages for letters or even worse the entire letter, in which case you should probably do something like this:
 
 ```
-python scrape_signbank.py -d --output-file data.json --existing-file ../assets/data/words.json --letters c g
+python scrape_signbank.py -d --output-file data.json --existing-file ../assets/data/words_latest.json --letters c g
 ```
