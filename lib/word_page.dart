@@ -207,15 +207,7 @@ Widget? getRelatedWordsWidget(
 
 Widget getRegionalInformationWidget(
     SubWord subWord, bool shouldUseHorizontalDisplay) {
-  String regionsStr;
-  if (subWord.regions.length == 0) {
-    regionsStr = "Regional information unknown";
-  } else if (subWord.regions[0].toLowerCase() == "everywhere") {
-    regionsStr = "All states of Australia";
-  } else {
-    regionsStr = subWord.regions.join(", ");
-  }
-
+  String regionsStr = subWord.getRegionsString();
   if (shouldUseHorizontalDisplay) {
     return Padding(
         padding: EdgeInsets.only(top: 15.0),

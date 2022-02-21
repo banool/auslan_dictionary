@@ -40,6 +40,7 @@ Future<List<Word>> loadWords() async {
   List<Word> words = [];
   String data;
   try {
+    throw "sdfdsf";
     // First try to read from the file we downloaded from the internet.
     final path = await _dictionaryDataFilePath;
     data = await path.readAsString();
@@ -176,8 +177,7 @@ Future<List<Word>> loadFavourites(BuildContext context) async {
       favourites.add(matchingWord);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-              'Your favourite "$matchingWord" is no longer in the dictionary'),
+          content: Text('Your favourite "$s" is no longer in the dictionary'),
           backgroundColor: MAIN_COLOR));
     }
   }

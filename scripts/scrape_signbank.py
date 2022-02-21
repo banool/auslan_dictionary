@@ -36,6 +36,7 @@ import logging
 import string
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
+from enum import IntEnum
 from typing import Dict, List, Tuple
 
 import requests
@@ -55,43 +56,53 @@ LETTER_PAGE_TEMPLATE = SITE_ROOT + "/dictionary/search/?query={letter}&page={pag
 # Words to ignore because the page isn't actually there.
 WORDS_PAGE_BASE = r"http://www.auslan.org.au/dictionary/words/"
 
-EVERY_REGION = [
-    "Everywhere",
-    "Southern",
-    "Northern",
-    "WA",
-    "NT",
-    "SA",
-    "QLD",
-    "NSW",
-    "ACT",
-    "VIC",
-    "TAS",
-]
-REGIONS_IMAGE_MAP = {
-    "/static/img/maps/Auslan/AustraliaWide-traditional": EVERY_REGION,
-    "/static/img/maps/Auslan/SouthernDialect-traditional": [
-        "Southern",
-        "WA",
-        "NT",
-        "SA",
-        "VIC",
-        "TAS",
-    ],
-    "/static/img/maps/Auslan/NorthernDialect-traditional": [
-        "Northern",
-        "QLD",
-        "NSW",
-        "ACT",
-    ],
-    "/static/img/maps/Auslan/WesternAustralia-traditional": ["WA"],
-    "/static/img/maps/Auslan/NorthernTerritory-traditional": ["NT"],
-    "/static/img/maps/Auslan/SouthAustralia-traditional": ["SA"],
-    "/static/img/maps/Auslan/Queensland-traditional": ["QLD"],
-    "/static/img/maps/Auslan/NewSouthWales-traditional": ["NSW", "ACT"],
-    "/static/img/maps/Auslan/Victoria-traditional": ["VIC"],
-    "/static/img/maps/Auslan/Tasmania-traditional": ["TAS"],
-}
+
+# IMPORTANT:
+# Keep this in sync with lib/types.dart, the indexes must line up.
+class Region(IntEnum):
+    EVERYWHERE = 0
+    SOUTHERN = 1
+    NORTHERN = 2
+    WA = 3
+    NT = 4
+    SA = 5
+    QLD = 6
+    NSW = 7
+    ACT = 8
+    VIC = 9
+    TAS = 10
+
+    @classmethod
+    def regions_from_link(cls, link):
+        d = {
+            "/static/img/maps/Auslan/AustraliaWide-traditional": [e.value for e in cls],
+            "/static/img/maps/Auslan/SouthernDialect-traditional": [
+                cls.SOUTHERN,
+                cls.WA,
+                cls.NT,
+                cls.SA,
+                cls.VIC,
+                cls.TAS,
+            ],
+            "/static/img/maps/Auslan/NorthernDialect-traditional": [
+                cls.NORTHERN,
+                cls.QLD,
+                cls.NSW,
+                cls.ACT
+            ],
+            "/static/img/maps/Auslan/WesternAustralia-traditional": [cls.WA],
+            "/static/img/maps/Auslan/NorthernTerritory-traditional": [cls.NT],
+            "/static/img/maps/Auslan/SouthAustralia-traditional": [cls.SA],
+            "/static/img/maps/Auslan/Queensland-traditional": [cls.QLD],
+            "/static/img/maps/Auslan/NewSouthWales-traditional": [cls.NSW, cls.ACT],
+            "/static/img/maps/Auslan/Victoria-traditional": [cls.VIC],
+            "/static/img/maps/Auslan/Tasmania-traditional": [cls.TAS],
+        }
+        regions = None
+        for link_substring in d.keys():
+            if link_substring in link:
+                regions = d[link_substring]
+        return regions
 
 
 @dataclass
@@ -292,10 +303,7 @@ def parse_subpage(html, word_str) -> SubWord:
         regions_img_link = [t["src"] for t in regions_img_tags if "Auslan/" in t["src"]][0]
         try:
             # Derive the regions based on the image.
-            regions = None
-            for link_substring in REGIONS_IMAGE_MAP.keys():
-                if link_substring in regions_img_link:
-                    regions = REGIONS_IMAGE_MAP[link_substring]
+            regions = Region.regions_from_link(regions_img_link)
             if not regions:
                 raise KeyError()
         except KeyError:

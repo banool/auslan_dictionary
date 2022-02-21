@@ -38,7 +38,7 @@ class SubWord {
   late List<String> keywords;
   late List<String> videoLinks;
   late List<Definition> definitions;
-  late List<String> regions;
+  late List<Region> regions;
 
   SubWord.fromJson(dynamic wordJson) {
     this.keywords = wordJson["keywords"].cast<String>();
@@ -53,7 +53,20 @@ class SubWord {
     });
     this.definitions = definitions;
 
-    this.regions = wordJson["regions"].cast<String>();
+    List<int> regionInts = wordJson["regions"].cast<int>();
+    List<Region> regions = regionInts.map((i) => Region.values[i]).toList();
+
+    this.regions = regions;
+  }
+
+  String getRegionsString() {
+    if (this.regions.length == 0) {
+      return "Regional information unknown";
+    }
+    if (this.regions.contains(Region.EVERYWHERE)) {
+      return Region.EVERYWHERE.pretty;
+    }
+    return this.regions.map((r) => r.pretty).join(", ");
   }
 }
 
@@ -62,4 +75,49 @@ class Definition {
 
   final String? heading;
   final List<String>? subdefinitions;
+}
+
+// IMPORTANT:
+// Keep this in sync with Region in scripts/scrape_signbank.py, the order is important.
+enum Region {
+  EVERYWHERE,
+  SOUTHERN,
+  NORTHERN,
+  WA,
+  NT,
+  SA,
+  QLD,
+  NSW,
+  ACT,
+  VIC,
+  TAS,
+}
+
+extension PrintRegion on Region {
+  String get pretty {
+    switch (this) {
+      case Region.EVERYWHERE:
+        return "All states of Australia";
+      case Region.SOUTHERN:
+        return "Southern";
+      case Region.NORTHERN:
+        return "Northern";
+      case Region.WA:
+        return "WA";
+      case Region.NT:
+        return "NT";
+      case Region.SA:
+        return "SA";
+      case Region.QLD:
+        return "QLD";
+      case Region.NSW:
+        return "NSW";
+      case Region.ACT:
+        return "ACT";
+      case Region.VIC:
+        return "VIC";
+      case Region.TAS:
+        return "TAS";
+    }
+  }
 }
