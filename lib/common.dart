@@ -27,20 +27,10 @@ const String KEY_HIDE_FLASHCARDS_FEATURE = "hide_flashcards_feature";
 
 const int DATA_CHECK_INTERVAL = 60 * 60 * 24 * 7; // 1 week.
 
-const bool GK_ENABLE_FLASHCARDS = false;
-
-bool useFlashcards() {
-  if (!GK_ENABLE_FLASHCARDS) {
-    return false;
-  }
-  return !(sharedPreferences.getBool(KEY_HIDE_FLASHCARDS_FEATURE) ?? false);
-}
-
 Future<List<Word>> loadWords() async {
   List<Word> words = [];
   String data;
   try {
-    throw "sdfdsf";
     // First try to read from the file we downloaded from the internet.
     final path = await _dictionaryDataFilePath;
     data = await path.readAsString();
@@ -220,4 +210,30 @@ bool getShouldUseHorizontalLayout(BuildContext context) {
   var screenSize = MediaQuery.of(context).size;
   var shouldUseHorizontalDisplay = screenSize.width > screenSize.height * 1.2;
   return shouldUseHorizontalDisplay;
+}
+
+Future<bool> readKnob(String key, bool fallback) async {
+  try {
+    String url =
+        'https://raw.githubusercontent.com/banool/auslan_dictionary/master/knobs/$key';
+    var result = await http.get(Uri.parse(url));
+    String raw = result.body.replaceAll("\n", "");
+    if (raw == "true") {
+      return true;
+    } else if (raw == "false") {
+      return false;
+    } else {
+      throw "Failed to check knob at $url, using fallback value: $fallback, due to ${result.body}";
+    }
+  } catch (e) {
+    print("$e");
+    return fallback;
+  }
+}
+
+bool getShowFlashcards() {
+  if (!enableFlashcardsKnob) {
+    return false;
+  }
+  return !(sharedPreferences.getBool(KEY_HIDE_FLASHCARDS_FEATURE) ?? false);
 }

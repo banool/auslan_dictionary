@@ -87,7 +87,7 @@ class SettingsPageState extends State<SettingsPage> {
               start: 15, end: 15, top: 10, bottom: 10);
 
           SettingsSection? featuresSection;
-          if (GK_ENABLE_FLASHCARDS) {
+          if (enableFlashcardsKnob) {
             featuresSection = SettingsSection(
               title: Text('Features'),
               tiles: [

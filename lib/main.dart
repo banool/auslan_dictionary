@@ -12,10 +12,19 @@ import 'settings_page.dart';
 late List<Word> wordsGlobal;
 late SharedPreferences sharedPreferences;
 
+// This is the value of the knob.
+late bool enableFlashcardsKnob;
+
+// This is whether to show the flashcard stuff as a result of the switch.
+late bool showFlashcards;
+
 Future<void> main() async {
   print("Start of main");
   try {
     WidgetsFlutterBinding.ensureInitialized();
+
+    // Load shared preferences.
+    sharedPreferences = await SharedPreferences.getInstance();
 
     // Get favourites stuff ready if this is the first app launch.
     await bootstrapFavourites();
@@ -27,8 +36,11 @@ Future<void> main() async {
     // We don't wait for this on startup, it's too slow.
     updateWordsData();
 
-    // Load shared preferences.
-    sharedPreferences = await SharedPreferences.getInstance();
+    // Check knobs.
+    enableFlashcardsKnob = await readKnob("enable_flashcards", false);
+
+    // Resolve values based on knobs.
+    showFlashcards = getShowFlashcards();
 
     // Finally run the app.
     runApp(MyApp());
@@ -102,6 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void toggleFlashcards(bool enabled) {
     setState(() {
+      showFlashcards = getShowFlashcards();
       if (enabled) {
         currentNavBarIndex -= 1;
       } else {
@@ -142,7 +155,7 @@ class _MyHomePageState extends State<MyHomePage> {
     ));
     tabs.add(FavouritesPage(controller: favouritesPageController));
 
-    if (useFlashcards()) {
+    if (showFlashcards) {
       items.add(BottomNavigationBarItem(
         icon: Icon(Icons.style),
         label: "Flashcards",
