@@ -54,39 +54,6 @@ LETTER_PAGE_TEMPLATE = SITE_ROOT + "/dictionary/search/?query={letter}&page={pag
 
 # Words to ignore because the page isn't actually there.
 WORDS_PAGE_BASE = r"http://www.auslan.org.au/dictionary/words/"
-DENYLIST = [
-    r"at%20last-1.html",
-    r"athletics-1.html",
-    r"blazer-1.html",
-    r"buttons-1.html",
-    r"competed-1.html",
-    r"completion-1.html",
-    r"contiue-1.html",
-    r"continous-1.html",
-    r"coordinate-1.html",
-    r"coordinator-1.html",
-    r"dimension-1.html",
-    r"distance%20(long%20distance)-1.html",
-    r"distant%20(very%20distant)-1.html",
-    r"end-point-1.html",
-    r"far%20(very%20far)-1.html",
-    r"full%20stops-1.html",
-    r"oneself-1.html",
-    r"ongoing-1.html",
-    r"panel-1.html",
-    r"periods%20(full%20stops)-1.html",
-    r"point%20(tip)-1.html",
-    r"points%20(dots)-1.html",
-    r"predominant-1.html",
-    r"ricochet-1.html",
-    r"size%20(in%20height)-1.html",
-    r"size%20(packet)-1.html",
-    r"sprint-1.html",
-    r"specifically-1.html",
-    r"sports%20jacket-1.html",
-    r"sports%20coat-1.html",
-]
-DENYLIST = [WORDS_PAGE_BASE + u for u in DENYLIST]
 
 EVERY_REGION = [
     "Everywhere",
@@ -229,7 +196,6 @@ async def get_pages_html(executor, urls: List[str]) -> List[str]:
     Get the HTML of a list of URLs. If getting the HTML of any URL fails,
     this function will throw an exception.
     """
-    urls = [u for u in urls if u not in DENYLIST]
     LOG.debug(f"Getting HTML for these URLs: {urls}")
     loop = asyncio.get_running_loop()
     futures = [loop.run_in_executor(executor, load_url, url) for url in urls]
