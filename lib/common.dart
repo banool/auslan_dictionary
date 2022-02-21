@@ -24,24 +24,30 @@ const String KEY_FAVOURITES_WORDS = "favourites_words";
 const String KEY_LAST_DICTIONARY_DATA_CHECK_TIME = "last_data_check_time";
 const String KEY_DICTIONARY_DATA_CURRENT_VERSION = "current_data_version";
 const String KEY_HIDE_FLASHCARDS_FEATURE = "hide_flashcards_feature";
+const String KEY_FLASHCARD_REGIONS = "flashcard_regions";
 
 const int DATA_CHECK_INTERVAL = 60 * 60 * 24 * 7; // 1 week.
 
 Future<List<Word>> loadWords() async {
-  List<Word> words = [];
   String data;
   try {
     // First try to read from the file we downloaded from the internet.
     final path = await _dictionaryDataFilePath;
     data = await path.readAsString();
     print("Loaded data from local storage downloaded from the internet");
+    return loadWordsInner(data);
   } catch (e) {
-    // That failed, it probably wasn't there, use data bundled in.
+    // That failed, it probably wasn't there or it was invalid, use data bundled in.
     print(
         "Failed to use data from internet, using local bundled data instead: $e");
     data = await rootBundle.loadString("assets/data/words.json");
+    return loadWordsInner(data);
   }
+}
+
+List<Word> loadWordsInner(String data) {
   dynamic wordsJson = json.decode(data);
+  List<Word> words = [];
   for (MapEntry e in wordsJson.entries) {
     words.add(Word.fromJson(e.key, e.value));
   }
@@ -134,9 +140,11 @@ Future<bool> getNewData(bool forceCheck) async {
     return false;
   }
   // At this point, we know we need to download the new data. Let's do that.
-  var newData = (await http.get(Uri.parse(
+  String newData = (await http.get(Uri.parse(
           'https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/data/words.json')))
       .body;
+  // Assert that the data is valid. This will throw if it's not.
+  loadWordsInner(newData);
   // Write the data to file.
   final path = await _dictionaryDataFilePath;
   await path.writeAsString(newData);

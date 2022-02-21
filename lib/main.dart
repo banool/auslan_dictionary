@@ -15,7 +15,7 @@ late SharedPreferences sharedPreferences;
 // This is the value of the knob.
 late bool enableFlashcardsKnob;
 
-// This is whether to show the flashcard stuff as a result of the switch.
+// This is whether to show the flashcard stuff as a result of the knob + switch.
 late bool showFlashcards;
 
 Future<void> main() async {

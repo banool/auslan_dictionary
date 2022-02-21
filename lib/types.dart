@@ -53,8 +53,15 @@ class SubWord {
     });
     this.definitions = definitions;
 
-    List<int> regionInts = wordJson["regions"].cast<int>();
-    List<Region> regions = regionInts.map((i) => Region.values[i]).toList();
+    List<Region> regions;
+    try {
+      // Expected new data format with ints for Regions.
+      List<int> regionInts = wordJson["regions"].cast<int>();
+      regions = regionInts.map((i) => Region.values[i]).toList();
+    } catch (e) {
+      List<String> regionStrings = wordJson["regions"].cast<String>();
+      regions = regionStrings.map((v) => regionFromLegacyString(v)).toList();
+    }
 
     this.regions = regions;
   }
@@ -119,5 +126,34 @@ extension PrintRegion on Region {
       case Region.TAS:
         return "TAS";
     }
+  }
+}
+
+Region regionFromLegacyString(String s) {
+  switch (s.toLowerCase()) {
+    case "everywhere":
+      return Region.EVERYWHERE;
+    case "southern":
+      return Region.SOUTHERN;
+    case "northern":
+      return Region.NORTHERN;
+    case "wa":
+      return Region.WA;
+    case "nt":
+      return Region.NT;
+    case "sa":
+      return Region.SA;
+    case "qld":
+      return Region.QLD;
+    case "nsw":
+      return Region.NSW;
+    case "act":
+      return Region.ACT;
+    case "vic":
+      return Region.VIC;
+    case "tas":
+      return Region.TAS;
+    default:
+      throw "Unexpected legacy region string $s";
   }
 }
