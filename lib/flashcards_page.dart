@@ -54,10 +54,38 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
     controller = _controller;
   }
 
+  late int numEnabledFlashcardTypes;
+  late final bool initialValueSignToWord;
+  late final bool initialValueWordToSign;
+
   void onPrefSwitch(String key, bool newValue) {
     setState(() {
       sharedPreferences.setBool(key, newValue);
+      if (newValue) {
+        numEnabledFlashcardTypes += 1;
+      } else {
+        numEnabledFlashcardTypes -= 1;
+      }
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initialValueSignToWord =
+        sharedPreferences.getBool(KEY_SIGN_TO_WORD) ?? true;
+    initialValueWordToSign =
+        sharedPreferences.getBool(KEY_WORD_TO_SIGN) ?? true;
+    numEnabledFlashcardTypes = 0;
+    if (initialValueSignToWord) {
+      numEnabledFlashcardTypes += 1;
+    }
+    if (initialValueWordToSign) {
+      numEnabledFlashcardTypes += 1;
+    }
+    print(initialValueSignToWord);
+    print(initialValueWordToSign);
+    print(numEnabledFlashcardTypes);
   }
 
   @override
@@ -65,60 +93,91 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
     EdgeInsetsDirectional margin =
         EdgeInsetsDirectional.only(start: 15, end: 15, top: 10, bottom: 10);
 
+    List<int> initialRegionsValues =
+        (sharedPreferences.getStringList(KEY_FLASHCARD_REGIONS) ?? [])
+            .map((e) => int.parse(e))
+            .toList();
+    String regionsString = initialRegionsValues
+        .map((e) => Region.values[e].pretty)
+        .toList()
+        .join(", ");
+    if (regionsString == "") {
+      regionsString = "All regions";
+    }
+
     List<AbstractSettingsSection?> sections = [
       SettingsSection(
-        title: Text('Revision Settings'),
+          title: Padding(
+              padding: EdgeInsets.only(bottom: 5),
+              child: Text(
+                'Flashcard Types',
+                style: TextStyle(fontSize: 16),
+              )),
+          tiles: [
+            SettingsTile.switchTile(
+              title: Text(
+                'Sign -> Word',
+                style: TextStyle(fontSize: 15),
+              ),
+              initialValue: sharedPreferences.getBool(KEY_SIGN_TO_WORD) ?? true,
+              onToggle: (newValue) => onPrefSwitch(KEY_SIGN_TO_WORD, newValue),
+            ),
+            SettingsTile.switchTile(
+              title: Text(
+                'Word -> Sign',
+                style: TextStyle(fontSize: 15),
+              ),
+              initialValue: sharedPreferences.getBool(KEY_WORD_TO_SIGN) ?? true,
+              onToggle: (newValue) => onPrefSwitch(KEY_WORD_TO_SIGN, newValue),
+            ),
+          ]),
+      SettingsSection(
+        title: Padding(
+            padding: EdgeInsets.only(bottom: 5),
+            child: Text(
+              'Revision Settings',
+              style: TextStyle(fontSize: 16),
+            )),
         tiles: [
-          SettingsTile.switchTile(
-            title: Text(
-              'Sign -> Word',
-              style: TextStyle(fontSize: 15),
-            ),
-            initialValue: sharedPreferences.getBool(KEY_SIGN_TO_WORD) ?? true,
-            onToggle: (newValue) => onPrefSwitch(KEY_SIGN_TO_WORD, newValue),
-          ),
-          SettingsTile.switchTile(
-            title: Text(
-              'Word -> Sign',
-              style: TextStyle(fontSize: 15),
-            ),
-            initialValue: sharedPreferences.getBool(KEY_WORD_TO_SIGN) ?? true,
-            onToggle: (newValue) => onPrefSwitch(KEY_WORD_TO_SIGN, newValue),
-          ),
           SettingsTile.navigation(
-            title: getText(
-              'Select revision technique',
-            ),
+            title: getText('Select revision technique'),
             trailing: Container(),
             onPressed: (BuildContext context) async {
               // TODO
             },
+            description: Text(
+              "todo",
+              textAlign: TextAlign.center,
+            ),
           ),
           SettingsTile.navigation(
-              title: getText("Select flashcard regions"),
-              trailing: Container(),
-              onPressed: (BuildContext context) async {
-                await showDialog(
-                  context: context,
-                  builder: (ctx) {
-                    List<int> initialValues = (sharedPreferences
-                                .getStringList(KEY_FLASHCARD_REGIONS) ??
-                            [])
-                        .map((e) => e as int)
-                        .toList();
-                    return MultiSelectDialog(
-                      items: Region.values
-                          .map((e) => MultiSelectItem(e.index, e.pretty))
-                          .toList(),
-                      initialValue: initialValues,
-                      onConfirm: (values) {
+            title: getText("Select flashcard regions"),
+            trailing: Container(),
+            onPressed: (BuildContext context) async {
+              await showDialog(
+                context: context,
+                builder: (ctx) {
+                  return MultiSelectDialog(
+                    title: Text("Regions"),
+                    items: Region.values
+                        .map((e) => MultiSelectItem(e.index, e.pretty))
+                        .toList(),
+                    initialValue: initialRegionsValues,
+                    onConfirm: (values) {
+                      setState(() {
                         sharedPreferences.setStringList(KEY_FLASHCARD_REGIONS,
                             values.map((e) => e.toString()).toList());
-                      },
-                    );
-                  },
-                );
-              }),
+                      });
+                    },
+                  );
+                },
+              );
+            },
+            description: Text(
+              regionsString,
+              textAlign: TextAlign.center,
+            ),
+          ),
         ],
         margin: margin,
       ),
@@ -134,6 +193,16 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
     Widget settings = SettingsList(
       sections: nonNullSections,
     );
+
+    Function()? onPressedStart;
+    if (numEnabledFlashcardTypes > 0) {
+      onPressedStart = () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => FlashcardsPage()),
+        );
+      };
+    }
 
     return Container(
       child: Center(
@@ -151,16 +220,19 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
               style: TextStyle(fontSize: 20),
             ),
             style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all<Color>(MAIN_COLOR),
+              backgroundColor: MaterialStateProperty.resolveWith(
+                (states) {
+                  if (states.contains(MaterialState.disabled)) {
+                    return Colors.grey;
+                  } else {
+                    return MAIN_COLOR;
+                  }
+                },
+              ),
               foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
               minimumSize: MaterialStateProperty.all<Size>(Size(120, 50)),
             ),
-            onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => FlashcardsPage()),
-              );
-            },
+            onPressed: onPressedStart,
           ),
           Expanded(child: settings),
         ],

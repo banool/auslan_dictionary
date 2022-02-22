@@ -243,11 +243,15 @@ class SettingsPageState extends State<SettingsPage> {
   }
 }
 
-Text getText(String s) {
+Text getText(String s, {bool larger = false}) {
+  double size = 15;
+  if (larger) {
+    size = 18;
+  }
   return Text(
     s,
     textAlign: TextAlign.center,
-    style: TextStyle(fontSize: 15),
+    style: TextStyle(fontSize: size),
   );
 }
 
