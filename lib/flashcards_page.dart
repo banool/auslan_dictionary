@@ -15,19 +15,19 @@ import 'types.dart';
 //   mid review.
 // - In the settings, let people choose what state(s) they want to see flashcards for.
 //   - What about the regional information unknown case?
-// - In the settings, let people choose sign -> word and word -> sign.
 // - In the flashcards app bar have a history button to see a summary of previous flashcard sessions.
 // - In the settings, let people choose between random revision and spaced repetition, and in order (alphabetical or insertion order).
 // - Add option to choose limit, like x cards at a time.
-// - Show user an error message when they hit start if their region filters mean
-//   there are no words left, explaining the situation.
 // - Have an info button in the app bar that takes you to a page explaining
 //   how the filters and strategies work.
+// - have cog icon that leads to specialist settings like wiping progress for space reptition learning
+// - have option to only show one subword of a word
 
 const String KEY_SIGN_TO_WORD = "sign_to_word";
 const String KEY_WORD_TO_SIGN = "word_to_sign";
 const String KEY_USE_UNKNOWN_REGION_SIGNS = "use_unknown_region_signs";
 const String KEY_REVISION_STRATEGY = "revision_strategy";
+const String KEY_ONE_CARD_PER_WORD = "one_card_per_word";
 
 enum RevisionStrategy {
   SpacedRepetition,
@@ -132,19 +132,22 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
         (sharedPreferences.getStringList(KEY_FLASHCARD_REGIONS) ?? [])
             .map((i) => Region.values[int.parse(i)])
             .toList();
-    print(allowedRegions);
     bool useUnknownRegionSigns =
         sharedPreferences.getBool(KEY_USE_UNKNOWN_REGION_SIGNS) ?? true;
+    bool one_card_per_word =
+        sharedPreferences.getBool(KEY_ONE_CARD_PER_WORD) ?? false;
 
     for (MapEntry<String, List<SubWord>> e in favouriteSubWords.entries) {
       List<SubWord> validSubWords = [];
       for (SubWord sw in e.value) {
-        print(sw.regions);
-        if (sw.regions.length == 0 && useUnknownRegionSigns) {
+        if (validSubWords.length > 0 && one_card_per_word) {
+          break;
+        }
+        if (sw.regions.contains(Region.EVERYWHERE)) {
           validSubWords.add(sw);
           continue;
         }
-        if (sw.regions.length > 0 && allowedRegions.length == 0) {
+        if (sw.regions.length == 0 && useUnknownRegionSigns) {
           validSubWords.add(sw);
           continue;
         }
@@ -175,6 +178,16 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
     });
   }
 
+  int getNumValidCards() {
+    if (filteredSubWords.values.length == 0) {
+      return 0;
+    }
+    if (filteredSubWords.values.length == 1) {
+      return filteredSubWords.values.toList()[0].length;
+    }
+    return filteredSubWords.values.map((v) => v.length).reduce((a, b) => a + b);
+  }
+
   bool startValid() {
     bool flashcardTypesValid = numEnabledFlashcardTypes > 0;
     bool numFilteredSubWordsValid = filteredSubWords.length > 0;
@@ -182,6 +195,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
     // TODO: Check validity for spaced repitition case.
     print(
         "flashcardTypesValid: $flashcardTypesValid, numFilteredSubWordsValid: $numFilteredSubWordsValid, validBasedOnRevisionStrategy: $validBasedOnRevisionStrategy");
+    print("num valid cards: ${getNumValidCards()}");
     return flashcardTypesValid &&
         numFilteredSubWordsValid &&
         validBasedOnRevisionStrategy;
@@ -226,6 +240,18 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
           int revisionStrategyIndex =
               sharedPreferences.getInt(KEY_REVISION_STRATEGY) ??
                   RevisionStrategy.SpacedRepetition.index;
+          RevisionStrategy revisionStrategy =
+              RevisionStrategy.values[revisionStrategyIndex];
+
+          String cardNumberString;
+          switch (revisionStrategy) {
+            case RevisionStrategy.Random:
+              cardNumberString = "${getNumValidCards()} cards selected";
+              break;
+            case RevisionStrategy.SpacedRepetition:
+              cardNumberString = "todo";
+              break;
+          }
 
           List<AbstractSettingsSection?> sections = [
             SettingsSection(
@@ -317,7 +343,6 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                               .toList(),
                           initialValue: additionalRegionsValues,
                           onConfirm: (values) {
-                            print("values $values");
                             setState(() {
                               sharedPreferences.setStringList(
                                   KEY_FLASHCARD_REGIONS,
@@ -346,6 +371,19 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                     textAlign: TextAlign.center,
                   ),
                 ),
+                SettingsTile.switchTile(
+                  title: Text(
+                    'Show only one card per word',
+                    style: TextStyle(fontSize: 15),
+                  ),
+                  initialValue:
+                      sharedPreferences.getBool(KEY_ONE_CARD_PER_WORD) ?? false,
+                  onToggle: (newValue) {
+                    onPrefSwitch(KEY_ONE_CARD_PER_WORD, newValue,
+                        influencesStartValidity: false);
+                    updateFilteredSubwords();
+                  },
+                )
               ],
               margin: margin,
             ),
@@ -403,6 +441,10 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                       ),
                       onPressed: onPressedStart,
                     )),
+                Text(
+                  cardNumberString,
+                  textAlign: TextAlign.center,
+                ),
                 Expanded(child: settings),
               ],
             )),
