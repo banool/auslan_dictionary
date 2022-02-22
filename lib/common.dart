@@ -226,13 +226,16 @@ Future<bool> readKnob(String key, bool fallback) async {
         'https://raw.githubusercontent.com/banool/auslan_dictionary/master/knobs/$key';
     var result = await http.get(Uri.parse(url));
     String raw = result.body.replaceAll("\n", "");
+    bool out;
     if (raw == "true") {
-      return true;
+      out = true;
     } else if (raw == "false") {
-      return false;
+      out = false;
     } else {
       throw "Failed to check knob at $url, using fallback value: $fallback, due to ${result.body}";
     }
+    print("Value of knob $key is $out");
+    return out;
   } catch (e) {
     print("$e");
     return fallback;

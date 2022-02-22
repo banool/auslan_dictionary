@@ -14,18 +14,24 @@ Future<void> main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
 
-    // Load shared preferences.
-    sharedPreferences = await SharedPreferences.getInstance();
+    // Start all these futures and await them collectively to speed up startup.
+    // Only put futures here where the completion order doesn't matter.
+    await Future.wait<void>([
+      // Load shared preferences.
+      (() async => sharedPreferences = await SharedPreferences.getInstance())(),
 
-    // Check knobs.
-    enableFlashcardsKnob = await readKnob("enable_flashcards", false);
-    downloadWordsDataKnob = await readKnob("download_words_data", false);
+      // Check knobs.
+      (() async =>
+          enableFlashcardsKnob = await readKnob("enable_flashcards", false))(),
+      (() async => downloadWordsDataKnob =
+          await readKnob("download_words_data", false))(),
 
-    // Get favourites stuff ready if this is the first app launch.
-    await bootstrapFavourites();
+      // Get favourites stuff ready if this is the first ever app launch.
+      (() async => await bootstrapFavourites())(),
 
-    // Load up the words information once at startup from disk.
-    wordsGlobal = await loadWords();
+      // Load up the words information once at startup from disk.
+      (() async => wordsGlobal = await loadWords())(),
+    ]);
 
     // Check for new words data if appropriate.
     // We don't wait for this on startup, it's too slow.
@@ -37,6 +43,7 @@ Future<void> main() async {
     showFlashcards = getShowFlashcards();
 
     // Finally run the app.
+    print("Setup complete, running app");
     runApp(MyApp());
   } catch (error) {
     print("Initial setup failed: $error");
