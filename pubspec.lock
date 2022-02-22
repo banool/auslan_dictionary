@@ -85,6 +85,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.4"
+  dolphinsr_dart:
+    dependency: "direct main"
+    description:
+      name: dolphinsr_dart
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.0.1"
   dots_indicator:
     dependency: "direct main"
     description:
@@ -99,6 +106,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.5.0-nullsafety.0"
+  equatable:
+    dependency: transitive
+    description:
+      name: equatable
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.3"
   fake_async:
     dependency: transitive
     description:

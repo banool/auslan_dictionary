@@ -21,8 +21,8 @@ Future<void> main() async {
       (() async => sharedPreferences = await SharedPreferences.getInstance())(),
 
       // Check knobs.
-      (() async => enableFlashcardsKnob =
-          await readKnob("enable_flashcards", false) || true)(),
+      (() async =>
+          enableFlashcardsKnob = await readKnob("enable_flashcards", false))(),
       (() async => downloadWordsDataKnob =
           await readKnob("download_words_data", false))(),
 

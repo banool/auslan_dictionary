@@ -129,6 +129,9 @@ extension PrintRegion on Region {
   }
 }
 
+final List<Region> regionsWithoutEverywhere =
+    List.from(Region.values.where((r) => r != Region.EVERYWHERE).toList());
+
 Region regionFromLegacyString(String s) {
   switch (s.toLowerCase()) {
     case "everywhere":
