@@ -17,9 +17,12 @@ import 'types.dart';
 // - In the flashcards app bar have a history button to see a summary of previous flashcard sessions.
 // - In the settings, let people choose between random revision and spaced repetition, and in order (alphabetical or insertion order).
 // - Add option to choose limit, like x cards at a time.
+// - Show user an error message when they hit start if their region filters mean
+//   there are no words left, explaining the situation.
 
 const String KEY_SIGN_TO_WORD = "sign_to_word";
 const String KEY_WORD_TO_SIGN = "word_to_sign";
+const String KEY_USE_UNKNOWN_REGION_SIGNS = "use_unknown_region_signs";
 
 class FlashcardsPageController {
   bool isMounted = false;
@@ -58,13 +61,16 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
   late final bool initialValueSignToWord;
   late final bool initialValueWordToSign;
 
-  void onPrefSwitch(String key, bool newValue) {
+  void onPrefSwitch(String key, bool newValue,
+      {bool influencesStartValidity = true}) {
     setState(() {
       sharedPreferences.setBool(key, newValue);
-      if (newValue) {
-        numEnabledFlashcardTypes += 1;
-      } else {
-        numEnabledFlashcardTypes -= 1;
+      if (influencesStartValidity) {
+        if (newValue) {
+          numEnabledFlashcardTypes += 1;
+        } else {
+          numEnabledFlashcardTypes -= 1;
+        }
       }
     });
   }
@@ -101,8 +107,16 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
         .map((e) => Region.values[e].pretty)
         .toList()
         .join(", ");
+
+    bool useUnknownRegionSigns =
+        sharedPreferences.getBool(KEY_USE_UNKNOWN_REGION_SIGNS) ?? true;
+
     if (regionsString == "") {
       regionsString = "All regions";
+    }
+
+    if (useUnknownRegionSigns) {
+      regionsString += " + signs with unknown region";
     }
 
     List<AbstractSettingsSection?> sections = [
@@ -151,13 +165,14 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
             ),
           ),
           SettingsTile.navigation(
-            title: getText("Select flashcard regions"),
+            title: getText("Select sign regions"),
             trailing: Container(),
             onPressed: (BuildContext context) async {
               await showDialog(
                 context: context,
                 builder: (ctx) {
                   return MultiSelectDialog(
+                    listType: MultiSelectListType.CHIP,
                     title: Text("Regions"),
                     items: Region.values
                         .map((e) => MultiSelectItem(e.index, e.pretty))
@@ -173,6 +188,16 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                 },
               );
             },
+          ),
+          SettingsTile.switchTile(
+            title: Text(
+              'Signs with unknown region',
+              style: TextStyle(fontSize: 15),
+            ),
+            initialValue: useUnknownRegionSigns,
+            onToggle: (newValue) => onPrefSwitch(
+                KEY_USE_UNKNOWN_REGION_SIGNS, newValue,
+                influencesStartValidity: false),
             description: Text(
               regionsString,
               textAlign: TextAlign.center,
@@ -211,29 +236,29 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Padding(
-            padding: EdgeInsets.only(top: 30),
-          ),
-          TextButton(
-            child: Text(
-              "Start",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 20),
-            ),
-            style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.resolveWith(
-                (states) {
-                  if (states.contains(MaterialState.disabled)) {
-                    return Colors.grey;
-                  } else {
-                    return MAIN_COLOR;
-                  }
-                },
-              ),
-              foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
-              minimumSize: MaterialStateProperty.all<Size>(Size(120, 50)),
-            ),
-            onPressed: onPressedStart,
-          ),
+              padding: EdgeInsets.only(top: 30, bottom: 10),
+              child: TextButton(
+                child: Text(
+                  "Start",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 20),
+                ),
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.resolveWith(
+                    (states) {
+                      if (states.contains(MaterialState.disabled)) {
+                        return Colors.grey;
+                      } else {
+                        return MAIN_COLOR;
+                      }
+                    },
+                  ),
+                  foregroundColor:
+                      MaterialStateProperty.all<Color>(Colors.white),
+                  minimumSize: MaterialStateProperty.all<Size>(Size(120, 50)),
+                ),
+                onPressed: onPressedStart,
+              )),
           Expanded(child: settings),
         ],
       )),
