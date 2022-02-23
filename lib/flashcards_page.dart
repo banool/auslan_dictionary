@@ -315,8 +315,16 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                                 .map((e) => SimpleDialogOption(
                                       child: Container(
                                         padding: EdgeInsets.all(10),
-                                        child: Text(e.pretty),
-                                        color: Color(0xFFEFEFF4),
+                                        child: Text(
+                                          e.pretty,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        decoration: BoxDecoration(
+                                            border: Border.all(
+                                                color: SETTINGS_COLOR),
+                                            color: SETTINGS_COLOR,
+                                            borderRadius:
+                                                BorderRadius.circular(20)),
                                       ),
                                       onPressed: () async {
                                         setState(() {
@@ -457,7 +465,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                 Expanded(child: settings),
               ],
             )),
-            color: Color(0xFFEFEFF4),
+            color: SETTINGS_COLOR,
           );
         });
   }
