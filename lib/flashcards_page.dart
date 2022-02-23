@@ -134,13 +134,14 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
             .toList();
     bool useUnknownRegionSigns =
         sharedPreferences.getBool(KEY_USE_UNKNOWN_REGION_SIGNS) ?? true;
-    bool one_card_per_word =
+    bool oneCardPerWord =
         sharedPreferences.getBool(KEY_ONE_CARD_PER_WORD) ?? false;
 
     for (MapEntry<String, List<SubWord>> e in favouriteSubWords.entries) {
       List<SubWord> validSubWords = [];
+      e.value.shuffle();
       for (SubWord sw in e.value) {
-        if (validSubWords.length > 0 && one_card_per_word) {
+        if (validSubWords.length > 0 && oneCardPerWord) {
           break;
         }
         if (sw.regions.contains(Region.EVERYWHERE)) {
@@ -189,9 +190,17 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
   }
 
   bool startValid() {
+    int revisionStrategyIndex =
+        sharedPreferences.getInt(KEY_REVISION_STRATEGY) ??
+            RevisionStrategy.SpacedRepetition.index;
+    RevisionStrategy revisionStrategy =
+        RevisionStrategy.values[revisionStrategyIndex];
     bool flashcardTypesValid = numEnabledFlashcardTypes > 0;
     bool numFilteredSubWordsValid = filteredSubWords.length > 0;
     bool validBasedOnRevisionStrategy = true;
+    if (revisionStrategy == RevisionStrategy.SpacedRepetition) {
+      validBasedOnRevisionStrategy = false;
+    }
     // TODO: Check validity for spaced repitition case.
     print(
         "flashcardTypesValid: $flashcardTypesValid, numFilteredSubWordsValid: $numFilteredSubWordsValid, validBasedOnRevisionStrategy: $validBasedOnRevisionStrategy");
@@ -249,7 +258,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
               cardNumberString = "${getNumValidCards()} cards selected";
               break;
             case RevisionStrategy.SpacedRepetition:
-              cardNumberString = "todo";
+              cardNumberString = "Not implemented yet";
               break;
           }
 
@@ -373,7 +382,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                 ),
                 SettingsTile.switchTile(
                   title: Text(
-                    'Show only one card per word',
+                    'Show only one subcard per word',
                     style: TextStyle(fontSize: 15),
                   ),
                   initialValue:
