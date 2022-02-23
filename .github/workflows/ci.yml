@@ -22,6 +22,9 @@ jobs:
     # Initial build and test
     - run: flutter pub get
 
+    # Run tests
+    - run: flutter test
+
     # For the apk build to Github Packages
     - run: flutter build apk
 
