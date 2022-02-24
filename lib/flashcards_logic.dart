@@ -58,22 +58,32 @@ Map<String, List<SubWord>> filterSubWords(
 }
 
 // You should provide this function the filtered list of SubWords.
-List<Master> getMasters(Map<String, List<SubWord>> subWords) {
+List<Master> getMasters(
+    Map<String, List<SubWord>> subWords, bool wordToSign, bool signToWord) {
   List<Master> masters = [];
   for (MapEntry<String, List<SubWord>> e in subWords.entries) {
     String word = e.key;
     for (SubWord sw in e.value) {
-      var m = Master(id: sw.getKey(word), fields: [
-        word,
-        sw.videoLinks.join(VIDEO_LINK_SEPARATOR)
-      ], combinations: [
-        Combination(front: [0], back: [1]),
-        Combination(front: [1], back: [0]),
-      ]);
+      List<Combination> combinations = [];
+      if (wordToSign) {
+        combinations.add(Combination(front: [0], back: [1]));
+      }
+      if (signToWord) {
+        combinations.add(Combination(front: [1], back: [0]));
+      }
+      var m = Master(
+        id: sw.getKey(word),
+        fields: [word, sw.videoLinks.join(VIDEO_LINK_SEPARATOR)],
+        combinations: combinations,
+      );
       masters.add(m);
     }
   }
   return masters;
+}
+
+int getNumCards(DolphinSR dolphin) {
+  return dolphin.cardsLength();
 }
 
 DolphinSR getRandomDolphin(List<Master> masters) {

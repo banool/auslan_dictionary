@@ -76,6 +76,8 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
   late final Map<String, List<SubWord>> favouriteSubWords;
   Map<String, List<SubWord>> filteredSubWords = Map();
 
+  late DolphinSR dolphin;
+
   @override
   void initState() {
     super.initState();
@@ -101,7 +103,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
     List<Word> favourites = await loadFavourites(context);
     setState(() {
       favouriteSubWords = getSubWordsFromWords(favourites);
-      updateFilteredSubwords();
+      updateRevisionSettings();
     });
   }
 
@@ -134,7 +136,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
     });
   }
 
-  int getNumValidCards() {
+  int getNumValidSubWords() {
     if (filteredSubWords.values.length == 0) {
       return 0;
     }
@@ -147,7 +149,8 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
   bool startValid() {
     var revisionStrategy = loadRevisionStrategy();
     bool flashcardTypesValid = numEnabledFlashcardTypes > 0;
-    bool numFilteredSubWordsValid = filteredSubWords.length > 0;
+    bool numFilteredSubWordsValid = getNumValidSubWords() > 0;
+    bool numCardsValid = getNumCards(dolphin) > 0;
     bool validBasedOnRevisionStrategy = true;
     if (revisionStrategy == RevisionStrategy.SpacedRepetition) {
       validBasedOnRevisionStrategy = false;
@@ -155,20 +158,37 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
     // TODO: Check validity for spaced repitition case.
     print(
         "flashcardTypesValid: $flashcardTypesValid, numFilteredSubWordsValid: $numFilteredSubWordsValid, validBasedOnRevisionStrategy: $validBasedOnRevisionStrategy");
-    print("num valid cards: ${getNumValidCards()}");
+    print("num valid cards: ${getNumValidSubWords()}");
     return flashcardTypesValid &&
         numFilteredSubWordsValid &&
+        numCardsValid &&
         validBasedOnRevisionStrategy;
   }
 
   DolphinSR getDolphin() {
     var revisionStrategy = loadRevisionStrategy();
-    var masters = getMasters(filteredSubWords);
+    var wordToSign = sharedPreferences.getBool(KEY_WORD_TO_SIGN) ?? true;
+    var signToWord = sharedPreferences.getBool(KEY_SIGN_TO_WORD) ?? true;
+    var masters = getMasters(filteredSubWords, wordToSign, signToWord);
     if (revisionStrategy == RevisionStrategy.Random) {
       return getRandomDolphin(masters);
     } else {
-      throw "Not ready";
+      // TODO
+      return getRandomDolphin(masters);
     }
+  }
+
+  void updateDolphin() {
+    setState(() {
+      dolphin = getDolphin();
+    });
+  }
+
+  void updateRevisionSettings() {
+    setState(() {
+      updateFilteredSubwords();
+      updateDolphin();
+    });
   }
 
   RevisionStrategy loadRevisionStrategy() {
@@ -221,7 +241,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
           String cardNumberString;
           switch (revisionStrategy) {
             case RevisionStrategy.Random:
-              cardNumberString = "${getNumValidCards()} cards selected";
+              cardNumberString = "${getNumCards(dolphin)} cards selected";
               break;
             case RevisionStrategy.SpacedRepetition:
               cardNumberString = "Not implemented yet";
@@ -246,7 +266,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                           sharedPreferences.getBool(KEY_SIGN_TO_WORD) ?? true,
                       onToggle: (newValue) {
                         onPrefSwitch(KEY_SIGN_TO_WORD, newValue);
-                        updateFilteredSubwords();
+                        updateRevisionSettings();
                       }),
                   SettingsTile.switchTile(
                       title: Text(
@@ -257,7 +277,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                           sharedPreferences.getBool(KEY_WORD_TO_SIGN) ?? true,
                       onToggle: (newValue) {
                         onPrefSwitch(KEY_WORD_TO_SIGN, newValue);
-                        updateFilteredSubwords();
+                        updateRevisionSettings();
                       }),
                 ]),
             SettingsSection(
@@ -296,8 +316,8 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                                         setState(() {
                                           sharedPreferences.setInt(
                                               KEY_REVISION_STRATEGY, e.index);
+                                          updateRevisionSettings();
                                         });
-                                        updateFilteredSubwords();
                                         Navigator.of(context).pop();
                                       },
                                     ))
@@ -330,8 +350,8 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                               sharedPreferences.setStringList(
                                   KEY_FLASHCARD_REGIONS,
                                   values.map((e) => e.toString()).toList());
+                              updateRevisionSettings();
                             });
-                            updateFilteredSubwords();
                           },
                         );
                       },
@@ -347,7 +367,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                   onToggle: (newValue) {
                     onPrefSwitch(KEY_USE_UNKNOWN_REGION_SIGNS, newValue,
                         influencesStartValidity: false);
-                    updateFilteredSubwords();
+                    updateRevisionSettings();
                   },
                   description: Text(
                     regionsString,
@@ -364,7 +384,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                   onToggle: (newValue) {
                     onPrefSwitch(KEY_ONE_CARD_PER_WORD, newValue,
                         influencesStartValidity: false);
-                    updateFilteredSubwords();
+                    updateRevisionSettings();
                   },
                 )
               ],
@@ -386,12 +406,12 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
           Function()? onPressedStart;
           if (startValid()) {
             onPressedStart = () async {
-              updateFilteredSubwords();
+              updateRevisionSettings();
               await Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) => FlashcardsPage(
-                          dolphin: getDolphin(),
+                          dolphin: dolphin,
                           revisionStrategy: revisionStrategy,
                         )),
               );
