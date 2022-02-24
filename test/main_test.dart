@@ -1,4 +1,5 @@
 import 'package:auslan_dictionary/types.dart';
+import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:auslan_dictionary/main.dart';
@@ -29,9 +30,33 @@ void main() async {
 
   showFlashcards = true;
 
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  testWidgets('Pump app test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(MyApp());
     print("Pump successful!");
+  });
+
+  test('Dolphin test', () async {
+    DolphinSR dolphin = DolphinSR();
+
+    List<Master> masters = [];
+    for (Word w in wordsGlobal) {
+      for (SubWord sw in w.subWords) {
+        var m = Master(id: sw.getKey(w.word), fields: [
+          w.word,
+          sw.videoLinks.join("=====")
+        ], combinations: [
+          Combination(front: [0], back: [1]),
+          Combination(front: [1], back: [0]),
+        ]);
+        masters.add(m);
+      }
+    }
+
+    dolphin.addMasters(masters);
+
+    DRCard card = dolphin.nextCard()!;
+
+    print(card);
   });
 }

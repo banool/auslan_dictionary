@@ -75,6 +75,23 @@ class SubWord {
     }
     return this.regions.map((r) => r.pretty).join(", ");
   }
+
+  // This is for DolphinSR. The video attached to a subword is the best we have
+  // to globally identify it. If the video changes for a subword, the subword
+  // itself has effectively changed for review purposes and it'd make sense to
+  // consider it a new master anyway.
+  String getKey(String word) {
+    var videoLinks = List.from(this.videoLinks);
+    videoLinks.sort();
+    print(videoLinks);
+    String firstVideoLink;
+    try {
+      firstVideoLink = videoLinks[0].split("/auslan/")[1];
+    } catch (_e) {
+      firstVideoLink = videoLinks[0].split("/mp4video/")[1];
+    }
+    return "$word-$firstVideoLink";
+  }
 }
 
 class Definition {

@@ -1,4 +1,5 @@
 import 'package:auslan_dictionary/favourites_page.dart';
+import 'package:auslan_dictionary/flashcards_logic.dart';
 import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
@@ -22,6 +23,10 @@ import 'types.dart';
 //   how the filters and strategies work.
 // - have cog icon that leads to specialist settings like wiping progress for space reptition learning
 // - have option to only show one subword of a word
+// - what about subwords that have multiple videos? probs just show both like normal
+// - should i add reviews as the user does them, or at the end?
+// - do i need some kind of db compaction? like where i collapse all reviews but the most recent
+//   for each card (subword+combination) into just numbers.
 
 const String KEY_SIGN_TO_WORD = "sign_to_word";
 const String KEY_WORD_TO_SIGN = "word_to_sign";
@@ -110,24 +115,13 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
 
   Future<void> loadFavouritesInner() async {
     List<Word> favourites = await loadFavourites(context);
-    Map<String, List<SubWord>> subWords = Map();
-    for (Word w in favourites) {
-      subWords[w.word] = w.subWords;
-    }
     setState(() {
-      favouriteSubWords = subWords;
+      favouriteSubWords = getSubWordsFromWords(favourites);
       updateFilteredSubwords();
     });
   }
 
   void updateFilteredSubwords() {
-    setState(() {
-      filteredSubWords = filterSubWords();
-    });
-  }
-
-  Map<String, List<SubWord>> filterSubWords() {
-    Map<String, List<SubWord>> out = Map();
     List<Region> allowedRegions =
         (sharedPreferences.getStringList(KEY_FLASHCARD_REGIONS) ?? [])
             .map((i) => Region.values[int.parse(i)])
@@ -136,33 +130,10 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
         sharedPreferences.getBool(KEY_USE_UNKNOWN_REGION_SIGNS) ?? true;
     bool oneCardPerWord =
         sharedPreferences.getBool(KEY_ONE_CARD_PER_WORD) ?? false;
-
-    for (MapEntry<String, List<SubWord>> e in favouriteSubWords.entries) {
-      List<SubWord> validSubWords = [];
-      e.value.shuffle();
-      for (SubWord sw in e.value) {
-        if (validSubWords.length > 0 && oneCardPerWord) {
-          break;
-        }
-        if (sw.regions.contains(Region.EVERYWHERE)) {
-          validSubWords.add(sw);
-          continue;
-        }
-        if (sw.regions.length == 0 && useUnknownRegionSigns) {
-          validSubWords.add(sw);
-          continue;
-        }
-        for (Region r in sw.regions) {
-          if (allowedRegions.contains(r)) {
-            validSubWords.add(sw);
-          }
-        }
-      }
-      if (validSubWords.length > 0) {
-        out[e.key] = validSubWords;
-      }
-    }
-    return out;
+    setState(() {
+      filteredSubWords = filterSubWords(favouriteSubWords, allowedRegions,
+          useUnknownRegionSigns, oneCardPerWord);
+    });
   }
 
   void onPrefSwitch(String key, bool newValue,
@@ -190,11 +161,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
   }
 
   bool startValid() {
-    int revisionStrategyIndex =
-        sharedPreferences.getInt(KEY_REVISION_STRATEGY) ??
-            RevisionStrategy.SpacedRepetition.index;
-    RevisionStrategy revisionStrategy =
-        RevisionStrategy.values[revisionStrategyIndex];
+    var revisionStrategy = loadRevisionStrategy();
     bool flashcardTypesValid = numEnabledFlashcardTypes > 0;
     bool numFilteredSubWordsValid = filteredSubWords.length > 0;
     bool validBasedOnRevisionStrategy = true;
@@ -208,6 +175,25 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
     return flashcardTypesValid &&
         numFilteredSubWordsValid &&
         validBasedOnRevisionStrategy;
+  }
+
+  DolphinSR getDolphin() {
+    var revisionStrategy = loadRevisionStrategy();
+    var masters = getMasters(filteredSubWords);
+    if (revisionStrategy == RevisionStrategy.Random) {
+      return getRandomDolphin(masters);
+    } else {
+      throw "Not ready";
+    }
+  }
+
+  RevisionStrategy loadRevisionStrategy() {
+    int revisionStrategyIndex =
+        sharedPreferences.getInt(KEY_REVISION_STRATEGY) ??
+            RevisionStrategy.SpacedRepetition.index;
+    RevisionStrategy revisionStrategy =
+        RevisionStrategy.values[revisionStrategyIndex];
+    return revisionStrategy;
   }
 
   @override
@@ -246,11 +232,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
             regionsString += " + signs with unknown region";
           }
 
-          int revisionStrategyIndex =
-              sharedPreferences.getInt(KEY_REVISION_STRATEGY) ??
-                  RevisionStrategy.SpacedRepetition.index;
-          RevisionStrategy revisionStrategy =
-              RevisionStrategy.values[revisionStrategyIndex];
+          var revisionStrategy = loadRevisionStrategy();
 
           String cardNumberString;
           switch (revisionStrategy) {
@@ -341,7 +323,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                         });
                   },
                   description: Text(
-                    RevisionStrategy.values[revisionStrategyIndex].pretty,
+                    revisionStrategy.pretty,
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -420,9 +402,14 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
           Function()? onPressedStart;
           if (startValid()) {
             onPressedStart = () async {
+              updateFilteredSubwords();
               await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => FlashcardsPage()),
+                MaterialPageRoute(
+                    builder: (context) => FlashcardsPage(
+                          dolphin: getDolphin(),
+                          revisionStrategy: revisionStrategy,
+                        )),
               );
             };
           }
@@ -472,23 +459,60 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
 }
 
 class FlashcardsPage extends StatefulWidget {
-  FlashcardsPage({Key? key}) : super(key: key);
+  FlashcardsPage(
+      {Key? key, required this.dolphin, required this.revisionStrategy})
+      : super(key: key);
+
+  final DolphinSR dolphin;
+  final RevisionStrategy revisionStrategy;
 
   @override
-  _FlashcardsPageState createState() => _FlashcardsPageState();
+  _FlashcardsPageState createState() =>
+      _FlashcardsPageState(this.dolphin, this.revisionStrategy);
 }
 
 class _FlashcardsPageState extends State<FlashcardsPage> {
+  _FlashcardsPageState(this.dolphin, this.revisionStrategy);
+
+  DolphinSR dolphin;
+  final RevisionStrategy revisionStrategy;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void completeCard(DRCard card) {
+    switch (revisionStrategy) {
+      case RevisionStrategy.Random:
+        dolphin.removeFromMaster(card.master!);
+        break;
+      case RevisionStrategy.SpacedRepetition:
+        throw "todo";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    DolphinSR dolphin = new DolphinSR();
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Start", style: TextStyle(fontSize: 1)),
-      ],
-    );
+    List<Widget> blah = [];
+    while (true) {
+      var c = dolphin.nextCard();
+      print("$c");
+      if (c == null) {
+        break;
+      }
+      blah.add(Text("$c"));
+      dolphin.removeFromMaster(c.master!);
+    }
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("hey"),
+        ),
+        body: Center(
+            child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: blah,
+        )));
   }
 }
