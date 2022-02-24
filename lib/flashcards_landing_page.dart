@@ -406,7 +406,6 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
           Function()? onPressedStart;
           if (startValid()) {
             onPressedStart = () async {
-              updateRevisionSettings();
               await Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -415,6 +414,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                           revisionStrategy: revisionStrategy,
                         )),
               );
+              updateRevisionSettings();
             };
           }
 

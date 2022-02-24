@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'common.dart';
 import 'favourites_page.dart';
-import 'flashcards_page.dart';
+import 'flashcards_landing_page.dart';
 import 'globals.dart';
 import 'search_page.dart';
 import 'settings_page.dart';
@@ -184,6 +184,7 @@ class _MyHomePageState extends State<MyHomePage> {
           },
           child: Icon(Icons.sort));
     }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title!),

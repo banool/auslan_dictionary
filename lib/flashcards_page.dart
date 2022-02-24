@@ -21,32 +21,47 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
   DolphinSR dolphin;
   final RevisionStrategy revisionStrategy;
 
+  List<Review> reviews = [];
+
   @override
   void initState() {
     super.initState();
   }
 
-  void completeCard(DRCard card) {
+  void completeCard(DRCard card,
+      {Rating rating = Rating.Easy, DateTime? when}) {
+    DateTime ts;
+    if (when != null) {
+      ts = when;
+    } else {
+      ts = DateTime.now();
+    }
+    Review review;
     switch (revisionStrategy) {
       case RevisionStrategy.Random:
-        dolphin.removeFromMaster(card.master!);
+        review = Review(
+            master: card.master!,
+            combination: card.combination!,
+            ts: ts,
+            rating: rating);
         break;
       case RevisionStrategy.SpacedRepetition:
         throw "todo";
     }
+    dolphin.addReviews([review]);
+    reviews.add(review);
   }
 
   @override
   Widget build(BuildContext context) {
     List<Widget> blah = [];
     while (true) {
+      print("Cards remaining: ${dolphin.summary().learning ?? 0}");
       var c = dolphin.nextCard();
-      print("$c");
       if (c == null) {
         break;
       }
       blah.add(Text("$c"));
-      dolphin.removeFromMaster(c.master!);
     }
     return Scaffold(
         appBar: AppBar(
