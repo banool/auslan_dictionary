@@ -76,7 +76,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
   late final Map<String, List<SubWord>> favouriteSubWords;
   Map<String, List<SubWord>> filteredSubWords = Map();
 
-  late DolphinSR dolphin;
+  late DolphinInformation dolphinInformation;
 
   @override
   void initState() {
@@ -150,7 +150,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
     var revisionStrategy = loadRevisionStrategy();
     bool flashcardTypesValid = numEnabledFlashcardTypes > 0;
     bool numFilteredSubWordsValid = getNumValidSubWords() > 0;
-    bool numCardsValid = getNumCards(dolphin) > 0;
+    bool numCardsValid = getNumCards(dolphinInformation.dolphin) > 0;
     bool validBasedOnRevisionStrategy = true;
     if (revisionStrategy == RevisionStrategy.SpacedRepetition) {
       validBasedOnRevisionStrategy = false;
@@ -165,22 +165,22 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
         validBasedOnRevisionStrategy;
   }
 
-  DolphinSR getDolphin() {
+  DolphinInformation getDolphin() {
     var revisionStrategy = loadRevisionStrategy();
     var wordToSign = sharedPreferences.getBool(KEY_WORD_TO_SIGN) ?? true;
     var signToWord = sharedPreferences.getBool(KEY_SIGN_TO_WORD) ?? true;
     var masters = getMasters(filteredSubWords, wordToSign, signToWord);
     if (revisionStrategy == RevisionStrategy.Random) {
-      return getRandomDolphin(masters);
+      return getRandomDolphin(filteredSubWords, masters);
     } else {
       // TODO
-      return getRandomDolphin(masters);
+      return getRandomDolphin(filteredSubWords, masters);
     }
   }
 
   void updateDolphin() {
     setState(() {
-      dolphin = getDolphin();
+      dolphinInformation = getDolphin();
     });
   }
 
@@ -241,7 +241,8 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
           String cardNumberString;
           switch (revisionStrategy) {
             case RevisionStrategy.Random:
-              cardNumberString = "${getNumCards(dolphin)} cards selected";
+              cardNumberString =
+                  "${getNumCards(dolphinInformation.dolphin)} cards selected";
               break;
             case RevisionStrategy.SpacedRepetition:
               cardNumberString = "Not implemented yet";
@@ -376,7 +377,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                 ),
                 SettingsTile.switchTile(
                   title: Text(
-                    'Show only one subcard per word',
+                    'Show only one entry per word',
                     style: TextStyle(fontSize: 15),
                   ),
                   initialValue:
@@ -410,7 +411,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                 context,
                 MaterialPageRoute(
                     builder: (context) => FlashcardsPage(
-                          dolphin: dolphin,
+                          di: dolphinInformation,
                           revisionStrategy: revisionStrategy,
                         )),
               );

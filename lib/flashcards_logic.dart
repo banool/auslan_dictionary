@@ -2,7 +2,17 @@ import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 
 import 'types.dart';
 
-const String VIDEO_LINK_SEPARATOR = "======";
+const String VIDEO_LINKS_MARKER = "videolinks";
+
+class DolphinInformation {
+  DolphinInformation({
+    required this.dolphin,
+    required this.keyToSubWordMap,
+  });
+
+  DolphinSR dolphin;
+  Map<String, SubWord> keyToSubWordMap;
+}
 
 Map<String, List<SubWord>> getSubWordsFromWords(List<Word> favourites) {
   Map<String, List<SubWord>> subWords = Map();
@@ -73,7 +83,7 @@ List<Master> getMasters(
       }
       var m = Master(
         id: sw.getKey(word),
-        fields: [word, sw.videoLinks.join(VIDEO_LINK_SEPARATOR)],
+        fields: [word, VIDEO_LINKS_MARKER],
         combinations: combinations,
       );
       masters.add(m);
@@ -86,9 +96,17 @@ int getNumCards(DolphinSR dolphin) {
   return dolphin.cardsLength();
 }
 
-DolphinSR getRandomDolphin(List<Master> masters) {
+DolphinInformation getRandomDolphin(
+    Map<String, List<SubWord>> subWords, List<Master> masters) {
+  Map<String, SubWord> keyToSubWordMap = Map();
+  for (MapEntry<String, List<SubWord>> e in subWords.entries) {
+    String word = e.key;
+    for (SubWord sw in e.value) {
+      keyToSubWordMap[sw.getKey(word)] = sw;
+    }
+  }
   DolphinSR dolphin = DolphinSR();
   dolphin.addMasters(masters);
   dolphin.addReviews([]);
-  return dolphin;
+  return DolphinInformation(dolphin: dolphin, keyToSubWordMap: keyToSubWordMap);
 }
