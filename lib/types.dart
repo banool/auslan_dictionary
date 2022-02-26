@@ -83,7 +83,6 @@ class SubWord {
   String getKey(String word) {
     var videoLinks = List.from(this.videoLinks);
     videoLinks.sort();
-    print(videoLinks);
     String firstVideoLink;
     try {
       firstVideoLink = videoLinks[0].split("/auslan/")[1];

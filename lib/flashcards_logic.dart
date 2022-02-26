@@ -137,7 +137,7 @@ DolphinInformation getDolphinInformation(
     filteredReviews.add(r);
     print("Added review $r");
   }
-  print("Added ${filteredReviews.length} total reviews");
+  print("Added ${filteredReviews.length} total reviews to Dolphin");
   dolphin.addReviews(filteredReviews);
   return DolphinInformation(dolphin: dolphin, keyToSubWordMap: keyToSubWordMap);
 }
@@ -178,10 +178,8 @@ List<Review> readReviews() {
       .toList();
 }
 
-void writeReviews(List<Review> existing, List<Review> additional,
-    {bool force = false}) {
-  print(existing);
-  print(additional);
+Future<void> writeReviews(List<Review> existing, List<Review> additional,
+    {bool force = false}) async {
   if (!force && additional.isEmpty) {
     print("No reviews to write and force = $force");
     return;
@@ -192,6 +190,7 @@ void writeReviews(List<Review> existing, List<Review> additional,
         (e) => encodeReview(e),
       )
       .toList();
-  print("Wrote ${additional.length} new reviews to storage");
-  sharedPreferences.setStringList(KEY_STORED_REVIEWS, encoded);
+  await sharedPreferences.setStringList(KEY_STORED_REVIEWS, encoded);
+  print(
+      "Wrote ${additional.length} new reviews (making ${toWrite.length} in total) to storage");
 }

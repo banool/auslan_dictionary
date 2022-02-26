@@ -47,11 +47,18 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
     nextCard();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
+  // TODO: Explore how the algorithm actually works and consider using Good.
+  // I suspect when calculating what cards need to be done, we should use Good
+  // but make the number of cards due on a day be the current stuff minus the
+  // number of reviews completed today (floor 0).
+
+  // The actual dispose function cannot await async functions. Instead, we
+  // ban users from swiping back to ensure that if they want to exit revision,
+  // they do it by pressing one of our buttons, which ensures this function
+  // gets called. TODO: Actually prevent swipe back.
+  Future<void> beforePop() async {
     if (revisionStrategy == RevisionStrategy.SpacedRepetition) {
-      writeReviews(existingReviews!, answers.values.toList());
+      await writeReviews(existingReviews!, answers.values.toList());
     }
   }
 
@@ -97,7 +104,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         textData = "Forgot";
         overlayColor = Color.fromARGB(90, 211, 88, 79);
         break;
-      case Rating.Good:
+      case Rating.Easy:
         textData = "Got it!";
         overlayColor = Color.fromARGB(90, 72, 167, 77);
         break;
@@ -111,7 +118,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
           borderColor = Color.fromARGB(255, 189, 40, 29);
           textColor = Color.fromARGB(255, 179, 59, 50);
           break;
-        case Rating.Good:
+        case Rating.Easy:
           backgroundColor = Color.fromARGB(60, 88, 255, 124);
           borderColor = Color.fromARGB(255, 33, 102, 37);
           textColor = Color.fromARGB(255, 63, 156, 67);
@@ -136,7 +143,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
               forgotRatingWidgetActive = true;
               rememberedRatingWidgetActive = false;
               break;
-            case Rating.Good:
+            case Rating.Easy:
               rememberedRatingWidgetActive = true;
               forgotRatingWidgetActive = false;
               break;
@@ -215,7 +222,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
             Padding(
               padding: EdgeInsets.only(left: 15, right: 15),
             ),
-            getRatingButton(Rating.Good, rememberedRatingWidgetActive),
+            getRatingButton(Rating.Easy, rememberedRatingWidgetActive),
           ],
           mainAxisAlignment: MainAxisAlignment.center,
         ));
@@ -240,7 +247,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
               child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => setState(() {
-              completeCard(currentCard!, rating: Rating.Good);
+              completeCard(currentCard!, rating: Rating.Easy);
               currentCardRevealed = true;
             }),
             child: Container(
@@ -314,10 +321,12 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         appBar: AppBar(
             title: Text(appBarTitle),
             leading: IconButton(
-              icon: Icon(Icons.close),
-              // TODO: Show dialog here to confirm they want to stop revising.
-              onPressed: () => Navigator.of(context).pop(),
-            )),
+                icon: Icon(Icons.close),
+                // TODO: Show dialog here to confirm they want to stop revising.
+                onPressed: () async {
+                  await beforePop();
+                  Navigator.of(context).pop();
+                })),
         body: Center(
           child: body,
         ));

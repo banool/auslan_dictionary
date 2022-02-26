@@ -147,15 +147,27 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
     return filteredSubWords.values.map((v) => v.length).reduce((a, b) => a + b);
   }
 
+  int getCardsToDo(RevisionStrategy revisionStrategy) {
+    switch (revisionStrategy) {
+      case RevisionStrategy.Random:
+        return getNumCards(dolphinInformation.dolphin);
+      case RevisionStrategy.SpacedRepetition:
+        SummaryStatics summary = dolphinInformation.dolphin.summary();
+        // Everything but "later", that seems to match up with what Dolphin
+        // will spit out from nextCard.
+        int due = (summary.due ?? 0) +
+            (summary.overdue ?? 0) +
+            (summary.learning ?? 0);
+        return due;
+    }
+  }
+
   bool startValid() {
     var revisionStrategy = loadRevisionStrategy();
     bool flashcardTypesValid = numEnabledFlashcardTypes > 0;
     bool numFilteredSubWordsValid = getNumValidSubWords() > 0;
-    bool numCardsValid = getNumCards(dolphinInformation.dolphin) > 0;
+    bool numCardsValid = getCardsToDo(revisionStrategy) > 0;
     bool validBasedOnRevisionStrategy = true;
-    print(
-        "flashcardTypesValid: $flashcardTypesValid, numFilteredSubWordsValid: $numFilteredSubWordsValid, validBasedOnRevisionStrategy: $validBasedOnRevisionStrategy");
-    print("num valid cards: ${getNumValidSubWords()}");
     return flashcardTypesValid &&
         numFilteredSubWordsValid &&
         numCardsValid &&
@@ -242,8 +254,16 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
 
           var revisionStrategy = loadRevisionStrategy();
 
-          String cardNumberString =
-              "${getNumCards(dolphinInformation.dolphin)} cards selected";
+          int cardsToDo = getCardsToDo(revisionStrategy);
+          String cardNumberString;
+          switch (revisionStrategy) {
+            case RevisionStrategy.Random:
+              cardNumberString = "$cardsToDo cards selected";
+              break;
+            case RevisionStrategy.SpacedRepetition:
+              cardNumberString = "$cardsToDo cards due";
+              break;
+          }
 
           List<AbstractSettingsSection?> sections = [
             SettingsSection(
