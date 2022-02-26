@@ -91,6 +91,11 @@ class SubWord {
     }
     return "$word-$firstVideoLink";
   }
+
+  @override
+  String toString() {
+    return "SubWord($videoLinks)";
+  }
 }
 
 class Definition {

@@ -92,6 +92,7 @@ List<Master> getMasters(
       masters.add(m);
     }
   }
+  masters.shuffle();
   return masters;
 }
 

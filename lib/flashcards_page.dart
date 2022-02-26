@@ -65,6 +65,9 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
   void nextCard() {
     setState(() {
       currentCard = di.dolphin.nextCard();
+      currentCardRevealed = false;
+      forgotRatingWidgetActive = false;
+      rememberedRatingWidgetActive = true;
     });
   }
 
@@ -89,7 +92,13 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         rating: rating);
     setState(() {
       di.dolphin.addReviews([review]);
+      bool shouldNavigate = answers.containsKey(card);
       answers[card] = review;
+      if (shouldNavigate) {
+        nextCard();
+      } else {
+        currentCardRevealed = true;
+      }
     });
     // TODO: If the answer hadn't been set before, don't navigte away.
     // If there was already an answer, calling this progresses to the next card.
@@ -163,14 +172,13 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
                 BorderSide(color: borderColor, width: 1.5))));
   }
 
-  Widget buildFlashcardWidget(bool revealed) {
+  Widget buildFlashcardWidget(DRCard card, bool revealed) {
     var shouldUseHorizontalDisplay = getShouldUseHorizontalLayout(context);
 
-    DRCard card = currentCard!;
     SubWord sw = di.keyToSubWordMap[card.master]!;
 
     String word;
-    bool wordToSign = card.combination! == Combination(front: [0], back: [1]);
+    bool wordToSign = card.back![0] == VIDEO_LINKS_MARKER;
     if (wordToSign) {
       // Word on front, video on back.
       word = card.front![0];
@@ -178,12 +186,16 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
       word = card.back![0];
     }
 
-    var videoPlayerScreen = VideoPlayerScreen(videoLinks: sw.videoLinks);
+    // See here for an explanation of why I pass in a key here:
+    // https://stackoverflow.com/questions/55237188/flutter-is-not-rebuilding-same-widget-with-different-parameters
+    var videoPlayerScreen = VideoPlayerScreen(
+        videoLinks: sw.videoLinks, key: Key(sw.videoLinks[0]));
 
     Widget topWidget;
     if (wordToSign) {
       if (revealed) {
         topWidget = videoPlayerScreen;
+        ;
       } else {
         topWidget = Container(
             padding: EdgeInsets.only(top: 120, bottom: 70),
@@ -223,19 +235,6 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
       children.add(bottomWidget);
 
       children.add(Expanded(child: Container()));
-      /*
-      children.add(Expanded(
-          child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => setState(() {
-          currentCardRevealed = true;
-        }),
-        child: Container(
-          constraints: BoxConstraints.expand(),
-          color: Colors.red,
-        ),
-      )));
-      */
 
       if (revealed) {
         children.add(Padding(padding: EdgeInsets.only(bottom: 10)));
@@ -271,7 +270,6 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
             behavior: HitTestBehavior.opaque,
             onTap: () => setState(() {
               completeCard(currentCard!, rating: Rating.Easy);
-              currentCardRevealed = true;
             }),
             child: Container(
               constraints: BoxConstraints.expand(),
@@ -316,23 +314,10 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
 
   @override
   Widget build(BuildContext context) {
-    /*
-    List<Widget> blah = [];
-    while (true) {
-      print("Cards remaining: ${di.dolphin.summary().learning ?? 0}");
-      var c = di.dolphin.nextCard();
-      if (c == null) {
-        break;
-      }
-      completeCard(c);
-      blah.add(Text("$c"));
-    }
-    */
-
     Widget body;
     String appBarTitle;
     if (currentCard != null) {
-      body = buildFlashcardWidget(currentCardRevealed);
+      body = buildFlashcardWidget(currentCard!, currentCardRevealed);
       appBarTitle =
           "${numCardsToReview - getRemainingCardsToReview() + 1} / $numCardsToReview";
     } else {
@@ -340,18 +325,21 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
       appBarTitle = "todo";
     }
 
-    return Scaffold(
-        appBar: AppBar(
-            title: Text(appBarTitle),
-            leading: IconButton(
-                icon: Icon(Icons.close),
-                // TODO: Show dialog here to confirm they want to stop revising.
-                onPressed: () async {
-                  await beforePop();
-                  Navigator.of(context).pop();
-                })),
-        body: Center(
-          child: body,
-        ));
+    // Disable swipe back with WillPopScope.
+    return WillPopScope(
+        onWillPop: () async => false,
+        child: Scaffold(
+            appBar: AppBar(
+                title: Text(appBarTitle),
+                leading: IconButton(
+                    icon: Icon(Icons.close),
+                    // TODO: Show dialog here to confirm they want to stop revising.
+                    onPressed: () async {
+                      await beforePop();
+                      Navigator.of(context).pop();
+                    })),
+            body: Center(
+              child: body,
+            )));
   }
 }

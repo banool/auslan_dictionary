@@ -309,9 +309,9 @@ class _SubWordPageState extends State<SubWordPage> {
 }
 
 class VideoPlayerScreen extends StatefulWidget {
-  VideoPlayerScreen({Key? key, this.videoLinks}) : super(key: key);
+  VideoPlayerScreen({Key? key, required this.videoLinks}) : super(key: key);
 
-  final List<String>? videoLinks;
+  final List<String> videoLinks;
 
   @override
   _VideoPlayerScreenState createState() =>
@@ -319,9 +319,9 @@ class VideoPlayerScreen extends StatefulWidget {
 }
 
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
-  _VideoPlayerScreenState({this.videoLinks});
+  _VideoPlayerScreenState({required this.videoLinks});
 
-  final List<String>? videoLinks;
+  final List<String> videoLinks;
 
   Map<int, VideoPlayerController> controllers = {};
 
@@ -333,10 +333,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   @override
   void initState() {
-    // Initialise the videos, reading from cache if possible.
     int idx = 0;
-    for (String videoLink in videoLinks!) {
-      initializeVideoPlayerFutures.add(initSingleVideo(videoLink, idx));
+    for (String videoLink in videoLinks) {
+      var f = initSingleVideo(videoLink, idx);
+      initializeVideoPlayerFutures.add(f);
       idx += 1;
     }
     // Make carousel slider controller.
@@ -362,9 +362,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         file = await DefaultCacheManager().getSingleFile(videoLink);
       } else {
         print("Video for $videoLink is in cache, reading from there");
-        setState(() {
-          file = fileInfo.file;
-        });
+        file = fileInfo.file;
       }
 
       controller = VideoPlayerController.file(file,
@@ -416,7 +414,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   @override
   void dispose() {
     super.dispose();
-
     // Ensure disposing of the VideoPlayerController to free up resources.
     for (VideoPlayerController c in controllers.values) {
       c.dispose();
@@ -428,7 +425,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     // Get height of screen to ensure that the video only takes up
     // a certain proportion of it.
     List<Widget> items = [];
-    for (int idx = 0; idx < videoLinks!.length; idx++) {
+    for (int idx = 0; idx < videoLinks.length; idx++) {
       var futureBuilder = FutureBuilder(
           future: initializeVideoPlayerFutures[idx],
           builder: (context, snapshot) {
