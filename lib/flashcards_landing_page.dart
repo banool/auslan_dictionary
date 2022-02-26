@@ -35,6 +35,9 @@ const String KEY_USE_UNKNOWN_REGION_SIGNS = "use_unknown_region_signs";
 const String KEY_REVISION_STRATEGY = "revision_strategy";
 const String KEY_ONE_CARD_PER_WORD = "one_card_per_word";
 
+const String ONLY_ONE_CARD_TEXT = "Show only one set of cards per word";
+const String UNKNOWN_REGIONS_TEXT = "Signs with unknown region";
+
 class FlashcardsPageController {
   bool isMounted = false;
 
@@ -365,7 +368,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                 ),
                 SettingsTile.switchTile(
                   title: Text(
-                    'Signs with unknown region',
+                    UNKNOWN_REGIONS_TEXT,
                     style: TextStyle(fontSize: 15),
                   ),
                   initialValue: useUnknownRegionSigns,
@@ -381,7 +384,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                 ),
                 SettingsTile.switchTile(
                   title: Text(
-                    'Show only one entry per word',
+                    ONLY_ONE_CARD_TEXT,
                     style: TextStyle(fontSize: 15),
                   ),
                   initialValue:
