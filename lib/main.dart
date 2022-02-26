@@ -159,7 +159,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (showFlashcards) {
       items.add(BottomNavigationBarItem(
         icon: Icon(Icons.style),
-        label: "Flashcards",
+        label: "Revision",
       ));
       tabs.add(FlashcardsLandingPage(controller: flashcardsPageController));
     }
