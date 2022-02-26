@@ -351,7 +351,69 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
   }
 
   Widget buildSummaryWidget() {
-    return Text("todo post revision summary page");
+    int numCardsRemembered = answers.values
+        .where(
+          (element) => element.rating == Rating.Easy,
+        )
+        .length;
+    int numCardsForgotten = answers.values
+        .where(
+          (element) => element.rating == Rating.Again,
+        )
+        .length;
+    int totalAnswers = answers.length;
+    double rememberRate = numCardsRemembered / totalAnswers;
+
+    Widget getText(String s, {bool bold = false}) {
+      FontWeight? weight;
+      if (bold) {
+        weight = FontWeight.w600;
+      }
+      return Padding(
+        child: Text(s, style: TextStyle(fontSize: 16, fontWeight: weight)),
+        padding: EdgeInsets.only(top: 30),
+      );
+    }
+
+    // TODO: Center the Row better in the middle of the screen.
+    return Column(children: [
+      Spacer(),
+      Row(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(left: 60),
+          ),
+          Column(
+            children: [
+              getText("Success Rate:", bold: true),
+              getText("Total Cards:", bold: true),
+              getText("Successful Cards:", bold: true),
+              getText("Incorrect Cards:", bold: true)
+            ],
+            crossAxisAlignment: CrossAxisAlignment.start,
+          ),
+          Spacer(),
+          Column(
+            children: [
+              // TODO: Limit to one decimal place.
+              getText("${rememberRate * 100}%"),
+              getText("$totalAnswers"),
+              getText("$numCardsRemembered"),
+              getText("$numCardsForgotten"),
+            ],
+            crossAxisAlignment: CrossAxisAlignment.end,
+          ),
+          Padding(
+            padding: EdgeInsets.only(left: 60),
+          ),
+        ],
+        mainAxisAlignment: MainAxisAlignment.center,
+      ),
+      Padding(
+        padding: EdgeInsets.only(bottom: 100),
+      ),
+      Spacer(),
+    ]);
   }
 
   @override
