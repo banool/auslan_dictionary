@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:auslan_dictionary/globals.dart';
 import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 
 import 'types.dart';
@@ -109,4 +112,53 @@ DolphinInformation getRandomDolphin(
   dolphin.addMasters(masters);
   dolphin.addReviews([]);
   return DolphinInformation(dolphin: dolphin, keyToSubWordMap: keyToSubWordMap);
+}
+
+const String KEY_STORED_REVIEWS = "stored_reviews";
+const String REVIEW_DELIMITER = "===";
+const String COMBINATION_DELIMETER = "@@@";
+
+String encodeReview(Review review) {
+  String combination =
+      "${review.combination!.front![0]}$COMBINATION_DELIMETER${review.combination!.back![0]}";
+  return "${review.master}$REVIEW_DELIMITER$combination$REVIEW_DELIMITER${review.rating!.index}$REVIEW_DELIMITER${review.ts!.microsecondsSinceEpoch}";
+}
+
+Review decodeReview(String s) {
+  List<String> split = s.split(REVIEW_DELIMITER);
+  List<String> combinationSplit = split[1].split(COMBINATION_DELIMETER);
+  int front = int.parse(combinationSplit[0]);
+  int back = int.parse(combinationSplit[1]);
+  Combination combination = Combination(front: [front], back: [back]);
+  Rating rating = Rating.values[int.parse(split[2])];
+  DateTime ts = DateTime.fromMicrosecondsSinceEpoch(int.parse(split[3]));
+  return Review(
+    master: split[0],
+    combination: combination,
+    rating: rating,
+    ts: ts,
+  );
+}
+
+List<Review> readReviews() {
+  List<String> encoded =
+      sharedPreferences.getStringList(KEY_STORED_REVIEWS) ?? [];
+  return encoded
+      .map(
+        (e) => decodeReview(e),
+      )
+      .toList();
+}
+
+void writeReviews(
+  List<Review> existing,
+  List<Review> additional,
+) {
+  List<Review> toWrite = existing + additional;
+  List<String> encoded = toWrite
+      .map(
+        (e) => encodeReview(e),
+      )
+      .toList();
+  sharedPreferences.setStringList(KEY_STORED_REVIEWS, encoded);
 }
