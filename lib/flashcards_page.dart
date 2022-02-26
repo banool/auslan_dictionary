@@ -43,7 +43,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
   @override
   void initState() {
     super.initState();
-    numCardsToReview = di.dolphin.summary().learning!;
+    numCardsToReview = getNumDueCards(di.dolphin, revisionStrategy);
     nextCard();
   }
 
@@ -69,7 +69,9 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
   }
 
   int getRemainingCardsToReview() {
-    return numCardsToReview - answers.values.length;
+    return numCardsToReview -
+        answers.values.length +
+        (currentCardRevealed ? 1 : 0);
   }
 
   void completeCard(DRCard card,
@@ -178,26 +180,47 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
 
     var videoPlayerScreen = VideoPlayerScreen(videoLinks: sw.videoLinks);
 
+    Widget topWidget;
+    if (wordToSign) {
+      if (revealed) {
+        topWidget = videoPlayerScreen;
+      } else {
+        topWidget = Container(
+            padding: EdgeInsets.only(top: 120, bottom: 70),
+            child: Text("What is the sign for this word?",
+                textAlign: TextAlign.center, style: TextStyle(fontSize: 20)));
+      }
+    } else {
+      topWidget = videoPlayerScreen;
+    }
+
+    Widget bottomWidget;
+    if (wordToSign) {
+      bottomWidget = Text(word,
+          textAlign: TextAlign.center, style: TextStyle(fontSize: 20));
+    } else {
+      if (!revealed) {
+        bottomWidget = Text("What does this sign mean?",
+            textAlign: TextAlign.center, style: TextStyle(fontSize: 20));
+      } else {
+        bottomWidget = Text(word,
+            textAlign: TextAlign.center, style: TextStyle(fontSize: 20));
+      }
+    }
+
     Widget regionalInformationWidget =
         getRegionalInformationWidget(sw, shouldUseHorizontalDisplay);
 
     if (!shouldUseHorizontalDisplay) {
       List<Widget?> children = [];
-      children.add(videoPlayerScreen);
+      children.add(topWidget);
       children.add(Divider(
         height: 80,
         thickness: 2,
         indent: 20,
         endIndent: 20,
       ));
-      String prompt;
-      if (!revealed) {
-        prompt = "What does this sign mean?";
-      } else {
-        prompt = word;
-      }
-      children.add(Text(prompt,
-          textAlign: TextAlign.center, style: TextStyle(fontSize: 20)));
+      children.add(bottomWidget);
 
       children.add(Expanded(child: Container()));
       /*

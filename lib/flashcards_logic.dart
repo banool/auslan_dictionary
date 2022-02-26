@@ -194,3 +194,17 @@ Future<void> writeReviews(List<Review> existing, List<Review> additional,
   print(
       "Wrote ${additional.length} new reviews (making ${toWrite.length} in total) to storage");
 }
+
+int getNumDueCards(DolphinSR dolphin, RevisionStrategy revisionStrategy) {
+  switch (revisionStrategy) {
+    case RevisionStrategy.Random:
+      return getNumCards(dolphin);
+    case RevisionStrategy.SpacedRepetition:
+      SummaryStatics summary = dolphin.summary();
+      // Everything but "later", that seems to match up with what Dolphin
+      // will spit out from nextCard.
+      int due =
+          (summary.due ?? 0) + (summary.overdue ?? 0) + (summary.learning ?? 0);
+      return due;
+  }
+}
