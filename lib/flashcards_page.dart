@@ -240,7 +240,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
               child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => setState(() {
-              print("tap");
+              completeCard(currentCard!, rating: Rating.Good);
               currentCardRevealed = true;
             }),
             child: Container(

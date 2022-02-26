@@ -172,7 +172,10 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
         return getDolphinInformation(filteredSubWords, masters);
       case RevisionStrategy.SpacedRepetition:
         if (existingReviews == null) {
-          existingReviews = readReviews();
+          setState(() {
+            existingReviews = readReviews();
+          });
+          print("Start: Read ${existingReviews!.length} reviews from storage");
         }
         return getDolphinInformation(filteredSubWords, masters,
             reviews: existingReviews);
@@ -409,6 +412,11 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                           existingReviews: existingReviews,
                         )),
               );
+              setState(() {
+                existingReviews = readReviews();
+              });
+              print(
+                  "Pop: Read ${existingReviews!.length} reviews from storage");
               updateRevisionSettings();
             };
           }

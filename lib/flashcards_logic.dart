@@ -112,7 +112,33 @@ DolphinInformation getDolphinInformation(
   }
   DolphinSR dolphin = DolphinSR();
   dolphin.addMasters(masters);
-  dolphin.addReviews(reviews);
+  // Dolphin cannot handle reviews for masters it doesn't know about, so we
+  // filter those out. This can happen if you have reviews for a card but then
+  // choose to filter it out / remove it from your favourites. Be careful not
+  // to somehow retrieve the reviews from within the DolphinSR object and store
+  // them, since you'd be wiping reviews that are valid if not for the masters
+  // we ended up adding to this particular DolphinSR object.
+  Map<String, Master> masterLookup = Map.fromEntries(masters.map(
+    (e) => MapEntry(e.id!, e),
+  ));
+  List<Review> filteredReviews = [];
+  for (Review r in reviews) {
+    Master? m = masterLookup[r.master!];
+    if (m == null) {
+      print(
+          "Filtered out review for ${r.master!} because the master wasn't present");
+      continue;
+    }
+    if (!m.combinations!.contains(r.combination!)) {
+      print(
+          "Filtered out review for ${r.master!} because the master was present but not with the needed combination");
+      continue;
+    }
+    filteredReviews.add(r);
+    print("Added review $r");
+  }
+  print("Added ${filteredReviews.length} total reviews");
+  dolphin.addReviews(filteredReviews);
   return DolphinInformation(dolphin: dolphin, keyToSubWordMap: keyToSubWordMap);
 }
 
@@ -152,11 +178,12 @@ List<Review> readReviews() {
       .toList();
 }
 
-void writeReviews(
-  List<Review> existing,
-  List<Review> additional,
-) {
-  if (additional.isEmpty) {
+void writeReviews(List<Review> existing, List<Review> additional,
+    {bool force = false}) {
+  print(existing);
+  print(additional);
+  if (!force && additional.isEmpty) {
+    print("No reviews to write and force = $force");
     return;
   }
   List<Review> toWrite = existing + additional;

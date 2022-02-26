@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 
+import 'package:auslan_dictionary/flashcards_logic.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:launch_review/launch_review.dart';
@@ -86,13 +87,14 @@ class SettingsPageState extends State<SettingsPage> {
               start: 15, end: 15, top: 10, bottom: 10);
 
           SettingsSection? featuresSection;
-          if (enableFlashcardsKnob) {
+          // TODO: For now, disable flashcards for horizontal displays.
+          if (enableFlashcardsKnob && !getShouldUseHorizontalLayout(context)) {
             featuresSection = SettingsSection(
               title: Text('Features'),
               tiles: [
                 SettingsTile.switchTile(
                   title: Text(
-                    'Hide flashcards feature',
+                    'Hide revision feature',
                     style: TextStyle(fontSize: 15),
                   ),
                   initialValue:
@@ -100,6 +102,15 @@ class SettingsPageState extends State<SettingsPage> {
                           false,
                   onToggle: onChangeHideFlashcardsFeature,
                 ),
+                // TODO: Move to this to flashcards page instead
+                SettingsTile.navigation(
+                    title: getText(
+                      'Delete all reviews',
+                    ),
+                    trailing: Container(),
+                    onPressed: (BuildContext context) async {
+                      writeReviews([], [], force: true);
+                    }),
               ],
               margin: margin,
             );
