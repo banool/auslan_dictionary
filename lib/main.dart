@@ -23,7 +23,7 @@ Future<void> main() async {
 
       // Check knobs.
       (() async =>
-          enableFlashcardsKnob = await readKnob("enable_flashcards", false))(),
+          enableFlashcardsKnob = await readKnob("enable_flashcards", true))(),
       (() async => downloadWordsDataKnob =
           await readKnob("download_words_data", false))(),
 
