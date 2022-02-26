@@ -10,21 +10,7 @@ import 'globals.dart';
 import 'settings_page.dart';
 import 'types.dart';
 
-// - The first screen for flashcards should be something that lets you choose
-//   what list to revise. At first only favourites.
-// - Once you start the review, push navigation, so you can't change the favourites
-//   mid review.
-// - In the settings, let people choose what state(s) they want to see flashcards for.
-//   - What about the regional information unknown case?
 // - In the flashcards app bar have a history button to see a summary of previous flashcard sessions.
-// - In the settings, let people choose between random revision and spaced repetition, and in order (alphabetical or insertion order).
-// - Add option to choose limit, like x cards at a time.
-// - Have an info button in the app bar that takes you to a page explaining
-//   how the filters and strategies work.
-// - have cog icon that leads to specialist settings like wiping progress for space reptition learning
-// - have option to only show one subword of a word
-// - what about subwords that have multiple videos? probs just show both like normal
-// - should i add reviews as the user does them, or at the end?
 // - do i need some kind of db compaction? like where i collapse all reviews but the most recent
 //   for each card (subword+combination) into just numbers.
 // - todo, the background color of the settings widget is actually slightly different

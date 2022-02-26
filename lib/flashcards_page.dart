@@ -441,7 +441,6 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
                 title: Text(appBarTitle),
                 leading: IconButton(
                     icon: Icon(Icons.close),
-                    // TODO: Show dialog here to confirm they want to stop revising.
                     onPressed: () async {
                       await beforePop();
                       Navigator.of(context).pop();

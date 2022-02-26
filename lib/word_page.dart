@@ -361,9 +361,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         late File file;
         if (fileInfo == null) {
           print("Video for $videoLink not in cache, fetching and caching now");
-          // TODO: Handle failure to load video more gracefully, currently it
-          // just kills the app. Instead show a widget saying load failed, check
-          // your internet connection.
           file = await DefaultCacheManager().getSingleFile(videoLink);
         } else {
           print("Video for $videoLink is in cache, reading from there");

@@ -107,7 +107,6 @@ class _MyHomePageState extends State<MyHomePage> {
   late SettingsController settingsPageController =
       SettingsController(refresh, toggleFlashcards);
 
-  bool wordsLoaded = false;
   int currentNavBarIndex = 0;
 
   void refresh() {
