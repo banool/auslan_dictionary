@@ -109,12 +109,12 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         case Rating.Again:
           backgroundColor = Color.fromARGB(118, 255, 104, 104);
           borderColor = Color.fromARGB(255, 189, 40, 29);
-          textColor = Color.fromARGB(255, 211, 87, 79);
+          textColor = Color.fromARGB(255, 179, 59, 50);
           break;
         case Rating.Good:
           backgroundColor = Color.fromARGB(60, 88, 255, 124);
           borderColor = Color.fromARGB(255, 33, 102, 37);
-          textColor = Color.fromARGB(255, 72, 167, 77);
+          textColor = Color.fromARGB(255, 63, 156, 67);
           break;
         default:
           throw "Rating $rating not supported yet";
@@ -184,12 +184,32 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         endIndent: 20,
       ));
       String prompt;
-      Widget? ratingWidget;
       if (!revealed) {
         prompt = "What does this sign mean?";
       } else {
         prompt = word;
-        ratingWidget = Row(
+      }
+      children.add(Text(prompt,
+          textAlign: TextAlign.center, style: TextStyle(fontSize: 20)));
+
+      children.add(Expanded(child: Container()));
+      /*
+      children.add(Expanded(
+          child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => setState(() {
+          currentCardRevealed = true;
+        }),
+        child: Container(
+          constraints: BoxConstraints.expand(),
+          color: Colors.red,
+        ),
+      )));
+      */
+
+      if (revealed) {
+        children.add(Padding(padding: EdgeInsets.only(bottom: 10)));
+        children.add(Row(
           children: [
             getRatingButton(Rating.Again, forgotRatingWidgetActive),
             Padding(
@@ -198,23 +218,9 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
             getRatingButton(Rating.Good, rememberedRatingWidgetActive),
           ],
           mainAxisAlignment: MainAxisAlignment.center,
-        );
+        ));
       }
-      children.add(Text(prompt,
-          textAlign: TextAlign.center, style: TextStyle(fontSize: 20)));
-      children.add(Expanded(
-          child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => setState(() {
-          print("tap!!");
-          currentCardRevealed = true;
-        }),
-        child: Container(
-          constraints: BoxConstraints.expand(),
-          color: Colors.red,
-        ),
-      )));
-      children.add(ratingWidget);
+
       children.add(Padding(
         padding: EdgeInsets.only(bottom: 35),
       ));
@@ -226,12 +232,29 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         }
       }
 
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: nonNullChildren,
-      );
+      // Note: I put the Expanded inside a column to make the "Incorrect use
+      // "of ParentDataWidget" error go away.
+      return Stack(children: [
+        Column(children: [
+          Expanded(
+              child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => setState(() {
+              print("tap");
+              currentCardRevealed = true;
+            }),
+            child: Container(
+              constraints: BoxConstraints.expand(),
+            ),
+          ))
+        ]),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: nonNullChildren,
+        )
+      ]);
     } else {
       var size = MediaQuery.of(context).size;
       var screenWidth = size.width;
