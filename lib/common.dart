@@ -249,3 +249,36 @@ bool getShowFlashcards() {
   }
   return !(sharedPreferences.getBool(KEY_HIDE_FLASHCARDS_FEATURE) ?? false);
 }
+
+Future<bool> confirmAlert(
+    BuildContext context, String title, String content) async {
+  bool confirmed = false;
+  Widget cancelButton = FlatButton(
+    child: Text("Cancel"),
+    onPressed: () {
+      Navigator.of(context).pop();
+    },
+  );
+  Widget continueButton = FlatButton(
+    child: Text("Confirm"),
+    onPressed: () {
+      Navigator.of(context).pop();
+      confirmed = true;
+    },
+  );
+  AlertDialog alert = AlertDialog(
+    title: Text("Careful!"),
+    content: Text(content),
+    actions: [
+      cancelButton,
+      continueButton,
+    ],
+  );
+  await showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return alert;
+    },
+  );
+  return confirmed;
+}

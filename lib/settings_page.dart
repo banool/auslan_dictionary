@@ -105,11 +105,23 @@ class SettingsPageState extends State<SettingsPage> {
                 // TODO: Move to this to flashcards page instead
                 SettingsTile.navigation(
                     title: getText(
-                      'Delete all reviews',
+                      'Delete all review progress',
                     ),
                     trailing: Container(),
                     onPressed: (BuildContext context) async {
-                      writeReviews([], [], force: true);
+                      bool confirmed = await confirmAlert(
+                          context,
+                          "todo",
+                          "This will delete all your review progress from all "
+                              "time. Your spaced repetition progress will also be "
+                              "deleted. Are you 100% sure you want to do this?");
+                      if (confirmed) {
+                        writeReviews([], [], force: true);
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text("All review progress deleted"),
+                          backgroundColor: MAIN_COLOR,
+                        ));
+                      }
                     }),
               ],
               margin: margin,
