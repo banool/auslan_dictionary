@@ -77,6 +77,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
   Map<String, List<SubWord>> filteredSubWords = Map();
 
   late DolphinInformation dolphinInformation;
+  List<Review>? existingReviews;
 
   @override
   void initState() {
@@ -152,10 +153,6 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
     bool numFilteredSubWordsValid = getNumValidSubWords() > 0;
     bool numCardsValid = getNumCards(dolphinInformation.dolphin) > 0;
     bool validBasedOnRevisionStrategy = true;
-    if (revisionStrategy == RevisionStrategy.SpacedRepetition) {
-      validBasedOnRevisionStrategy = false;
-    }
-    // TODO: Check validity for spaced repitition case.
     print(
         "flashcardTypesValid: $flashcardTypesValid, numFilteredSubWordsValid: $numFilteredSubWordsValid, validBasedOnRevisionStrategy: $validBasedOnRevisionStrategy");
     print("num valid cards: ${getNumValidSubWords()}");
@@ -170,11 +167,15 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
     var wordToSign = sharedPreferences.getBool(KEY_WORD_TO_SIGN) ?? true;
     var signToWord = sharedPreferences.getBool(KEY_SIGN_TO_WORD) ?? true;
     var masters = getMasters(filteredSubWords, wordToSign, signToWord);
-    if (revisionStrategy == RevisionStrategy.Random) {
-      return getRandomDolphin(filteredSubWords, masters);
-    } else {
-      // TODO
-      return getRandomDolphin(filteredSubWords, masters);
+    switch (revisionStrategy) {
+      case RevisionStrategy.Random:
+        return getDolphinInformation(filteredSubWords, masters);
+      case RevisionStrategy.SpacedRepetition:
+        if (existingReviews == null) {
+          existingReviews = readReviews();
+        }
+        return getDolphinInformation(filteredSubWords, masters,
+            reviews: existingReviews);
     }
   }
 
@@ -238,16 +239,8 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
 
           var revisionStrategy = loadRevisionStrategy();
 
-          String cardNumberString;
-          switch (revisionStrategy) {
-            case RevisionStrategy.Random:
-              cardNumberString =
-                  "${getNumCards(dolphinInformation.dolphin)} cards selected";
-              break;
-            case RevisionStrategy.SpacedRepetition:
-              cardNumberString = "Not implemented yet";
-              break;
-          }
+          String cardNumberString =
+              "${getNumCards(dolphinInformation.dolphin)} cards selected";
 
           List<AbstractSettingsSection?> sections = [
             SettingsSection(
@@ -413,6 +406,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                     builder: (context) => FlashcardsPage(
                           di: dolphinInformation,
                           revisionStrategy: revisionStrategy,
+                          existingReviews: existingReviews,
                         )),
               );
               updateRevisionSettings();

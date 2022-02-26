@@ -7,21 +7,28 @@ import 'common.dart';
 import 'types.dart';
 
 class FlashcardsPage extends StatefulWidget {
-  FlashcardsPage({Key? key, required this.di, required this.revisionStrategy});
+  FlashcardsPage({
+    Key? key,
+    required this.di,
+    required this.revisionStrategy,
+    required this.existingReviews,
+  });
 
   final DolphinInformation di;
   final RevisionStrategy revisionStrategy;
+  final List<Review>? existingReviews;
 
   @override
-  _FlashcardsPageState createState() =>
-      _FlashcardsPageState(this.di, this.revisionStrategy);
+  _FlashcardsPageState createState() => _FlashcardsPageState(
+      this.di, this.revisionStrategy, this.existingReviews);
 }
 
 class _FlashcardsPageState extends State<FlashcardsPage> {
-  _FlashcardsPageState(this.di, this.revisionStrategy);
+  _FlashcardsPageState(this.di, this.revisionStrategy, this.existingReviews);
 
   DolphinInformation di;
   final RevisionStrategy revisionStrategy;
+  final List<Review>? existingReviews;
 
   Map<DRCard, Review> answers = Map();
 
@@ -35,6 +42,14 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
     super.initState();
     numCardsToReview = di.dolphin.summary().learning!;
     nextCard();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    if (revisionStrategy == RevisionStrategy.SpacedRepetition) {
+      writeReviews(existingReviews!, answers.values.toList());
+    }
   }
 
   void nextCard() {
@@ -110,6 +125,15 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
       }
       children.add(Text(prompt,
           textAlign: TextAlign.center, style: TextStyle(fontSize: 20)));
+      children.add(Expanded(
+          child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => print('tap'),
+        child: Container(
+          constraints: BoxConstraints.expand(),
+          color: Colors.red,
+        ),
+      )));
       return Column(
         mainAxisAlignment: MainAxisAlignment.start,
         mainAxisSize: MainAxisSize.max,

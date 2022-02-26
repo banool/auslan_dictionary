@@ -99,8 +99,10 @@ int getNumCards(DolphinSR dolphin) {
   return dolphin.cardsLength();
 }
 
-DolphinInformation getRandomDolphin(
-    Map<String, List<SubWord>> subWords, List<Master> masters) {
+DolphinInformation getDolphinInformation(
+    Map<String, List<SubWord>> subWords, List<Master> masters,
+    {List<Review>? reviews}) {
+  reviews = reviews ?? [];
   Map<String, SubWord> keyToSubWordMap = Map();
   for (MapEntry<String, List<SubWord>> e in subWords.entries) {
     String word = e.key;
@@ -110,7 +112,7 @@ DolphinInformation getRandomDolphin(
   }
   DolphinSR dolphin = DolphinSR();
   dolphin.addMasters(masters);
-  dolphin.addReviews([]);
+  dolphin.addReviews(reviews);
   return DolphinInformation(dolphin: dolphin, keyToSubWordMap: keyToSubWordMap);
 }
 
@@ -154,11 +156,15 @@ void writeReviews(
   List<Review> existing,
   List<Review> additional,
 ) {
+  if (additional.isEmpty) {
+    return;
+  }
   List<Review> toWrite = existing + additional;
   List<String> encoded = toWrite
       .map(
         (e) => encodeReview(e),
       )
       .toList();
+  print("Wrote ${additional.length} new reviews to storage");
   sharedPreferences.setStringList(KEY_STORED_REVIEWS, encoded);
 }
