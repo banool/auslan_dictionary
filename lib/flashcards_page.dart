@@ -44,6 +44,8 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
   bool forgotRatingWidgetActive = false;
   bool rememberedRatingWidgetActive = true;
 
+  bool reviewsWritten = false;
+
   Timer? nextCardTimer;
 
   @override
@@ -64,15 +66,24 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
   // gets called.
   Future<void> beforePop() async {
     if (revisionStrategy == RevisionStrategy.SpacedRepetition) {
-      await writeReviews(existingReviews!, answers.values.toList());
+      if (!reviewsWritten) {
+        await writeReviews(existingReviews!, answers.values.toList());
+      }
+      setState(() {
+        reviewsWritten = true;
+      });
     }
   }
 
   void nextCard() {
     setState(() {
-      // todo check how we're going aagainst the counter, nextCard can keep returning stuff if they get stuff wrong
-      if (getRemainingCardsToReview() > numCardsToReview) {
+      if (getCardsReviewed() >= numCardsToReview) {
+        // From here the only cards Dolphin will return are cards that were
+        // failed as part of the revision session. We choose to cut the user
+        // off here, they can start a new session to review these if they wish.
+        // Accordingly set currentCard to null and store the results.
         currentCard = null;
+        beforePop();
       } else {
         currentCard = di.dolphin.nextCard();
       }
@@ -82,10 +93,8 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
     });
   }
 
-  int getRemainingCardsToReview() {
-    return numCardsToReview -
-        answers.values.length +
-        (currentCardRevealed ? 1 : 0);
+  int getCardsReviewed() {
+    return answers.values.length;
   }
 
   void completeCard(DRCard card,
@@ -341,17 +350,24 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
     }
   }
 
+  Widget buildSummaryWidget() {
+    return Text("todo post revision summary page");
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget body;
     String appBarTitle;
     if (currentCard != null) {
       body = buildFlashcardWidget(currentCard!, currentCardRevealed);
-      appBarTitle =
-          "${numCardsToReview - getRemainingCardsToReview() + 1} / $numCardsToReview";
+      int progressString = getCardsReviewed() + 1;
+      if (currentCardRevealed) {
+        progressString -= 1;
+      }
+      appBarTitle = "$progressString / $numCardsToReview";
     } else {
-      body = Text("todo post revision summary page");
-      appBarTitle = "todo";
+      body = buildSummaryWidget();
+      appBarTitle = "Revision Summary";
     }
 
     // Disable swipe back with WillPopScope.
