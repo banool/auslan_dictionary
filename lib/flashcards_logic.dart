@@ -44,7 +44,6 @@ Map<String, List<SubWord>> filterSubWords(
 
   for (MapEntry<String, List<SubWord>> e in subWords.entries) {
     List<SubWord> validSubWords = [];
-    e.value.shuffle();
     for (SubWord sw in e.value) {
       if (validSubWords.length > 0 && oneCardPerWord) {
         break;
@@ -113,6 +112,31 @@ DolphinInformation getDolphinInformation(
   }
   DolphinSR dolphin = DolphinSR();
   dolphin.addMasters(masters);
+
+  // For each master + combination in random order, seed a review with an
+  // increasing timestamp near the epoch with Rating.Again. This way, ignoring
+  // the effect of other reviews added after, the masters will come out in a
+  // random order. I use MapEntry just because of the absence of a pair / tuple
+  // type.
+  List<MapEntry<String, Combination>> mastersEntries = [];
+  for (Master m in masters) {
+    for (Combination c in m.combinations!) {
+      mastersEntries.add(MapEntry(m.id!, c));
+    }
+  }
+  mastersEntries.shuffle();
+  List<Review> seedReviews = [];
+  int epoch = 1000000;
+  for (MapEntry<String, Combination> e in mastersEntries) {
+    seedReviews.add(Review(
+        master: e.key,
+        combination: e.value,
+        ts: DateTime.fromMillisecondsSinceEpoch(epoch),
+        rating: Rating.Again));
+    epoch += 10000000;
+  }
+  dolphin.addReviews(seedReviews);
+
   // Dolphin cannot handle reviews for masters it doesn't know about, so we
   // filter those out. This can happen if you have reviews for a card but then
   // choose to filter it out / remove it from your favourites. Be careful not
@@ -203,7 +227,10 @@ int getNumDueCards(DolphinSR dolphin, RevisionStrategy revisionStrategy) {
     case RevisionStrategy.SpacedRepetition:
       SummaryStatics summary = dolphin.summary();
       // Everything but "later", that seems to match up with what Dolphin
-      // will spit out from nextCard.
+      // will spit out from nextCard. Note, this is only true if the user
+      // gets all the cards correct. If the user gets them wrong, those cards
+      // will immediately reappear in nextCard. Currently I just make it that
+      // you have to re-enter the review flow once it's all done.
       int due =
           (summary.due ?? 0) + (summary.overdue ?? 0) + (summary.learning ?? 0);
       return due;
