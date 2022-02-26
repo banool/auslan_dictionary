@@ -9,6 +9,7 @@ import 'common.dart';
 import 'types.dart';
 
 // TODO: Consider prefetching the videos as the user goes through, for speed.
+// TODO: Add forwards and backwards button, to go back and ofrth and see / change your answers.
 
 class FlashcardsPage extends StatefulWidget {
   FlashcardsPage({

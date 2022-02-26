@@ -222,6 +222,7 @@ bool getShouldUseHorizontalLayout(BuildContext context) {
 }
 
 Future<bool> readKnob(String key, bool fallback) async {
+  // TODO: Check for internet access first and if not present, don't even try to get GK.
   try {
     String url =
         'https://raw.githubusercontent.com/banool/auslan_dictionary/master/knobs/$key';

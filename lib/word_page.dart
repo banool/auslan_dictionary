@@ -324,6 +324,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   final List<String> videoLinks;
 
   Map<int, VideoPlayerController> controllers = {};
+  Map<int, Widget> errorWidgets = {};
 
   List<Future<void>> initializeVideoPlayerFutures = [];
 
@@ -351,53 +352,61 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     VideoPlayerOptions videoPlayerOptions =
         VideoPlayerOptions(mixWithOthers: true);
 
-    VideoPlayerController controller;
-    if (shouldCache == null || shouldCache) {
-      FileInfo? fileInfo =
-          await DefaultCacheManager().getFileFromCache(videoLink);
+    try {
+      VideoPlayerController controller;
+      if (shouldCache == null || shouldCache) {
+        FileInfo? fileInfo =
+            await DefaultCacheManager().getFileFromCache(videoLink);
 
-      late File file;
-      if (fileInfo == null) {
-        print("Video for $videoLink not in cache, fetching and caching now");
-        file = await DefaultCacheManager().getSingleFile(videoLink);
+        late File file;
+        if (fileInfo == null) {
+          print("Video for $videoLink not in cache, fetching and caching now");
+          // TODO: Handle failure to load video more gracefully, currently it
+          // just kills the app. Instead show a widget saying load failed, check
+          // your internet connection.
+          file = await DefaultCacheManager().getSingleFile(videoLink);
+        } else {
+          print("Video for $videoLink is in cache, reading from there");
+          file = fileInfo.file;
+        }
+
+        controller = VideoPlayerController.file(file,
+            videoPlayerOptions: videoPlayerOptions);
       } else {
-        print("Video for $videoLink is in cache, reading from there");
-        file = fileInfo.file;
+        print("Caching is disabled, pulling from the network");
+        controller = VideoPlayerController.network(videoLink,
+            videoPlayerOptions: videoPlayerOptions);
       }
 
-      controller = VideoPlayerController.file(file,
-          videoPlayerOptions: videoPlayerOptions);
-    } else {
-      print("Caching is disabled, pulling from the network");
-      controller = VideoPlayerController.network(videoLink,
-          videoPlayerOptions: videoPlayerOptions);
-    }
+      // Use the controller to loop the video.
+      controller.setLooping(true);
 
-    // Use the controller to loop the video.
-    controller.setLooping(true);
+      // Turn off the sound (some videos have sound for some reason).
+      controller.setVolume(0.0);
 
-    // Turn off the sound (some videos have sound for some reason).
-    controller.setVolume(0.0);
+      // Play or pause the video based on whether this is the first video.
+      if (idx == currentPage) {
+        await controller.play();
+      } else {
+        await controller.pause();
+      }
 
-    // Play or pause the video based on whether this is the first video.
-    if (idx == currentPage) {
-      await controller.play();
-    } else {
-      await controller.pause();
-    }
+      // Initialize the controller.
+      await controller.initialize();
 
-    // Initialize the controller.
-    await controller.initialize();
-
-    // Store the controller for later. We check mounted in case the user
-    // navigated away before the video loading, in which case calling setState
-    // would be invalid.
-    if (mounted) {
-      setState(() {
-        controllers[idx] = controller;
-      });
-    } else {
-      print("Not calling setState because not mounted");
+      // Store the controller for later. We check mounted in case the user
+      // navigated away before the video loading, in which case calling setState
+      // would be invalid.
+      if (mounted) {
+        setState(() {
+          controllers[idx] = controller;
+        });
+      } else {
+        print("Not calling setState because not mounted");
+      }
+    } catch (e) {
+      errorWidgets[idx] =
+          Text("Faild to load video, check your internet connection: $e");
     }
   }
 
@@ -436,6 +445,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                 ));
             if (snapshot.connectionState != ConnectionState.done) {
               return waitingWidget;
+            }
+            if (errorWidgets.containsKey(idx)) {
+              return Padding(
+                  padding: EdgeInsets.only(top: 20),
+                  child: Center(child: errorWidgets[idx]!));
             }
             if (!controllers.containsKey(idx)) {
               return waitingWidget;

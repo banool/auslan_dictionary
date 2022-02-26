@@ -90,7 +90,7 @@ class SettingsPageState extends State<SettingsPage> {
           // TODO: For now, disable flashcards for horizontal displays.
           if (enableFlashcardsKnob && !getShouldUseHorizontalLayout(context)) {
             featuresSection = SettingsSection(
-              title: Text('Features'),
+              title: Text('Revision'),
               tiles: [
                 SettingsTile.switchTile(
                   title: Text(
@@ -102,10 +102,9 @@ class SettingsPageState extends State<SettingsPage> {
                           false,
                   onToggle: onChangeHideFlashcardsFeature,
                 ),
-                // TODO: Move to this to flashcards page instead
                 SettingsTile.navigation(
                     title: getText(
-                      'Delete all review progress',
+                      'Delete all revision progress',
                     ),
                     trailing: Container(),
                     onPressed: (BuildContext context) async {
