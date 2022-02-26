@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auslan_dictionary/flashcards_logic.dart';
 import 'package:auslan_dictionary/word_page.dart';
 import 'package:dolphinsr_dart/dolphinsr_dart.dart';
@@ -40,6 +42,8 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
   bool forgotRatingWidgetActive = false;
   bool rememberedRatingWidgetActive = true;
 
+  Timer? nextCardTimer;
+
   @override
   void initState() {
     super.initState();
@@ -64,7 +68,12 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
 
   void nextCard() {
     setState(() {
-      currentCard = di.dolphin.nextCard();
+      // todo check how we're going aagainst the counter, nextCard can keep returning stuff if they get stuff wrong
+      if (getRemainingCardsToReview() > numCardsToReview) {
+        currentCard = null;
+      } else {
+        currentCard = di.dolphin.nextCard();
+      }
       currentCardRevealed = false;
       forgotRatingWidgetActive = false;
       rememberedRatingWidgetActive = true;
@@ -79,6 +88,10 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
 
   void completeCard(DRCard card,
       {Rating rating = Rating.Easy, DateTime? when}) {
+    // Don't ack second taps if a timer is running.
+    if (nextCardTimer != null) {
+      return;
+    }
     DateTime ts;
     if (when != null) {
       ts = when;
@@ -90,18 +103,32 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         combination: card.combination!,
         ts: ts,
         rating: rating);
+    Rating? previousRating = answers[card]?.rating;
+    bool shouldNavigate = answers.containsKey(card);
     setState(() {
       di.dolphin.addReviews([review]);
-      bool shouldNavigate = answers.containsKey(card);
       answers[card] = review;
-      if (shouldNavigate) {
-        nextCard();
-      } else {
-        currentCardRevealed = true;
-      }
     });
-    // TODO: If the answer hadn't been set before, don't navigte away.
-    // If there was already an answer, calling this progresses to the next card.
+    if (shouldNavigate) {
+      if (previousRating != null && previousRating != review.rating) {
+        // If we're navigating to the next card because the user changed the
+        // rating from the default ("remembered") to something else ("forgot"),
+        // start a timer for nextCard, so they can see the feedback for hitting
+        // forgot momentarily.
+        setState(() {
+          nextCardTimer = Timer(Duration(milliseconds: 750), () {
+            setState(() {
+              nextCard();
+              nextCardTimer = null;
+            });
+          });
+        });
+      } else {
+        nextCard();
+      }
+    } else {
+      currentCardRevealed = true;
+    }
   }
 
   Widget getRatingButton(Rating rating, bool active) {
