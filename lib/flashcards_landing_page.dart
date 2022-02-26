@@ -27,6 +27,7 @@ import 'types.dart';
 // - should i add reviews as the user does them, or at the end?
 // - do i need some kind of db compaction? like where i collapse all reviews but the most recent
 //   for each card (subword+combination) into just numbers.
+// - todo, the background color of the settings widget is actually slightly different
 
 const String KEY_SIGN_TO_WORD = "sign_to_word";
 const String KEY_WORD_TO_SIGN = "word_to_sign";

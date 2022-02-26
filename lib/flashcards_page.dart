@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'common.dart';
 import 'types.dart';
 
+// TODO: Consider prefetching the videos as the user goes through, for speed.
+
 class FlashcardsPage extends StatefulWidget {
   FlashcardsPage({
     Key? key,
@@ -59,7 +61,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
   // The actual dispose function cannot await async functions. Instead, we
   // ban users from swiping back to ensure that if they want to exit revision,
   // they do it by pressing one of our buttons, which ensures this function
-  // gets called. TODO: Actually prevent swipe back.
+  // gets called.
   Future<void> beforePop() async {
     if (revisionStrategy == RevisionStrategy.SpacedRepetition) {
       await writeReviews(existingReviews!, answers.values.toList());

@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'common.dart';
 import 'favourites_page.dart';
+import 'flashcards_help_page.dart';
 import 'flashcards_landing_page.dart';
 import 'globals.dart';
 import 'search_page.dart';
@@ -185,9 +186,32 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Icon(Icons.sort));
     }
 
+    List<Widget>? actions;
+    if (body is FlashcardsLandingPage) {
+      actions = [
+        Container(
+          padding: const EdgeInsets.all(0),
+          width: 55.0,
+          child: FlatButton(
+            padding: EdgeInsets.zero,
+            textColor: Colors.white,
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => FlashcardsHelpPage()),
+              );
+            },
+            child: Icon(Icons.help),
+            shape: CircleBorder(side: BorderSide(color: Colors.transparent)),
+          ),
+        ),
+      ];
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title!),
+        actions: actions,
       ),
       body: body,
       floatingActionButton: floatingActionButton,
