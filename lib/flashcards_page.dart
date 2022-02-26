@@ -35,7 +35,10 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
   late int numCardsToReview;
 
   DRCard? currentCard;
-  bool currentCardAnswered = false;
+  bool currentCardRevealed = false;
+
+  bool forgotRatingWidgetActive = false;
+  bool rememberedRatingWidgetActive = true;
 
   @override
   void initState() {
@@ -70,25 +73,88 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
     } else {
       ts = DateTime.now();
     }
-    Review review;
-    switch (revisionStrategy) {
-      case RevisionStrategy.Random:
-        review = Review(
-            master: card.master!,
-            combination: card.combination!,
-            ts: ts,
-            rating: rating);
-        break;
-      case RevisionStrategy.SpacedRepetition:
-        throw "todo";
-    }
+    Review review = Review(
+        master: card.master!,
+        combination: card.combination!,
+        ts: ts,
+        rating: rating);
     setState(() {
       di.dolphin.addReviews([review]);
       answers[card] = review;
     });
+    // TODO: If the answer hadn't been set before, don't navigte away.
+    // If there was already an answer, calling this progresses to the next card.
   }
 
-  Widget buildFlashcardWidget(bool answered) {
+  Widget getRatingButton(Rating rating, bool active) {
+    String textData;
+    Color backgroundColor;
+    Color overlayColor; // For tap animation, should be translucent.
+    Color textColor;
+    Color borderColor;
+    switch (rating) {
+      case Rating.Again:
+        textData = "Forgot";
+        overlayColor = Color.fromARGB(90, 211, 88, 79);
+        break;
+      case Rating.Good:
+        textData = "Got it!";
+        overlayColor = Color.fromARGB(90, 72, 167, 77);
+        break;
+      default:
+        throw "Rating $rating not supported yet";
+    }
+    if (active) {
+      switch (rating) {
+        case Rating.Again:
+          backgroundColor = Color.fromARGB(118, 255, 104, 104);
+          borderColor = Color.fromARGB(255, 189, 40, 29);
+          textColor = Color.fromARGB(255, 211, 87, 79);
+          break;
+        case Rating.Good:
+          backgroundColor = Color.fromARGB(60, 88, 255, 124);
+          borderColor = Color.fromARGB(255, 33, 102, 37);
+          textColor = Color.fromARGB(255, 72, 167, 77);
+          break;
+        default:
+          throw "Rating $rating not supported yet";
+      }
+    } else {
+      backgroundColor = Color.fromARGB(0, 255, 255, 255);
+      borderColor = Color.fromARGB(255, 116, 116, 116);
+      textColor = Color.fromARGB(204, 0, 0, 0);
+    }
+    return TextButton(
+        child: Text(
+          textData,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 16, color: textColor),
+        ),
+        onPressed: () {
+          switch (rating) {
+            case Rating.Again:
+              forgotRatingWidgetActive = true;
+              rememberedRatingWidgetActive = false;
+              break;
+            case Rating.Good:
+              rememberedRatingWidgetActive = true;
+              forgotRatingWidgetActive = false;
+              break;
+            default:
+              throw "Rating $rating not supported yet";
+          }
+          completeCard(currentCard!, rating: rating);
+        },
+        style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(backgroundColor),
+            overlayColor: MaterialStateProperty.all(overlayColor),
+            padding: MaterialStateProperty.all(
+                EdgeInsets.only(top: 14, bottom: 14, left: 40, right: 40)),
+            side: MaterialStateProperty.all(
+                BorderSide(color: borderColor, width: 1.5))));
+  }
+
+  Widget buildFlashcardWidget(bool revealed) {
     var shouldUseHorizontalDisplay = getShouldUseHorizontalLayout(context);
 
     DRCard card = currentCard!;
@@ -109,7 +175,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         getRegionalInformationWidget(sw, shouldUseHorizontalDisplay);
 
     if (!shouldUseHorizontalDisplay) {
-      List<Widget> children = [];
+      List<Widget?> children = [];
       children.add(videoPlayerScreen);
       children.add(Divider(
         height: 80,
@@ -118,27 +184,53 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         endIndent: 20,
       ));
       String prompt;
-      if (!answered) {
+      Widget? ratingWidget;
+      if (!revealed) {
         prompt = "What does this sign mean?";
       } else {
         prompt = word;
+        ratingWidget = Row(
+          children: [
+            getRatingButton(Rating.Again, forgotRatingWidgetActive),
+            Padding(
+              padding: EdgeInsets.only(left: 15, right: 15),
+            ),
+            getRatingButton(Rating.Good, rememberedRatingWidgetActive),
+          ],
+          mainAxisAlignment: MainAxisAlignment.center,
+        );
       }
       children.add(Text(prompt,
           textAlign: TextAlign.center, style: TextStyle(fontSize: 20)));
       children.add(Expanded(
           child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => print('tap'),
+        onTap: () => setState(() {
+          print("tap!!");
+          currentCardRevealed = true;
+        }),
         child: Container(
           constraints: BoxConstraints.expand(),
           color: Colors.red,
         ),
       )));
+      children.add(ratingWidget);
+      children.add(Padding(
+        padding: EdgeInsets.only(bottom: 35),
+      ));
+
+      List<Widget> nonNullChildren = [];
+      for (Widget? w in children) {
+        if (w != null) {
+          nonNullChildren.add(w);
+        }
+      }
+
       return Column(
         mainAxisAlignment: MainAxisAlignment.start,
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.center,
-        children: children,
+        children: nonNullChildren,
       );
     } else {
       var size = MediaQuery.of(context).size;
@@ -187,7 +279,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
     Widget body;
     String appBarTitle;
     if (currentCard != null) {
-      body = buildFlashcardWidget(currentCardAnswered);
+      body = buildFlashcardWidget(currentCardRevealed);
       appBarTitle =
           "${numCardsToReview - getRemainingCardsToReview() + 1} / $numCardsToReview";
     } else {
