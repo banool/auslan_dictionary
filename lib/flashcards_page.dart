@@ -295,6 +295,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
           ],
           mainAxisAlignment: MainAxisAlignment.center,
         ));
+        children.add(regionalInformationWidget);
       }
 
       children.add(Padding(
