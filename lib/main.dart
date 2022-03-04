@@ -141,36 +141,43 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    List<BottomNavigationBarItem> items = [];
-    List<Widget> tabs = [];
+    List<TabInformation> information = [];
 
-    items.add(BottomNavigationBarItem(
-      icon: Icon(Icons.search),
-      label: "Dictionary",
-    ));
-    tabs.add(SearchPage(controller: searchPageController));
+    information.add(TabInformation(
+        BottomNavigationBarItem(
+          icon: Icon(Icons.search),
+          label: "Dictionary",
+        ),
+        SearchPage(controller: searchPageController),
+        "Search"));
 
-    items.add(BottomNavigationBarItem(
-      icon: Icon(Icons.star),
-      label: "Favourites",
-    ));
-    tabs.add(FavouritesPage(controller: favouritesPageController));
+    information.add(TabInformation(
+        BottomNavigationBarItem(
+          icon: Icon(Icons.star),
+          label: "Favourites",
+        ),
+        FavouritesPage(controller: favouritesPageController),
+        "Favourites"));
 
     if (showFlashcards) {
-      items.add(BottomNavigationBarItem(
-        icon: Icon(Icons.style),
-        label: "Revision",
-      ));
-      tabs.add(FlashcardsLandingPage(controller: flashcardsPageController));
+      information.add(TabInformation(
+          BottomNavigationBarItem(
+            icon: Icon(Icons.style),
+            label: "Revision",
+          ),
+          FlashcardsLandingPage(controller: flashcardsPageController),
+          "Revision (Beta)"));
     }
 
-    items.add(BottomNavigationBarItem(
-      icon: Icon(Icons.settings),
-      label: "Settings",
-    ));
-    tabs.add(SettingsPage(controller: settingsPageController));
+    information.add(TabInformation(
+        BottomNavigationBarItem(
+          icon: Icon(Icons.settings),
+          label: "Settings",
+        ),
+        SettingsPage(controller: settingsPageController),
+        "Settings"));
 
-    Widget body = tabs[currentNavBarIndex];
+    Widget body = information[currentNavBarIndex].tabBody;
     Widget? floatingActionButton;
     if (body is FavouritesPage) {
       floatingActionButton = FloatingActionButton(
@@ -209,13 +216,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title!),
+        title: Text(information[currentNavBarIndex].appBarTitle),
         actions: actions,
       ),
       body: body,
       floatingActionButton: floatingActionButton,
       bottomNavigationBar: BottomNavigationBar(
-        items: items,
+        items: information.map((e) => e.bottomNavBarItem).toList(),
         currentIndex: currentNavBarIndex,
         selectedItemColor: MAIN_COLOR,
         onTap: onNavBarItemTapped,
@@ -223,4 +230,12 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+}
+
+class TabInformation {
+  final BottomNavigationBarItem bottomNavBarItem;
+  final Widget tabBody;
+  final String appBarTitle;
+
+  TabInformation(this.bottomNavBarItem, this.tabBody, this.appBarTitle);
 }

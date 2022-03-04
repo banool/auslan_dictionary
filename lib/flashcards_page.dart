@@ -9,9 +9,7 @@ import 'common.dart';
 import 'types.dart';
 
 // TODO: Consider prefetching the videos as the user goes through, for speed.
-// TODO: Add forwards and backwards button, to go back and ofrth and see / change your answers.
-
-// TODO: Show regional information for vertical layout too.
+// TODO: Add forwards and backwards button, to go back and fogrth and see / change your answers.
 
 class FlashcardsPage extends StatefulWidget {
   FlashcardsPage({
@@ -431,8 +429,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
           Spacer(),
           Column(
             children: [
-              // TODO: Limit to one decimal place.
-              getText("${rememberRate * 100}%"),
+              getText("${(rememberRate * 100).toStringAsFixed(1)}%"),
               getText("$totalAnswers"),
               getText("$numCardsRemembered"),
               getText("$numCardsForgotten"),
