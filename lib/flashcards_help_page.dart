@@ -46,7 +46,7 @@ class _FlashcardsHelpPageState extends State<FlashcardsHelpPage> {
         "Based on the other filtering options you have set, there may be "
             "situations where there are multiple sub-entries for a single entry. "
             "In other words, for a single word you might have a sub-entry from "
-            "VID, another from WA, and another that applies Australia-wide.",
+            "VIC, another from WA, and another that applies Australia-wide.",
         "You may not want this behaviour, instead preferring to see only one "
             "set of cards per word. If so, you should enable this option."
       ],
