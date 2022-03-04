@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:auslan_dictionary/favourites_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -42,6 +44,15 @@ Future<void> main() async {
 
     // Resolve values based on knobs.
     showFlashcards = getShowFlashcards();
+
+    // Get background color of settings pages.
+    if (Platform.isAndroid) {
+      settingsBackgroundColor = Color.fromRGBO(240, 240, 240, 1);
+    } else if (Platform.isIOS) {
+      settingsBackgroundColor = Color.fromRGBO(242, 242, 247, 1);
+    } else {
+      settingsBackgroundColor = Color.fromRGBO(240, 240, 240, 1);
+    }
 
     // Finally run the app.
     print("Setup complete, running app");

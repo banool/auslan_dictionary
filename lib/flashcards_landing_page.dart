@@ -300,8 +300,8 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                                         ),
                                         decoration: BoxDecoration(
                                             border: Border.all(
-                                                color: SETTINGS_COLOR),
-                                            color: SETTINGS_COLOR,
+                                                color: settingsBackgroundColor),
+                                            color: settingsBackgroundColor,
                                             borderRadius:
                                                 BorderRadius.circular(20)),
                                       ),
@@ -455,7 +455,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                 Expanded(child: settings),
               ],
             )),
-            color: SETTINGS_COLOR,
+            color: settingsBackgroundColor,
           );
         });
   }
