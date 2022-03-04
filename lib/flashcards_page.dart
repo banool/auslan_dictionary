@@ -409,11 +409,9 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
       );
     }
 
-    // TODO: Center the Row better in the middle of the screen.
-    return Column(children: [
-      Spacer(),
-      Row(
-        children: [
+    return Column(
+      children: [
+        Row(children: [
           Padding(
             padding: EdgeInsets.only(left: 60),
           ),
@@ -439,14 +437,11 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
           Padding(
             padding: EdgeInsets.only(left: 60),
           ),
-        ],
-        mainAxisAlignment: MainAxisAlignment.center,
-      ),
-      Padding(
-        padding: EdgeInsets.only(bottom: 100),
-      ),
-      Spacer(),
-    ]);
+        ], mainAxisAlignment: MainAxisAlignment.center),
+        Padding(padding: EdgeInsets.only(bottom: 250))
+      ],
+      mainAxisAlignment: MainAxisAlignment.center,
+    );
   }
 
   @override
@@ -454,7 +449,8 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
     Widget body;
     String appBarTitle;
     if (currentCard != null) {
-      body = buildFlashcardWidget(currentCard!, currentCardRevealed);
+      body = Center(
+          child: buildFlashcardWidget(currentCard!, currentCardRevealed));
       int progressString = getCardsReviewed() + 1;
       if (currentCardRevealed) {
         progressString -= 1;
@@ -469,16 +465,15 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
     return WillPopScope(
         onWillPop: () async => false,
         child: Scaffold(
-            appBar: AppBar(
-                title: Text(appBarTitle),
-                leading: IconButton(
-                    icon: Icon(Icons.close),
-                    onPressed: () async {
-                      await beforePop();
-                      Navigator.of(context).pop();
-                    })),
-            body: Center(
-              child: body,
-            )));
+          appBar: AppBar(
+              title: Text(appBarTitle),
+              leading: IconButton(
+                  icon: Icon(Icons.close),
+                  onPressed: () async {
+                    await beforePop();
+                    Navigator.of(context).pop();
+                  })),
+          body: body,
+        ));
   }
 }

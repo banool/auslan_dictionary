@@ -17,7 +17,7 @@ import 'word_page.dart';
 const String APP_NAME = "Auslan Dictionary";
 
 const Color MAIN_COLOR = Colors.blue;
-const Color SETTINGS_COLOR = Color(0xFFEFEFF4);
+const Color SETTINGS_COLOR = Color(0xFFF2F2F7);
 
 const String KEY_SHOULD_CACHE = "shouldCache";
 

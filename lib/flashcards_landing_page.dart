@@ -13,7 +13,6 @@ import 'types.dart';
 // - In the flashcards app bar have a history button to see a summary of previous flashcard sessions.
 // - do i need some kind of db compaction? like where i collapse all reviews but the most recent
 //   for each card (subword+combination) into just numbers.
-// - todo, the background color of the settings widget is actually slightly different
 
 const String KEY_SIGN_TO_WORD = "sign_to_word";
 const String KEY_WORD_TO_SIGN = "word_to_sign";

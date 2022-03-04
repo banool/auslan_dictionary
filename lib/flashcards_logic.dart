@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:auslan_dictionary/globals.dart';
 import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 
