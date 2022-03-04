@@ -11,6 +11,8 @@ import 'types.dart';
 // TODO: Consider prefetching the videos as the user goes through, for speed.
 // TODO: Add forwards and backwards button, to go back and ofrth and see / change your answers.
 
+// TODO: Show regional information for vertical layout too.
+
 class FlashcardsPage extends StatefulWidget {
   FlashcardsPage({
     Key? key,
@@ -234,7 +236,6 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
     if (wordToSign) {
       if (revealed) {
         topWidget = videoPlayerScreen;
-        ;
       } else {
         topWidget = Container(
             padding: EdgeInsets.only(top: 120, bottom: 70),
@@ -259,8 +260,15 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
       }
     }
 
-    Widget regionalInformationWidget =
-        getRegionalInformationWidget(sw, shouldUseHorizontalDisplay);
+    Widget regionalInformationWidget;
+    if (revealed) {
+      regionalInformationWidget =
+          getRegionalInformationWidget(sw, shouldUseHorizontalDisplay);
+    } else {
+      regionalInformationWidget = Container(
+        padding: EdgeInsets.only(top: 25),
+      );
+    }
 
     if (!shouldUseHorizontalDisplay) {
       List<Widget?> children = [];
@@ -323,31 +331,57 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         )
       ]);
     } else {
-      var size = MediaQuery.of(context).size;
-      var screenWidth = size.width;
-      var screenHeight = size.height;
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            videoPlayerScreen,
-            regionalInformationWidget,
-          ]),
-          new LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-            // TODO Make this less janky and hardcoded.
-            // The issue is the parent has infinite width and height
-            // and Expanded doesn't seem to be working.
-            List<Widget> children = [];
-            return ConstrainedBox(
-                constraints: BoxConstraints(
-                    maxWidth: screenWidth * 0.4, maxHeight: screenHeight * 0.7),
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: children));
-          })
-        ],
-      );
+      return Stack(children: [
+        Column(children: [
+          Expanded(
+              child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => setState(() {
+              completeCard(currentCard!, rating: Rating.Easy);
+            }),
+            child: Container(
+              constraints: BoxConstraints.expand(),
+            ),
+          ))
+        ]),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Column(
+              children: [topWidget, regionalInformationWidget],
+              mainAxisAlignment: MainAxisAlignment.center,
+            ),
+            Padding(padding: EdgeInsets.only(left: 50)),
+            LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+              List<Widget> children = [
+                ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: 190, minWidth: 300),
+                    child: Container(
+                      padding: EdgeInsets.only(top: 120, bottom: 95),
+                      child: bottomWidget,
+                    ))
+              ];
+              if (revealed) {
+                children.add(Row(
+                  children: [
+                    getRatingButton(Rating.Again, forgotRatingWidgetActive),
+                    Padding(
+                      padding: EdgeInsets.only(left: 15, right: 15),
+                    ),
+                    getRatingButton(Rating.Easy, rememberedRatingWidgetActive),
+                  ],
+                  mainAxisAlignment: MainAxisAlignment.center,
+                ));
+              }
+              return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: children);
+            }),
+          ],
+        )
+      ]);
     }
   }
 
