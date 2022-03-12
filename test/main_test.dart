@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() async {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  wordsGlobal = [
+  wordsGlobal = {
     Word(word: "friend", subWords: [
       SubWord(definitions: [
         Definition(
@@ -20,7 +20,7 @@ void main() async {
         Region.EVERYWHERE
       ], keywords: [])
     ])
-  ];
+  };
 
   SharedPreferences.setMockInitialValues({});
   sharedPreferences = await SharedPreferences.getInstance();

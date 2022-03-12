@@ -27,7 +27,6 @@ class _WordPageState extends State<WordPage> {
 
   int currentPage = 0;
   Future<void>? initStateAsyncFuture;
-  SharedPreferences? prefs;
 
   final Word word;
   bool isFavourited = false;
@@ -39,8 +38,7 @@ class _WordPageState extends State<WordPage> {
   }
 
   Future<void> initStateAsync() async {
-    List<Word?> favourites = await loadFavourites(context);
-    if (favourites.contains(word)) {
+    if (favouritesGlobal.contains(word)) {
       isFavourited = true;
     } else {
       isFavourited = false;
@@ -93,9 +91,9 @@ class _WordPageState extends State<WordPage> {
                         isFavourited = !isFavourited;
                       });
                       if (isFavourited) {
-                        await addToFavourites(word, context);
+                        await addToFavourites(word);
                       } else {
-                        await removeFromFavourites(word, context);
+                        await removeFromFavourites(word);
                       }
                     },
                     child: starIcon,
@@ -346,8 +344,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   Future<void> initSingleVideo(String videoLink, int idx) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool? shouldCache = prefs.getBool(KEY_SHOULD_CACHE);
+    bool? shouldCache = sharedPreferences.getBool(KEY_SHOULD_CACHE);
 
     VideoPlayerOptions videoPlayerOptions =
         VideoPlayerOptions(mixWithOthers: true);

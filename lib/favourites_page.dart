@@ -54,9 +54,6 @@ class _FavouritesPageState extends State<FavouritesPage> {
     controller.toggleSort = toggleSort;
   }
 
-  // All the user's favourites.
-  late List<Word> favourites;
-
   // The favourites that match the user's search term.
   late List<Word> favouritesSearched;
 
@@ -65,7 +62,6 @@ class _FavouritesPageState extends State<FavouritesPage> {
   final _favouritesFieldController = TextEditingController();
 
   late Future<void> initStateAsyncFuture;
-  late SharedPreferences prefs;
 
   void toggleSort() {
     setState(() {
@@ -81,14 +77,12 @@ class _FavouritesPageState extends State<FavouritesPage> {
   }
 
   Future<void> initStateAsync() async {
-    // I assume that we load the words first, don't change this order.
     await loadFavouritesInner();
     search();
   }
 
   Future<void> loadFavouritesInner() async {
-    favourites = await loadFavourites(context);
-    favouritesSearched = List.from(favourites);
+    favouritesSearched = List.from(favouritesGlobal);
   }
 
   void updateCurrentSearchTerm(String term) {
@@ -102,9 +96,9 @@ class _FavouritesPageState extends State<FavouritesPage> {
     setState(() {
       if (currentSearchTerm.length > 0) {
         favouritesSearched =
-            searchList(currentSearchTerm, favourites, favourites);
+            searchList(currentSearchTerm, favouritesGlobal, favouritesGlobal);
       } else {
-        favouritesSearched = List.from(favourites);
+        favouritesSearched = List.from(favouritesGlobal);
         if (controller.viewSortedList) {
           favouritesSearched.sort();
         }
@@ -114,23 +108,21 @@ class _FavouritesPageState extends State<FavouritesPage> {
 
   void clearSearch() {
     setState(() {
-      favouritesSearched = List.from(favourites);
+      favouritesSearched = [];
       _favouritesFieldController.clear();
       updateCurrentSearchTerm("");
       search();
     });
   }
 
-  void removeFavourite(Word word) {
-    removeFromFavourites(word, context);
+  void removeFavourite(Word word) async {
+    await removeFromFavourites(word);
     setState(() {
-      favourites.removeWhere((element) => element.word == word.word);
       search();
     });
   }
 
   Future<void> refreshFavourites() async {
-    await loadFavouritesInner();
     setState(() {
       search();
     });
@@ -196,28 +188,28 @@ class _FavouritesPageState extends State<FavouritesPage> {
 Widget listWidget(
     BuildContext context,
     List<Word?> favouritesSearched,
-    List<Word> allWords,
+    Set<Word> allWords,
     Function removeFavouriteFn,
     Function refreshFavouritesFn) {
   return ListView.builder(
     itemCount: favouritesSearched.length,
     itemBuilder: (context, index) {
       return ListTile(
-          title: listItem(context, favouritesSearched[index]!, allWords,
+          title: listItem(context, favouritesSearched[index]!,
               removeFavouriteFn, refreshFavouritesFn));
     },
   );
 }
 
-Widget listItem(BuildContext context, Word word, List<Word> allWords,
-    Function removeFavouriteFn, Function refreshFavouritesFn) {
+Widget listItem(BuildContext context, Word word, Function removeFavouriteFn,
+    Function refreshFavouritesFn) {
   return FlatButton(
     child: Align(alignment: Alignment.topLeft, child: Text("${word.word}")),
     onPressed: () async => {
       await navigateToWordPage(context, word),
       await refreshFavouritesFn(),
     },
-    onLongPress: () => removeFavouriteFn(word),
+    onLongPress: () async => await removeFavouriteFn(word),
     splashColor: MAIN_COLOR,
   );
 }

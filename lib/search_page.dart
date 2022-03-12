@@ -69,7 +69,7 @@ class _SearchPageState extends State<SearchPage> {
 
   void search(String searchTerm) {
     setState(() {
-      wordsSearched = searchList(searchTerm, wordsGlobal, []);
+      wordsSearched = searchList(searchTerm, wordsGlobal, {});
     });
   }
 

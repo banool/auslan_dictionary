@@ -15,7 +15,7 @@ class DolphinInformation {
   Map<String, SubWord> keyToSubWordMap;
 }
 
-Map<String, List<SubWord>> getSubWordsFromWords(List<Word> favourites) {
+Map<String, List<SubWord>> getSubWordsFromWords(Set<Word> favourites) {
   Map<String, List<SubWord>> subWords = Map();
   for (Word w in favourites) {
     subWords[w.word] = w.subWords;

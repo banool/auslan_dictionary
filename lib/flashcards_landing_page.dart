@@ -90,9 +90,8 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
   }
 
   Future<void> loadFavouritesInner() async {
-    List<Word> favourites = await loadFavourites(context);
     setState(() {
-      favouriteSubWords = getSubWordsFromWords(favourites);
+      favouriteSubWords = getSubWordsFromWords(favouritesGlobal);
       updateRevisionSettings();
     });
   }

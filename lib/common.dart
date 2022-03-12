@@ -28,7 +28,7 @@ const String KEY_FLASHCARD_REGIONS = "flashcard_regions";
 
 const int DATA_CHECK_INTERVAL = 60 * 60 * 24 * 7; // 1 week.
 
-Future<List<Word>> loadWords() async {
+Future<Set<Word>> loadWords() async {
   String data;
   try {
     // First try to read from the file we downloaded from the internet.
@@ -45,9 +45,9 @@ Future<List<Word>> loadWords() async {
   }
 }
 
-List<Word> loadWordsInner(String data) {
+Set<Word> loadWordsInner(String data) {
   dynamic wordsJson = json.decode(data);
-  List<Word> words = [];
+  Set<Word> words = {};
   for (MapEntry e in wordsJson.entries) {
     words.add(Word.fromJson(e.key, e.value));
   }
@@ -63,8 +63,7 @@ Future<void> navigateToWordPage(BuildContext context, Word word) {
 }
 
 // Search a list of words and return top matching items.
-List<Word> searchList(
-    String searchTerm, List<Word> words, List<Word> fallback) {
+List<Word> searchList(String searchTerm, Set<Word> words, Set<Word> fallback) {
   final SplayTreeMap<double, List<Word>> st =
       SplayTreeMap<double, List<Word>>();
   if (searchTerm == "") {
@@ -100,12 +99,11 @@ List<Word> searchList(
 
 // Run this at startup.
 Future<void> bootstrapFavourites() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
   try {
-    prefs.getStringList(KEY_FAVOURITES_WORDS);
+    sharedPreferences.getStringList(KEY_FAVOURITES_WORDS);
   } catch (e) {
     // The key didn't exist in the favourites list yet.
-    prefs.setStringList(KEY_FAVOURITES_WORDS, ["love"]);
+    await sharedPreferences.setStringList(KEY_FAVOURITES_WORDS, ["love"]);
     print("Bootstrapped favourites");
   }
 }
@@ -117,8 +115,8 @@ Future<void> bootstrapFavourites() async {
 // Returns true if new data was downloaded.
 Future<bool> getNewData(bool forceCheck) async {
   // Determine whether it is time to check for new dictionary data.
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  int? lastCheckTime = prefs.getInt(KEY_LAST_DICTIONARY_DATA_CHECK_TIME);
+  int? lastCheckTime =
+      sharedPreferences.getInt(KEY_LAST_DICTIONARY_DATA_CHECK_TIME);
   int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
   if (!(lastCheckTime == null ||
       now - DATA_CHECK_INTERVAL > lastCheckTime ||
@@ -128,7 +126,8 @@ Future<bool> getNewData(bool forceCheck) async {
     return false;
   }
   // Check for new dictionary data.
-  int currentVersion = prefs.getInt(KEY_DICTIONARY_DATA_CURRENT_VERSION) ?? 0;
+  int currentVersion =
+      sharedPreferences.getInt(KEY_DICTIONARY_DATA_CURRENT_VERSION) ?? 0;
   int latestVersion = int.parse((await http.get(Uri.parse(
           'https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/data/latest_version')))
       .body);
@@ -136,7 +135,7 @@ Future<bool> getNewData(bool forceCheck) async {
     print(
         "Current version ($currentVersion) is >= latest version ($latestVersion), not downloading new data");
     // Record that we made this check so we don't check again too soon.
-    prefs.setInt(KEY_LAST_DICTIONARY_DATA_CHECK_TIME, now);
+    await sharedPreferences.setInt(KEY_LAST_DICTIONARY_DATA_CHECK_TIME, now);
     return false;
   }
   // At this point, we know we need to download the new data. Let's do that.
@@ -149,7 +148,8 @@ Future<bool> getNewData(bool forceCheck) async {
   final path = await _dictionaryDataFilePath;
   await path.writeAsString(newData);
   // Now, record the new version that we downloaded.
-  prefs.setInt(KEY_DICTIONARY_DATA_CURRENT_VERSION, latestVersion);
+  await sharedPreferences.setInt(
+      KEY_DICTIONARY_DATA_CURRENT_VERSION, latestVersion);
   print(
       "Set KEY_LAST_DICTIONARY_DATA_CHECK_TIME to $now and KEY_DICTIONARY_DATA_CURRENT_VERSION to $latestVersion. Done!");
   return true;
@@ -162,11 +162,11 @@ Future<File> get _dictionaryDataFilePath async {
 }
 
 // Load up favourites.
-Future<List<Word>> loadFavourites(BuildContext context) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  List<Word> favourites = [];
+Future<Set<Word>> loadFavourites() async {
+  Set<Word> favourites = {};
   // Load up the Words for the favourites (inefficiently).
-  List<String> favouritesRaw = prefs.getStringList(KEY_FAVOURITES_WORDS) ?? [];
+  List<String> favouritesRaw =
+      sharedPreferences.getStringList(KEY_FAVOURITES_WORDS) ?? [];
   print("Loaded favourites: $favouritesRaw");
   for (String s in favouritesRaw) {
     Word? matchingWord =
@@ -174,44 +174,40 @@ Future<List<Word>> loadFavourites(BuildContext context) async {
     if (matchingWord != null) {
       favourites.add(matchingWord);
     } else {
+      /*
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Your favourite "$s" is no longer in the dictionary'),
           backgroundColor: MAIN_COLOR));
+      */
     }
   }
-  // Write back the favourites, without the missing entries.
-  List<String> newFavourites = [];
-  for (Word w in favourites) {
-    newFavourites.add(w.word);
+  if (favouritesRaw.length != favourites.length) {
+    // Write back the favourites, without the missing entries.
+    await sharedPreferences.setStringList(
+        KEY_FAVOURITES_WORDS, favourites.map((e) => e.word).toList());
+    print(
+        "Wrote back favourites with ${favouritesRaw.length - favourites.length} fewer words");
   }
-  prefs.setStringList(KEY_FAVOURITES_WORDS, newFavourites);
   return favourites;
 }
 
 // Write favourites to prefs.
-void writeFavourites(List<Word?> favourites, SharedPreferences prefs) {
-  List<String> newFavourites = [];
-  for (Word? w in favourites) {
-    newFavourites.add(w!.word);
-  }
-  prefs.setStringList(KEY_FAVOURITES_WORDS, newFavourites);
+Future<void> writeFavourites() async {
+  await sharedPreferences.setStringList(
+      KEY_FAVOURITES_WORDS, favouritesGlobal.map((e) => e.word).toList());
 }
 
 // Add to favourites.
-Future<void> addToFavourites(Word favouriteToAdd, BuildContext context) async {
-  List<Word> favourites = await loadFavourites(context);
-  favourites.add(favouriteToAdd);
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  writeFavourites(favourites, prefs);
+Future<void> addToFavourites(Word favouriteToAdd) async {
+  favouritesGlobal.add(favouriteToAdd);
+  await writeFavourites();
 }
 
 // Remove from favourites.
-Future<void> removeFromFavourites(
-    Word favouriteToRemove, BuildContext context) async {
-  List<Word> favourites = await loadFavourites(context);
-  favourites.removeWhere((element) => element.word == favouriteToRemove.word);
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  writeFavourites(favourites, prefs);
+Future<void> removeFromFavourites(Word favouriteToRemove) async {
+  favouritesGlobal
+      .removeWhere((element) => element.word == favouriteToRemove.word);
+  await writeFavourites();
 }
 
 bool getShouldUseHorizontalLayout(BuildContext context) {
