@@ -163,14 +163,17 @@ Future<File> get _dictionaryDataFilePath async {
 
 // Load up favourites.
 Future<Set<Word>> loadFavourites() async {
+  Map<String, Word> keyedWordsGlobal = {};
+  for (Word w in wordsGlobal) {
+    keyedWordsGlobal[w.word] = w;
+  }
   Set<Word> favourites = {};
   // Load up the Words for the favourites (inefficiently).
   List<String> favouritesRaw =
       sharedPreferences.getStringList(KEY_FAVOURITES_WORDS) ?? [];
   print("Loaded favourites: $favouritesRaw");
   for (String s in favouritesRaw) {
-    Word? matchingWord =
-        wordsGlobal.firstWhereOrNull((element) => element.word == s);
+    Word? matchingWord = keyedWordsGlobal[s];
     if (matchingWord != null) {
       favourites.add(matchingWord);
     } else {
@@ -205,8 +208,7 @@ Future<void> addToFavourites(Word favouriteToAdd) async {
 
 // Remove from favourites.
 Future<void> removeFromFavourites(Word favouriteToRemove) async {
-  favouritesGlobal
-      .removeWhere((element) => element.word == favouriteToRemove.word);
+  favouritesGlobal.remove(favouriteToRemove);
   await writeFavourites();
 }
 
@@ -233,8 +235,8 @@ Future<bool> readKnob(String key, bool fallback) async {
     }
     print("Value of knob $key is $out");
     return out;
-  } catch (e) {
-    print("$e");
+  } catch (e, stacktrace) {
+    print("$e:\n$stacktrace");
     return fallback;
   }
 }

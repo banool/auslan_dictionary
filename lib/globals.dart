@@ -6,6 +6,7 @@ import 'types.dart';
 
 late Set<Word> wordsGlobal;
 late Set<Word> favouritesGlobal;
+
 late SharedPreferences sharedPreferences;
 
 // Values of the knobs.
