@@ -57,6 +57,7 @@ Map<String, List<SubWord>> filterSubWords(
       for (Region r in sw.regions) {
         if (allowedRegions.contains(r)) {
           validSubWords.add(sw);
+          break;
         }
       }
     }
