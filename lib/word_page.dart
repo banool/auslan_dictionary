@@ -13,6 +13,62 @@ import 'common.dart';
 import 'globals.dart';
 import 'types.dart';
 
+enum PlaybackSpeed {
+  One,
+  PointSevenFive,
+  PointFiveZero,
+  OneFiveZero,
+  OneTwoFive,
+}
+
+String getPlaybackSpeedString(PlaybackSpeed playbackSpeed) {
+  switch (playbackSpeed) {
+    case PlaybackSpeed.One:
+      return "1x";
+    case PlaybackSpeed.PointSevenFive:
+      return "0.75x";
+    case PlaybackSpeed.PointFiveZero:
+      return "0.5x";
+    case PlaybackSpeed.OneFiveZero:
+      return "1.5x";
+    case PlaybackSpeed.OneTwoFive:
+      return "1.25x";
+  }
+}
+
+double getDoubleFromPlaybackSpeed(PlaybackSpeed playbackSpeed) {
+  switch (playbackSpeed) {
+    case PlaybackSpeed.One:
+      return 1.0;
+    case PlaybackSpeed.PointSevenFive:
+      return 0.75;
+    case PlaybackSpeed.PointFiveZero:
+      return 0.5;
+    case PlaybackSpeed.OneFiveZero:
+      return 1.5;
+    case PlaybackSpeed.OneTwoFive:
+      return 1.25;
+  }
+}
+
+class InheritedPlaybackSpeed extends InheritedWidget {
+  InheritedPlaybackSpeed(
+      {Key? key, required this.child, required this.playbackSpeed})
+      : super(key: key, child: child);
+
+  final PlaybackSpeed playbackSpeed;
+  final Widget child;
+
+  static InheritedPlaybackSpeed? of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<InheritedPlaybackSpeed>();
+  }
+
+  @override
+  bool updateShouldNotify(InheritedPlaybackSpeed oldWidget) {
+    return oldWidget.playbackSpeed != playbackSpeed;
+  }
+}
+
 class WordPage extends StatefulWidget {
   WordPage({Key? key, required this.word}) : super(key: key);
 
@@ -31,6 +87,8 @@ class _WordPageState extends State<WordPage> {
   final Word word;
   bool isFavourited = false;
 
+  PlaybackSpeed playbackSpeed = PlaybackSpeed.One;
+
   @override
   void initState() {
     initStateAsyncFuture = initStateAsync();
@@ -47,98 +105,144 @@ class _WordPageState extends State<WordPage> {
 
   void onPageChanged(int index) {
     setState(() {
+      playbackSpeed = PlaybackSpeed.One;
       currentPage = index;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: initStateAsyncFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return new Center(
-              child: new CircularProgressIndicator(),
-            );
-          }
-          List<Widget> pages = [];
-          for (int i = 0; i < word.subWords.length; i++) {
-            SubWord subWord = word.subWords[i];
-            SubWordPage subWordPage = SubWordPage(word: word, subWord: subWord);
-            pages.add(subWordPage);
-          }
+    return InheritedPlaybackSpeed(
+        playbackSpeed: playbackSpeed,
+        child: FutureBuilder(
+            future: initStateAsyncFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return new Center(
+                  child: new CircularProgressIndicator(),
+                );
+              }
+              List<Widget> pages = [];
+              for (int i = 0; i < word.subWords.length; i++) {
+                SubWord subWord = word.subWords[i];
+                SubWordPage subWordPage = SubWordPage(
+                  word: word,
+                  subWord: subWord,
+                );
+                pages.add(subWordPage);
+              }
 
-          Icon starIcon;
-          if (isFavourited) {
-            starIcon = Icon(Icons.star, semanticLabel: "Already favourited!");
-          } else {
-            starIcon =
-                Icon(Icons.star_outline, semanticLabel: "Favourite this word");
-          }
+              Icon starIcon;
+              if (isFavourited) {
+                starIcon =
+                    Icon(Icons.star, semanticLabel: "Already favourited!");
+              } else {
+                starIcon = Icon(Icons.star_outline,
+                    semanticLabel: "Favourite this word");
+              }
 
-          return Scaffold(
-            appBar: AppBar(
-              title: Text(word.word),
-              actions: <Widget>[
-                Container(
-                  padding: const EdgeInsets.all(0),
-                  width: 50.0,
-                  child: FlatButton(
-                    padding: EdgeInsets.zero,
-                    textColor: Colors.white,
-                    onPressed: () async {
-                      setState(() {
-                        isFavourited = !isFavourited;
-                      });
-                      if (isFavourited) {
-                        await addToFavourites(word);
-                      } else {
-                        await removeFromFavourites(word);
-                      }
-                    },
-                    child: starIcon,
-                    shape: CircleBorder(
-                        side: BorderSide(color: Colors.transparent)),
+              return Scaffold(
+                appBar: AppBar(
+                  title: Text(word.word),
+                  actions: <Widget>[
+                    Container(
+                      padding: const EdgeInsets.all(0),
+                      width: 30.0,
+                      child: FlatButton(
+                        padding: EdgeInsets.zero,
+                        textColor: Colors.white,
+                        onPressed: () async {
+                          setState(() {
+                            switch (playbackSpeed) {
+                              case PlaybackSpeed.One:
+                                playbackSpeed = PlaybackSpeed.PointSevenFive;
+                                break;
+                              case PlaybackSpeed.PointSevenFive:
+                                playbackSpeed = PlaybackSpeed.PointFiveZero;
+                                break;
+                              case PlaybackSpeed.PointFiveZero:
+                                playbackSpeed = PlaybackSpeed.OneFiveZero;
+                                break;
+                              case PlaybackSpeed.OneFiveZero:
+                                playbackSpeed = PlaybackSpeed.OneTwoFive;
+                                break;
+                              case PlaybackSpeed.OneTwoFive:
+                                playbackSpeed = PlaybackSpeed.One;
+                                break;
+                            }
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(
+                                  "Set playback speed to ${getPlaybackSpeedString(playbackSpeed)}"),
+                              backgroundColor: MAIN_COLOR,
+                              duration: Duration(milliseconds: 750)));
+                        },
+                        child: Icon(Icons.slow_motion_video),
+                        shape: CircleBorder(
+                            side: BorderSide(color: Colors.transparent)),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(0),
+                      width: 50.0,
+                      child: FlatButton(
+                        padding: EdgeInsets.zero,
+                        textColor: Colors.white,
+                        onPressed: () async {
+                          setState(() {
+                            isFavourited = !isFavourited;
+                          });
+                          if (isFavourited) {
+                            await addToFavourites(word);
+                          } else {
+                            await removeFromFavourites(word);
+                          }
+                        },
+                        child: starIcon,
+                        shape: CircleBorder(
+                            side: BorderSide(color: Colors.transparent)),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.only(right: 10),
+                      width: 40.0,
+                      child: FlatButton(
+                        padding: EdgeInsets.zero,
+                        textColor: Colors.white,
+                        onPressed: () async {
+                          var url =
+                              'http://www.auslan.org.au/dictionary/words/${word.word}-${currentPage + 1}.html';
+                          await launch(url, forceSafariVC: false);
+                        },
+                        child: Icon(Icons.public,
+                            semanticLabel: "Link to sign in Auslan Signbank"),
+                        shape: CircleBorder(
+                            side: BorderSide(color: Colors.transparent)),
+                      ),
+                    ),
+                  ],
+                ),
+                bottomNavigationBar: Padding(
+                  padding: EdgeInsets.only(top: 5, bottom: 10),
+                  child: DotsIndicator(
+                    dotsCount: word.subWords.length,
+                    position: currentPage.toDouble(),
+                    decorator: DotsDecorator(
+                      color: Colors.black, // Inactive color
+                      activeColor: MAIN_COLOR,
+                    ),
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.all(0),
-                  width: 50.0,
-                  child: FlatButton(
-                    padding: EdgeInsets.zero,
-                    textColor: Colors.white,
-                    onPressed: () async {
-                      var url =
-                          'http://www.auslan.org.au/dictionary/words/${word.word}-${currentPage + 1}.html';
-                      await launch(url, forceSafariVC: false);
-                    },
-                    child: Icon(Icons.public,
-                        semanticLabel: "Link to sign in Auslan Signbank"),
-                    shape: CircleBorder(
-                        side: BorderSide(color: Colors.transparent)),
-                  ),
-                ),
-              ],
-            ),
-            bottomNavigationBar: Padding(
-              padding: EdgeInsets.only(top: 5, bottom: 10),
-              child: DotsIndicator(
-                dotsCount: word.subWords.length,
-                position: currentPage.toDouble(),
-                decorator: DotsDecorator(
-                  color: Colors.black, // Inactive color
-                  activeColor: MAIN_COLOR,
-                ),
-              ),
-            ),
-            body: Center(
-                child: PageView.builder(
-                    itemCount: word.subWords.length,
-                    itemBuilder: (context, index) =>
-                        SubWordPage(word: word, subWord: word.subWords[index]),
-                    onPageChanged: onPageChanged)),
-          );
-        });
+                body: Center(
+                    child: PageView.builder(
+                        itemCount: word.subWords.length,
+                        itemBuilder: (context, index) => SubWordPage(
+                              word: word,
+                              subWord: word.subWords[index],
+                            ),
+                        onPageChanged: onPageChanged)),
+              );
+            }));
   }
 }
 
@@ -226,8 +330,11 @@ Widget getRegionalInformationWidget(
 }
 
 class SubWordPage extends StatefulWidget {
-  SubWordPage({Key? key, required this.word, required this.subWord})
-      : super(key: key);
+  SubWordPage({
+    Key? key,
+    required this.word,
+    required this.subWord,
+  }) : super(key: key);
 
   final Word word;
   final SubWord subWord;
@@ -245,7 +352,9 @@ class _SubWordPageState extends State<SubWordPage> {
 
   @override
   Widget build(BuildContext context) {
-    var videoPlayerScreen = VideoPlayerScreen(videoLinks: subWord.videoLinks);
+    var videoPlayerScreen = VideoPlayerScreen(
+      videoLinks: subWord.videoLinks,
+    );
     // If the display is wide enough, show the video beside the words instead
     // of above the words (as well as other layout changes).
     var shouldUseHorizontalDisplay = getShouldUseHorizontalLayout(context);
@@ -404,7 +513,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
   }
 
-  void onPageChanged(int newPage) {
+  void onPageChanged(BuildContext context, int newPage) {
     setState(() {
       for (VideoPlayerController c in controllers.values) {
         c.pause();
@@ -449,6 +558,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
               return waitingWidget;
             }
             var controller = controllers[idx]!;
+            // Set playback speed here, since we need the context.
+            double playbackSpeedDouble = getDoubleFromPlaybackSpeed(
+                InheritedPlaybackSpeed.of(context)!.playbackSpeed);
+            controller.setPlaybackSpeed(playbackSpeedDouble);
             var player = VideoPlayer(controller);
             var videoContainer =
                 Container(padding: EdgeInsets.only(top: 15), child: player);
@@ -470,7 +583,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         autoPlay: false,
         viewportFraction: 0.8,
         enableInfiniteScroll: false,
-        onPageChanged: (index, reason) => onPageChanged(index),
+        onPageChanged: (index, reason) => onPageChanged(context, index),
         enlargeCenterPage: true,
       ),
     );

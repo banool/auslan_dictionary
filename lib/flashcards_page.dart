@@ -47,6 +47,8 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
 
   bool reviewsWritten = false;
 
+  PlaybackSpeed playbackSpeed = PlaybackSpeed.One;
+
   Timer? nextCardTimer;
 
   @override
@@ -78,6 +80,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
 
   void nextCard() {
     setState(() {
+      playbackSpeed = PlaybackSpeed.One;
       if (getCardsReviewed() >= numCardsToReview) {
         // From here the only cards Dolphin will return are cards that were
         // failed as part of the revision session. We choose to cut the user
@@ -228,7 +231,9 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
     // See here for an explanation of why I pass in a key here:
     // https://stackoverflow.com/questions/55237188/flutter-is-not-rebuilding-same-widget-with-different-parameters
     var videoPlayerScreen = VideoPlayerScreen(
-        videoLinks: sw.videoLinks, key: Key(sw.videoLinks[0]));
+      videoLinks: sw.videoLinks,
+      key: Key(sw.videoLinks[0]),
+    );
 
     Widget topWidget;
     if (wordToSign) {
@@ -450,7 +455,9 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
     String appBarTitle;
     if (currentCard != null) {
       body = Center(
-          child: buildFlashcardWidget(currentCard!, currentCardRevealed));
+          child: InheritedPlaybackSpeed(
+              playbackSpeed: playbackSpeed,
+              child: buildFlashcardWidget(currentCard!, currentCardRevealed)));
       int progressString = getCardsReviewed() + 1;
       if (currentCardRevealed) {
         progressString -= 1;
@@ -467,6 +474,46 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         child: Scaffold(
           appBar: AppBar(
               title: Text(appBarTitle),
+              actions: <Widget>[
+                // TODO: Deduplicate this code from word_page.dart
+                Container(
+                  padding: const EdgeInsets.all(0),
+                  width: 60.0,
+                  child: FlatButton(
+                    padding: EdgeInsets.zero,
+                    textColor: Colors.white,
+                    onPressed: () async {
+                      setState(() {
+                        switch (playbackSpeed) {
+                          case PlaybackSpeed.One:
+                            playbackSpeed = PlaybackSpeed.PointSevenFive;
+                            break;
+                          case PlaybackSpeed.PointSevenFive:
+                            playbackSpeed = PlaybackSpeed.PointFiveZero;
+                            break;
+                          case PlaybackSpeed.PointFiveZero:
+                            playbackSpeed = PlaybackSpeed.OneFiveZero;
+                            break;
+                          case PlaybackSpeed.OneFiveZero:
+                            playbackSpeed = PlaybackSpeed.OneTwoFive;
+                            break;
+                          case PlaybackSpeed.OneTwoFive:
+                            playbackSpeed = PlaybackSpeed.One;
+                            break;
+                        }
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(
+                              "Set playback speed to ${getPlaybackSpeedString(playbackSpeed)}"),
+                          backgroundColor: MAIN_COLOR,
+                          duration: Duration(milliseconds: 750)));
+                    },
+                    child: Icon(Icons.slow_motion_video),
+                    shape: CircleBorder(
+                        side: BorderSide(color: Colors.transparent)),
+                  ),
+                ),
+              ],
               leading: IconButton(
                   icon: Icon(Icons.close),
                   onPressed: () async {
