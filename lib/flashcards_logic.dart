@@ -70,7 +70,9 @@ Map<String, List<SubWord>> filterSubWords(
 // You should provide this function the filtered list of SubWords.
 List<Master> getMasters(
     Map<String, List<SubWord>> subWords, bool wordToSign, bool signToWord) {
+  print("Making masters from ${subWords.length} words");
   List<Master> masters = [];
+  Set<String> keys = {};
   for (MapEntry<String, List<SubWord>> e in subWords.entries) {
     String word = e.key;
     for (SubWord sw in e.value) {
@@ -81,15 +83,22 @@ List<Master> getMasters(
       if (signToWord) {
         combinations.add(Combination(front: [1], back: [0]));
       }
+      var key = sw.getKey(word);
       var m = Master(
-        id: sw.getKey(word),
+        id: key,
         fields: [word, VIDEO_LINKS_MARKER],
         combinations: combinations,
       );
-      masters.add(m);
+      if (!keys.contains(key)) {
+        masters.add(m);
+      } else {
+        print("Skipping master $m with duplicate key: $key");
+      }
+      keys.add(key);
     }
   }
   masters.shuffle();
+  print("Built ${masters.length} masters");
   return masters;
 }
 
@@ -131,7 +140,7 @@ DolphinInformation getDolphinInformation(
         combination: e.value,
         ts: DateTime.fromMillisecondsSinceEpoch(epoch),
         rating: Rating.Again));
-    epoch += 10000000;
+    epoch += 100000;
   }
   dolphin.addReviews(seedReviews);
 

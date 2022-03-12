@@ -88,9 +88,11 @@ packages:
   dolphinsr_dart:
     dependency: "direct main"
     description:
-      name: dolphinsr_dart
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: master
+      resolved-ref: "33ae39bf066ddb7e1169c97f56f5c9f2930a2f0b"
+      url: "git://github.com/banool/dolphhinsr_dart.git"
+    source: git
     version: "3.0.1"
   dots_indicator:
     dependency: "direct main"

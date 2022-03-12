@@ -10,8 +10,10 @@ class Word implements Comparable<Word> {
     List<SubWord> subWords = [];
     wordJson.forEach((subJson) {
       SubWord subWord = SubWord.fromJson(subJson);
-      subWord.keywords.remove(word);
-      subWords.add(subWord);
+      if (subWord.videoLinks.length > 0) {
+        subWord.keywords.remove(word);
+        subWords.add(subWord);
+      }
     });
 
     this.subWords = subWords;
@@ -87,7 +89,11 @@ class SubWord {
     try {
       firstVideoLink = videoLinks[0].split("/auslan/")[1];
     } catch (_e) {
-      firstVideoLink = videoLinks[0].split("/mp4video/")[1];
+      try {
+        firstVideoLink = videoLinks[0].split("/mp4video/")[1];
+      } catch (_e) {
+        firstVideoLink = videoLinks[0].split(".com")[1];
+      }
     }
     return "$word-$firstVideoLink";
   }
