@@ -140,7 +140,7 @@ DolphinInformation getDolphinInformation(
         combination: e.value,
         ts: DateTime.fromMillisecondsSinceEpoch(epoch),
         rating: Rating.Again));
-    epoch += 100000;
+    epoch += 100000000;
   }
   dolphin.addReviews(seedReviews);
 
@@ -169,7 +169,8 @@ DolphinInformation getDolphinInformation(
     filteredReviews.add(r);
     print("Added review $r");
   }
-  print("Added ${filteredReviews.length} total reviews to Dolphin");
+  print(
+      "Added ${filteredReviews.length} total reviews to Dolphin (excluding seed reviews)");
   dolphin.addReviews(filteredReviews);
   return DolphinInformation(dolphin: dolphin, keyToSubWordMap: keyToSubWordMap);
 }

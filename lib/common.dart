@@ -194,6 +194,12 @@ Future<Set<Word>> loadFavourites() async {
   return favourites;
 }
 
+// Clear favourites.
+Future<void> clearFavourites() async {
+  favouritesGlobal = {};
+  await sharedPreferences.setStringList(KEY_FAVOURITES_WORDS, []);
+}
+
 // Write favourites to prefs.
 Future<void> writeFavourites() async {
   await sharedPreferences.setStringList(
@@ -248,8 +254,7 @@ bool getShowFlashcards() {
   return !(sharedPreferences.getBool(KEY_HIDE_FLASHCARDS_FEATURE) ?? false);
 }
 
-Future<bool> confirmAlert(
-    BuildContext context, String title, String content) async {
+Future<bool> confirmAlert(BuildContext context, String content) async {
   bool confirmed = false;
   Widget cancelButton = FlatButton(
     child: Text("Cancel"),
