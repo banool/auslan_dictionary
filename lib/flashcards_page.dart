@@ -102,7 +102,9 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
   }
 
   void completeCard(DRCard card,
-      {Rating rating = Rating.Easy, DateTime? when}) {
+      {Rating rating = Rating.Easy,
+      DateTime? when,
+      bool forceUseTimer = false}) {
     // Don't ack second taps if a timer is running.
     if (nextCardTimer != null) {
       return;
@@ -125,7 +127,8 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
       answers[card] = review;
     });
     if (shouldNavigate) {
-      if (previousRating != null && previousRating != review.rating) {
+      if (forceUseTimer ||
+          (previousRating != null && previousRating != review.rating)) {
         // If we're navigating to the next card because the user changed the
         // rating from the default ("remembered") to something else ("forgot"),
         // start a timer for nextCard, so they can see the feedback for hitting
@@ -146,7 +149,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
     }
   }
 
-  Widget getRatingButton(Rating rating, bool active) {
+  Widget getRatingButton(Rating rating, bool active, {bool isNext = false}) {
     String textData;
     Color backgroundColor;
     Color overlayColor; // For tap animation, should be translucent.
@@ -184,6 +187,13 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
       borderColor = Color.fromARGB(255, 116, 116, 116);
       textColor = Color.fromARGB(204, 0, 0, 0);
     }
+    if (isNext) {
+      textData = "Next";
+      overlayColor = Color.fromARGB(92, 30, 143, 250);
+      backgroundColor = Color.fromARGB(0, 255, 255, 255);
+      borderColor = Color.fromARGB(255, 116, 116, 116);
+      textColor = Color.fromARGB(204, 0, 0, 0);
+    }
     return TextButton(
         child: Text(
           textData,
@@ -203,7 +213,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
             default:
               throw "Rating $rating not supported yet";
           }
-          completeCard(currentCard!, rating: rating);
+          completeCard(currentCard!, rating: rating, forceUseTimer: isNext);
         },
         style: ButtonStyle(
             backgroundColor: MaterialStateProperty.all(backgroundColor),
@@ -273,6 +283,33 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
       );
     }
 
+    Widget? ratingButtonsRow;
+    if (revealed) {
+      switch (revisionStrategy) {
+        case RevisionStrategy.SpacedRepetition:
+          ratingButtonsRow = Row(
+            children: [
+              getRatingButton(Rating.Again, forgotRatingWidgetActive),
+              Padding(
+                padding: EdgeInsets.only(left: 15, right: 15),
+              ),
+              getRatingButton(Rating.Easy, rememberedRatingWidgetActive),
+            ],
+            mainAxisAlignment: MainAxisAlignment.center,
+          );
+          break;
+        case RevisionStrategy.Random:
+          ratingButtonsRow = Row(
+            children: [
+              getRatingButton(Rating.Easy, forgotRatingWidgetActive,
+                  isNext: true),
+            ],
+            mainAxisAlignment: MainAxisAlignment.center,
+          );
+          break;
+      }
+    }
+
     if (!shouldUseHorizontalDisplay) {
       List<Widget?> children = [];
       children.add(topWidget);
@@ -288,16 +325,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
 
       if (revealed) {
         children.add(Padding(padding: EdgeInsets.only(bottom: 10)));
-        children.add(Row(
-          children: [
-            getRatingButton(Rating.Again, forgotRatingWidgetActive),
-            Padding(
-              padding: EdgeInsets.only(left: 15, right: 15),
-            ),
-            getRatingButton(Rating.Easy, rememberedRatingWidgetActive),
-          ],
-          mainAxisAlignment: MainAxisAlignment.center,
-        ));
+        children.add(ratingButtonsRow);
         children.add(regionalInformationWidget);
       }
 
@@ -367,16 +395,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
                     ))
               ];
               if (revealed) {
-                children.add(Row(
-                  children: [
-                    getRatingButton(Rating.Again, forgotRatingWidgetActive),
-                    Padding(
-                      padding: EdgeInsets.only(left: 15, right: 15),
-                    ),
-                    getRatingButton(Rating.Easy, rememberedRatingWidgetActive),
-                  ],
-                  mainAxisAlignment: MainAxisAlignment.center,
-                ));
+                children.add(ratingButtonsRow!);
               }
               return Column(
                   mainAxisAlignment: MainAxisAlignment.center,
