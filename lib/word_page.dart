@@ -508,8 +508,32 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         print("Not calling setState because not mounted");
       }
     } catch (e) {
-      errorWidgets[idx] =
-          Text("Faild to load video, check your internet connection: $e");
+      if ("$e".contains("Socket")) {
+        errorWidgets[idx] = Column(
+          children: [
+            Text(
+              "Failed to load video. Please confirm your phone is connected to the internet. If it is, the Auslan Signbank servers may be having issues. This is not an issue with the app itself.",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 15),
+            ),
+            Padding(padding: EdgeInsets.only(top: 20)),
+            Text(
+              "Error: $e",
+              style: TextStyle(fontSize: 12),
+              textAlign: TextAlign.center,
+            )
+          ],
+          mainAxisAlignment: MainAxisAlignment.center,
+        );
+      } else {
+        errorWidgets[idx] = Column(children: [
+          Text(
+            "Unexpected error: $e",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14),
+          )
+        ]);
+      }
     }
   }
 
