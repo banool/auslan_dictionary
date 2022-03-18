@@ -290,6 +290,14 @@ def parse_subpage(html, word_str) -> SubWord:
     # Get the video links
     video_links = [t["src"] for t in soup.find_all("source")]
 
+    # Assert that all the videos come from the same URL.
+    for l in video_links:
+        if not l.startswith("https://media.auslan.org.au"):
+            raise RuntimeError(f"Unexpected video source: {l}")
+
+    # Trim the base from the video links
+    video_links = [l.split(".org.au/")[1] for l in video_links]
+
     # Get the definitions
     definition_divs_html = soup.find_all("div", {"class": "definition-panel"})
     definitions = {}

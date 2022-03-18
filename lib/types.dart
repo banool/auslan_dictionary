@@ -1,3 +1,5 @@
+const String BASE_URL = "https://media.auslan.org.au/";
+
 class Word implements Comparable<Word> {
   Word({required this.word, required this.subWords});
 
@@ -33,19 +35,31 @@ class Word implements Comparable<Word> {
 class SubWord {
   SubWord(
       {required this.keywords,
-      required this.videoLinks,
+      required this.videoLinksInner,
       required this.definitions,
       required this.regions});
 
   late List<String> keywords;
-  late List<String> videoLinks;
+  late List<String> videoLinksInner;
   late List<Definition> definitions;
   late List<Region> regions;
+
+  List<String> get videoLinks {
+    return this.videoLinksInner.map((e) => "$BASE_URL/$e").toList();
+  }
 
   SubWord.fromJson(dynamic wordJson) {
     this.keywords = wordJson["keywords"].cast<String>();
 
-    this.videoLinks = wordJson["video_links"].cast<String>();
+    this.videoLinksInner = wordJson["video_links"].cast<String>();
+
+    // In case we're reading the old data, remove the base part of the URL.
+    // Naturally this approach assumes that all the data comes from the same
+    // base URL. I'll need to check in periodically to assure that this is true.
+    // For now I validate this as part of scrape_signbank.py.
+    for (int i = 0; i < this.videoLinksInner.length; i++) {
+      this.videoLinksInner[i] = this.videoLinksInner[i].split(".org.au/").last;
+    }
 
     List<Definition> definitions = [];
     wordJson["definitions"].forEach((heading, value) {
@@ -83,7 +97,7 @@ class SubWord {
   // itself has effectively changed for review purposes and it'd make sense to
   // consider it a new master anyway.
   String getKey(String word) {
-    var videoLinks = List.from(this.videoLinks);
+    var videoLinks = List.from(this.videoLinksInner);
     videoLinks.sort();
     String firstVideoLink;
     try {
@@ -92,7 +106,7 @@ class SubWord {
       try {
         firstVideoLink = videoLinks[0].split("/mp4video/")[1];
       } catch (_e) {
-        firstVideoLink = videoLinks[0].split(".com")[1];
+        firstVideoLink = videoLinks[0];
       }
     }
     return "$word-$firstVideoLink";
