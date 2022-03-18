@@ -14,25 +14,25 @@ import 'globals.dart';
 import 'types.dart';
 
 enum PlaybackSpeed {
-  One,
-  PointSevenFive,
   PointFiveZero,
-  OneFiveZero,
+  PointSevenFive,
+  One,
   OneTwoFive,
+  OneFiveZero,
 }
 
 String getPlaybackSpeedString(PlaybackSpeed playbackSpeed) {
   switch (playbackSpeed) {
-    case PlaybackSpeed.One:
-      return "1x";
-    case PlaybackSpeed.PointSevenFive:
-      return "0.75x";
     case PlaybackSpeed.PointFiveZero:
       return "0.5x";
-    case PlaybackSpeed.OneFiveZero:
-      return "1.5x";
+    case PlaybackSpeed.PointSevenFive:
+      return "0.75x";
+    case PlaybackSpeed.One:
+      return "1x";
     case PlaybackSpeed.OneTwoFive:
       return "1.25x";
+    case PlaybackSpeed.OneFiveZero:
+      return "1.5x";
   }
 }
 
@@ -49,6 +49,23 @@ double getDoubleFromPlaybackSpeed(PlaybackSpeed playbackSpeed) {
     case PlaybackSpeed.OneTwoFive:
       return 1.25;
   }
+}
+
+Widget getPlaybackSpeedDropdownWidget(void Function(PlaybackSpeed?) onChanged) {
+  return Align(
+      alignment: Alignment.center,
+      child: DropdownButton<PlaybackSpeed>(
+        icon: Icon(Icons.slow_motion_video),
+        iconEnabledColor: Colors.white,
+        underline: Container(),
+        items: PlaybackSpeed.values.map((PlaybackSpeed value) {
+          return DropdownMenuItem<PlaybackSpeed>(
+            value: value,
+            child: Text(getPlaybackSpeedString(value)),
+          );
+        }).toList(),
+        onChanged: onChanged,
+      ));
 }
 
 class InheritedPlaybackSpeed extends InheritedWidget {
@@ -145,6 +162,20 @@ class _WordPageState extends State<WordPage> {
                 appBar: AppBar(
                   title: Text(word.word),
                   actions: <Widget>[
+                    getPlaybackSpeedDropdownWidget(
+                      (p) {
+                        setState(() {
+                          playbackSpeed = p!;
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(
+                                "Set playback speed to ${getPlaybackSpeedString(p!)}"),
+                            backgroundColor: MAIN_COLOR,
+                            duration: Duration(milliseconds: 1000)));
+                      },
+                    ),
+                    Padding(padding: EdgeInsets.only(left: 2)),
+                    /*
                     Container(
                       padding: const EdgeInsets.all(0),
                       width: 30.0,
@@ -182,6 +213,7 @@ class _WordPageState extends State<WordPage> {
                             side: BorderSide(color: Colors.transparent)),
                       ),
                     ),
+                    */
                     Container(
                       padding: const EdgeInsets.all(0),
                       width: 50.0,

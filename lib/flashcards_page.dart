@@ -492,46 +492,23 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         onWillPop: () async => false,
         child: Scaffold(
           appBar: AppBar(
-              title: Text(appBarTitle),
+              centerTitle: true,
+              title: Text(
+                appBarTitle,
+                textAlign: TextAlign.center,
+              ),
               actions: <Widget>[
-                // TODO: Deduplicate this code from word_page.dart
-                Container(
-                  padding: const EdgeInsets.all(0),
-                  width: 60.0,
-                  child: FlatButton(
-                    padding: EdgeInsets.zero,
-                    textColor: Colors.white,
-                    onPressed: () async {
-                      setState(() {
-                        switch (playbackSpeed) {
-                          case PlaybackSpeed.One:
-                            playbackSpeed = PlaybackSpeed.PointSevenFive;
-                            break;
-                          case PlaybackSpeed.PointSevenFive:
-                            playbackSpeed = PlaybackSpeed.PointFiveZero;
-                            break;
-                          case PlaybackSpeed.PointFiveZero:
-                            playbackSpeed = PlaybackSpeed.OneFiveZero;
-                            break;
-                          case PlaybackSpeed.OneFiveZero:
-                            playbackSpeed = PlaybackSpeed.OneTwoFive;
-                            break;
-                          case PlaybackSpeed.OneTwoFive:
-                            playbackSpeed = PlaybackSpeed.One;
-                            break;
-                        }
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text(
-                              "Set playback speed to ${getPlaybackSpeedString(playbackSpeed)}"),
-                          backgroundColor: MAIN_COLOR,
-                          duration: Duration(milliseconds: 750)));
-                    },
-                    child: Icon(Icons.slow_motion_video),
-                    shape: CircleBorder(
-                        side: BorderSide(color: Colors.transparent)),
-                  ),
-                ),
+                getPlaybackSpeedDropdownWidget((p) {
+                  setState(() {
+                    playbackSpeed = p!;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(
+                          "Set playback speed to ${getPlaybackSpeedString(playbackSpeed)}"),
+                      backgroundColor: MAIN_COLOR,
+                      duration: Duration(milliseconds: 1000)));
+                }),
+                Padding(padding: EdgeInsets.only(left: 18)),
               ],
               leading: IconButton(
                   icon: Icon(Icons.close),
