@@ -14,8 +14,8 @@ void main() async {
       SubWord(definitions: [
         Definition(
             heading: "As a Noun", subdefinitions: ["Someone you love :)"])
-      ], videoLinks: [
-        "https://media.auslan.org.au/auslan/46/46930.mp4"
+      ], videoLinksInner: [
+        "auslan/46/46930.mp4"
       ], regions: [
         Region.EVERYWHERE
       ], keywords: [])
