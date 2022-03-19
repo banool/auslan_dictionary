@@ -1,4 +1,4 @@
-const String BASE_URL = "https://media.auslan.org.au/";
+const String BASE_URL = "https://media.auslan.org.au";
 
 class Word implements Comparable<Word> {
   Word({required this.word, required this.subWords});
