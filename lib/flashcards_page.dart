@@ -472,6 +472,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
   Widget build(BuildContext context) {
     Widget body;
     String appBarTitle;
+    List<Widget> actions = [];
     if (currentCard != null) {
       body = Center(
           child: InheritedPlaybackSpeed(
@@ -482,6 +483,17 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         progressString -= 1;
       }
       appBarTitle = "$progressString / $numCardsToReview";
+      actions.add(getPlaybackSpeedDropdownWidget((p) {
+        setState(() {
+          playbackSpeed = p!;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                "Set playback speed to ${getPlaybackSpeedString(playbackSpeed)}"),
+            backgroundColor: MAIN_COLOR,
+            duration: Duration(milliseconds: 1000)));
+      }));
+      actions.add(Padding(padding: EdgeInsets.only(left: 18)));
     } else {
       body = buildSummaryWidget();
       appBarTitle = "Revision Summary";
@@ -497,19 +509,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
                 appBarTitle,
                 textAlign: TextAlign.center,
               ),
-              actions: <Widget>[
-                getPlaybackSpeedDropdownWidget((p) {
-                  setState(() {
-                    playbackSpeed = p!;
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(
-                          "Set playback speed to ${getPlaybackSpeedString(playbackSpeed)}"),
-                      backgroundColor: MAIN_COLOR,
-                      duration: Duration(milliseconds: 1000)));
-                }),
-                Padding(padding: EdgeInsets.only(left: 18)),
-              ],
+              actions: actions,
               leading: IconButton(
                   icon: Icon(Icons.close),
                   onPressed: () async {
