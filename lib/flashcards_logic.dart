@@ -33,6 +33,7 @@ Map<String, List<SubWordWrapper>> getSubWordsFromWords(Set<Word> favourites) {
     subWords[w.word] = [];
     for (SubWord sw in w.subWords) {
       subWords[w.word]!.add(SubWordWrapper(subWord: sw, index: i));
+      i += 1;
     }
   }
   return subWords;
