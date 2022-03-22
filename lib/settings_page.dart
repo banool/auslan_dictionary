@@ -32,20 +32,6 @@ class SettingsPageState extends State<SettingsPage> {
 
   SettingsPageState(this.controller);
 
-  Future<void>? initStateAsyncFuture;
-
-  @override
-  void initState() {
-    initStateAsyncFuture = initStateAsync();
-    super.initState();
-  }
-
-  Future<void> initStateAsync() async {
-    if (sharedPreferences.getBool(KEY_SHOULD_CACHE) == null) {
-      sharedPreferences.setBool(KEY_SHOULD_CACHE, true);
-    }
-  }
-
   void onChangeShouldCache(bool newValue) {
     setState(() {
       sharedPreferences.setBool(KEY_SHOULD_CACHE, newValue);
@@ -61,225 +47,208 @@ class SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: initStateAsyncFuture,
-        builder: (context, snapshot) {
-          var waitingWidget = Padding(
-              padding: EdgeInsets.only(top: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [CircularProgressIndicator()],
-              ));
-          if (snapshot.connectionState != ConnectionState.done) {
-            return waitingWidget;
-          }
+    String appStoreTileString;
+    if (Platform.isAndroid) {
+      appStoreTileString = 'Give feedback on Play Store';
+    } else if (Platform.isIOS) {
+      appStoreTileString = 'Give feedback on App Store';
+    } else {
+      appStoreTileString = "N/A";
+    }
 
-          String appStoreTileString;
-          if (Platform.isAndroid) {
-            appStoreTileString = 'Give feedback on Play Store';
-          } else if (Platform.isIOS) {
-            appStoreTileString = 'Give feedback on App Store';
-          } else {
-            appStoreTileString = "N/A";
-          }
+    EdgeInsetsDirectional margin =
+        EdgeInsetsDirectional.only(start: 15, end: 15, top: 10, bottom: 10);
 
-          EdgeInsetsDirectional margin = EdgeInsetsDirectional.only(
-              start: 15, end: 15, top: 10, bottom: 10);
-
-          SettingsSection? featuresSection;
-          // TODO: For now, disable flashcards for horizontal displays.
-          if (enableFlashcardsKnob && !getShouldUseHorizontalLayout(context)) {
-            featuresSection = SettingsSection(
-              title: Text('Revision'),
-              tiles: [
-                SettingsTile.switchTile(
-                  title: Text(
-                    'Hide revision feature',
-                    style: TextStyle(fontSize: 15),
-                  ),
-                  initialValue:
-                      sharedPreferences.getBool(KEY_HIDE_FLASHCARDS_FEATURE) ??
-                          false,
-                  onToggle: onChangeHideFlashcardsFeature,
-                ),
-                SettingsTile.navigation(
-                    title: getText(
-                      'Delete all revision progress',
-                    ),
-                    trailing: Container(),
-                    onPressed: (BuildContext context) async {
-                      bool confirmed = await confirmAlert(
-                          context,
-                          "This will delete all your review progress from all "
-                          "time. Your spaced repetition progress will also be "
-                          "deleted. Your favourites will not be affected. "
-                          "Are you 100% sure you want to do this?");
-                      if (confirmed) {
-                        await writeReviews([], [], force: true);
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text("All review progress deleted"),
-                          backgroundColor: MAIN_COLOR,
-                        ));
-                      }
-                    }),
-                SettingsTile.navigation(
-                    title: getText(
-                      'Delete all favourites',
-                    ),
-                    trailing: Container(),
-                    onPressed: (BuildContext context) async {
-                      bool confirmed = await confirmAlert(
-                          context,
-                          "This will delete all your favourites. "
-                          "Are you 100% sure you want to do this?");
-                      if (confirmed) {
-                        await clearFavourites();
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text("All favourites deleted"),
-                          backgroundColor: MAIN_COLOR,
-                        ));
-                      }
-                    }),
-              ],
-              margin: margin,
-            );
-          }
-
-          List<AbstractSettingsSection?> sections = [
-            SettingsSection(
-              title: Text('Cache'),
-              tiles: [
-                SettingsTile.switchTile(
-                  title: Text(
-                    'Cache videos',
-                    style: TextStyle(fontSize: 15),
-                  ),
-                  initialValue: sharedPreferences.getBool(KEY_SHOULD_CACHE)!,
-                  onToggle: onChangeShouldCache,
-                ),
-                SettingsTile.navigation(
-                    title: getText(
-                      'Drop cache',
-                    ),
-                    trailing: Container(),
-                    onPressed: (BuildContext context) async {
-                      await DefaultCacheManager().emptyCache();
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text("Cache dropped"),
-                        backgroundColor: MAIN_COLOR,
-                      ));
-                    }),
-              ],
-              margin: margin,
+    SettingsSection? featuresSection;
+    if (enableFlashcardsKnob && !getShouldUseHorizontalLayout(context)) {
+      featuresSection = SettingsSection(
+        title: Text('Revision'),
+        tiles: [
+          SettingsTile.switchTile(
+            title: Text(
+              'Hide revision feature',
+              style: TextStyle(fontSize: 15),
             ),
-            SettingsSection(
-              title: Text('Data'),
-              tiles: [
-                SettingsTile.navigation(
-                  title: getText(
-                    'Check for new dictionary data',
-                  ),
-                  trailing: Container(),
-                  onPressed: (BuildContext context) async {
-                    bool updated = await getNewData(true);
-                    String message;
-                    if (updated) {
-                      wordsGlobal = await loadWords();
-                      message = "Successfully updated dictionary data";
-                    } else {
-                      message = "Data is already up to date";
-                    }
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text(message), backgroundColor: MAIN_COLOR));
-                  },
-                )
-              ],
-              margin: margin,
-            ),
-            featuresSection,
-            SettingsSection(
-              title: Text('Legal'),
-              tiles: [
-                SettingsTile.navigation(
-                  title: getText(
-                    'See legal information',
-                  ),
-                  trailing: Container(),
-                  onPressed: (BuildContext context) async {
-                    return await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => LegalInformationPage(),
-                        ));
-                  },
-                )
-              ],
-              margin: margin,
-            ),
-            SettingsSection(
-                title: Text('Help'),
-                tiles: [
-                  SettingsTile.navigation(
-                    title: getText(
-                      'Report issue with dictionary data',
-                    ),
-                    trailing: Container(),
-                    onPressed: (BuildContext context) async {
-                      var url = 'https://www.auslan.org.au/feedback/';
-                      await launch(url, forceSafariVC: false);
-                    },
-                  ),
-                  SettingsTile.navigation(
-                    title: getText(
-                      'Report issue with app (GitHub)',
-                    ),
-                    trailing: Container(),
-                    onPressed: (BuildContext context) async {
-                      var url =
-                          'https://github.com/banool/auslan_dictionary/issues';
-                      await launch(url, forceSafariVC: false);
-                    },
-                  ),
-                  SettingsTile.navigation(
-                    title: getText(
-                      'Report issue with app (Email)',
-                    ),
-                    trailing: Container(),
-                    onPressed: (BuildContext context) async {
-                      var mailto = Mailto(
-                          to: ['danielporteous1@gmail.com'],
-                          subject: 'Issue with Auslan Dictionary',
-                          body:
-                              'Please tell me what device you are using and describe the issue in detail. Thanks!');
-                      String url = "$mailto";
-                      if (await canLaunch(url)) {
-                        await launch(url);
-                      } else {
-                        print('Could not launch $url');
-                      }
-                    },
-                  ),
-                  SettingsTile.navigation(
-                    title: getText(appStoreTileString),
-                    trailing: Container(),
-                    onPressed: (BuildContext context) async {
-                      await LaunchReview.launch(
-                          iOSAppId: "1531368368", writeReview: true);
-                    },
-                  ),
-                ],
-                margin: margin),
-          ];
+            initialValue:
+                sharedPreferences.getBool(KEY_HIDE_FLASHCARDS_FEATURE) ?? false,
+            onToggle: onChangeHideFlashcardsFeature,
+          ),
+          SettingsTile.navigation(
+              title: getText(
+                'Delete all revision progress',
+              ),
+              trailing: Container(),
+              onPressed: (BuildContext context) async {
+                bool confirmed = await confirmAlert(
+                    context,
+                    "This will delete all your review progress from all "
+                    "time. Your spaced repetition progress will also be "
+                    "deleted. Your favourites will not be affected. "
+                    "Are you 100% sure you want to do this?");
+                if (confirmed) {
+                  await writeReviews([], [], force: true);
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text("All review progress deleted"),
+                    backgroundColor: MAIN_COLOR,
+                  ));
+                }
+              }),
+          SettingsTile.navigation(
+              title: getText(
+                'Delete all favourites',
+              ),
+              trailing: Container(),
+              onPressed: (BuildContext context) async {
+                bool confirmed = await confirmAlert(
+                    context,
+                    "This will delete all your favourites. "
+                    "Are you 100% sure you want to do this?");
+                if (confirmed) {
+                  await clearFavourites();
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text("All favourites deleted"),
+                    backgroundColor: MAIN_COLOR,
+                  ));
+                }
+              }),
+        ],
+        margin: margin,
+      );
+    }
 
-          List<AbstractSettingsSection> nonNullSections = [];
-          for (AbstractSettingsSection? section in sections) {
-            if (section != null) {
-              nonNullSections.add(section);
-            }
-          }
+    List<AbstractSettingsSection?> sections = [
+      SettingsSection(
+        title: Text('Cache'),
+        tiles: [
+          SettingsTile.switchTile(
+            title: Text(
+              'Cache videos',
+              style: TextStyle(fontSize: 15),
+            ),
+            initialValue: sharedPreferences.getBool(KEY_SHOULD_CACHE) ?? true,
+            onToggle: onChangeShouldCache,
+          ),
+          SettingsTile.navigation(
+              title: getText(
+                'Drop cache',
+              ),
+              trailing: Container(),
+              onPressed: (BuildContext context) async {
+                await DefaultCacheManager().emptyCache();
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text("Cache dropped"),
+                  backgroundColor: MAIN_COLOR,
+                ));
+              }),
+        ],
+        margin: margin,
+      ),
+      SettingsSection(
+        title: Text('Data'),
+        tiles: [
+          SettingsTile.navigation(
+            title: getText(
+              'Check for new dictionary data',
+            ),
+            trailing: Container(),
+            onPressed: (BuildContext context) async {
+              bool updated = await getNewData(true);
+              String message;
+              if (updated) {
+                wordsGlobal = await loadWords();
+                message = "Successfully updated dictionary data";
+              } else {
+                message = "Data is already up to date";
+              }
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(message), backgroundColor: MAIN_COLOR));
+            },
+          )
+        ],
+        margin: margin,
+      ),
+      featuresSection,
+      SettingsSection(
+        title: Text('Legal'),
+        tiles: [
+          SettingsTile.navigation(
+            title: getText(
+              'See legal information',
+            ),
+            trailing: Container(),
+            onPressed: (BuildContext context) async {
+              return await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => LegalInformationPage(),
+                  ));
+            },
+          )
+        ],
+        margin: margin,
+      ),
+      SettingsSection(
+          title: Text('Help'),
+          tiles: [
+            SettingsTile.navigation(
+              title: getText(
+                'Report issue with dictionary data',
+              ),
+              trailing: Container(),
+              onPressed: (BuildContext context) async {
+                var url = 'https://www.auslan.org.au/feedback/';
+                await launch(url, forceSafariVC: false);
+              },
+            ),
+            SettingsTile.navigation(
+              title: getText(
+                'Report issue with app (GitHub)',
+              ),
+              trailing: Container(),
+              onPressed: (BuildContext context) async {
+                var url = 'https://github.com/banool/auslan_dictionary/issues';
+                await launch(url, forceSafariVC: false);
+              },
+            ),
+            SettingsTile.navigation(
+              title: getText(
+                'Report issue with app (Email)',
+              ),
+              trailing: Container(),
+              onPressed: (BuildContext context) async {
+                var mailto = Mailto(
+                    to: ['danielporteous1@gmail.com'],
+                    subject: 'Issue with Auslan Dictionary',
+                    body:
+                        'Please tell me what device you are using and describe the issue in detail. Thanks!');
+                String url = "$mailto";
+                if (await canLaunch(url)) {
+                  await launch(url);
+                } else {
+                  print('Could not launch $url');
+                }
+              },
+            ),
+            SettingsTile.navigation(
+              title: getText(appStoreTileString),
+              trailing: Container(),
+              onPressed: (BuildContext context) async {
+                await LaunchReview.launch(
+                    iOSAppId: "1531368368", writeReview: true);
+              },
+            ),
+          ],
+          margin: margin),
+    ];
 
-          return SettingsList(sections: nonNullSections);
-        });
+    List<AbstractSettingsSection> nonNullSections = [];
+    for (AbstractSettingsSection? section in sections) {
+      if (section != null) {
+        nonNullSections.add(section);
+      }
+    }
+
+    return SettingsList(sections: nonNullSections);
   }
 }
 
