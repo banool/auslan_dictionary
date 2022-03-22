@@ -56,8 +56,6 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
     controller = _controller;
   }
 
-  late Future<void> initStateAsyncFuture;
-
   late int numEnabledFlashcardTypes;
   late final bool initialValueSignToWord;
   late final bool initialValueWordToSign;
@@ -71,7 +69,8 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
   @override
   void initState() {
     super.initState();
-    initStateAsyncFuture = initStateAsync();
+    favouriteSubWords = getSubWordsFromWords(favouritesGlobal);
+    updateRevisionSettings();
     initialValueSignToWord =
         sharedPreferences.getBool(KEY_SIGN_TO_WORD) ?? true;
     initialValueWordToSign =
@@ -83,17 +82,6 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
     if (initialValueWordToSign) {
       numEnabledFlashcardTypes += 1;
     }
-  }
-
-  Future<void> initStateAsync() async {
-    await loadFavouritesInner();
-  }
-
-  Future<void> loadFavouritesInner() async {
-    setState(() {
-      favouriteSubWords = getSubWordsFromWords(favouritesGlobal);
-      updateRevisionSettings();
-    });
   }
 
   void updateFilteredSubwords() {
@@ -192,270 +180,257 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: initStateAsyncFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return new Center(
-              child: new CircularProgressIndicator(),
-            );
-          }
-          EdgeInsetsDirectional margin = EdgeInsetsDirectional.only(
-              start: 15, end: 15, top: 10, bottom: 10);
+    EdgeInsetsDirectional margin =
+        EdgeInsetsDirectional.only(start: 15, end: 15, top: 10, bottom: 10);
 
-          List<int> additionalRegionsValues =
-              (sharedPreferences.getStringList(KEY_FLASHCARD_REGIONS) ?? [])
-                  .map((e) => int.parse(e))
-                  .toList();
+    List<int> additionalRegionsValues =
+        (sharedPreferences.getStringList(KEY_FLASHCARD_REGIONS) ?? [])
+            .map((e) => int.parse(e))
+            .toList();
 
-          String regionsString = "All of Australia";
+    String regionsString = "All of Australia";
 
-          String additionalRegionsValuesString = additionalRegionsValues
-              .map((i) => Region.values[i].pretty)
-              .toList()
-              .join(", ");
+    String additionalRegionsValuesString = additionalRegionsValues
+        .map((i) => Region.values[i].pretty)
+        .toList()
+        .join(", ");
 
-          if (additionalRegionsValuesString.length > 0) {
-            regionsString += " + " + additionalRegionsValuesString;
-          }
+    if (additionalRegionsValuesString.length > 0) {
+      regionsString += " + " + additionalRegionsValuesString;
+    }
 
-          bool useUnknownRegionSigns =
-              sharedPreferences.getBool(KEY_USE_UNKNOWN_REGION_SIGNS) ?? true;
+    bool useUnknownRegionSigns =
+        sharedPreferences.getBool(KEY_USE_UNKNOWN_REGION_SIGNS) ?? true;
 
-          if (useUnknownRegionSigns) {
-            regionsString += " + signs with unknown region";
-          }
+    if (useUnknownRegionSigns) {
+      regionsString += " + signs with unknown region";
+    }
 
-          var revisionStrategy = loadRevisionStrategy();
+    var revisionStrategy = loadRevisionStrategy();
 
-          int cardsToDo =
-              getNumDueCards(dolphinInformation.dolphin, revisionStrategy);
-          String cardNumberString;
-          switch (revisionStrategy) {
-            case RevisionStrategy.Random:
-              cardNumberString = "$cardsToDo cards selected";
-              break;
-            case RevisionStrategy.SpacedRepetition:
-              cardNumberString = "$cardsToDo cards due";
-              break;
-          }
+    int cardsToDo =
+        getNumDueCards(dolphinInformation.dolphin, revisionStrategy);
+    String cardNumberString;
+    switch (revisionStrategy) {
+      case RevisionStrategy.Random:
+        cardNumberString = "$cardsToDo cards selected";
+        break;
+      case RevisionStrategy.SpacedRepetition:
+        cardNumberString = "$cardsToDo cards due";
+        break;
+    }
 
-          List<AbstractSettingsSection?> sections = [
-            SettingsSection(
-                title: Padding(
-                    padding: EdgeInsets.only(bottom: 5),
-                    child: Text(
-                      'Flashcard Types',
-                      style: TextStyle(fontSize: 16),
-                    )),
-                tiles: [
-                  SettingsTile.switchTile(
-                      title: Text(
-                        'Sign -> Word',
-                        style: TextStyle(fontSize: 15),
-                      ),
-                      initialValue:
-                          sharedPreferences.getBool(KEY_SIGN_TO_WORD) ?? true,
-                      onToggle: (newValue) {
-                        onPrefSwitch(KEY_SIGN_TO_WORD, newValue);
-                        updateRevisionSettings();
-                      }),
-                  SettingsTile.switchTile(
-                      title: Text(
-                        'Word -> Sign',
-                        style: TextStyle(fontSize: 15),
-                      ),
-                      initialValue:
-                          sharedPreferences.getBool(KEY_WORD_TO_SIGN) ?? true,
-                      onToggle: (newValue) {
-                        onPrefSwitch(KEY_WORD_TO_SIGN, newValue);
-                        updateRevisionSettings();
-                      }),
-                ]),
-            SettingsSection(
-              title: Padding(
-                  padding: EdgeInsets.only(bottom: 5),
-                  child: Text(
-                    'Revision Settings',
-                    style: TextStyle(fontSize: 16),
-                  )),
-              tiles: [
-                SettingsTile.navigation(
-                  title: getText('Select revision strategy'),
-                  trailing: Container(),
-                  onPressed: (BuildContext context) async {
-                    await showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          SimpleDialog dialog = SimpleDialog(
-                            title: const Text('Strategy'),
-                            children: RevisionStrategy.values
-                                .map((e) => SimpleDialogOption(
-                                      child: Container(
-                                        padding: EdgeInsets.all(10),
-                                        child: Text(
-                                          e.pretty,
-                                          textAlign: TextAlign.center,
-                                        ),
-                                        decoration: BoxDecoration(
-                                            border: Border.all(
-                                                color: settingsBackgroundColor),
-                                            color: settingsBackgroundColor,
-                                            borderRadius:
-                                                BorderRadius.circular(20)),
-                                      ),
-                                      onPressed: () async {
-                                        setState(() {
-                                          sharedPreferences.setInt(
-                                              KEY_REVISION_STRATEGY, e.index);
-                                          updateRevisionSettings();
-                                        });
-                                        Navigator.of(context).pop();
-                                      },
-                                    ))
-                                .toList(),
-                          );
-                          return dialog;
-                        });
-                  },
-                  description: Text(
-                    revisionStrategy.pretty,
-                    textAlign: TextAlign.center,
-                  ),
+    List<AbstractSettingsSection?> sections = [
+      SettingsSection(
+          title: Padding(
+              padding: EdgeInsets.only(bottom: 5),
+              child: Text(
+                'Flashcard Types',
+                style: TextStyle(fontSize: 16),
+              )),
+          tiles: [
+            SettingsTile.switchTile(
+                title: Text(
+                  'Sign -> Word',
+                  style: TextStyle(fontSize: 15),
                 ),
-                SettingsTile.navigation(
-                  title: getText("Select additional sign regions"),
-                  trailing: Container(),
-                  onPressed: (BuildContext context) async {
-                    await showDialog(
-                      context: context,
-                      builder: (ctx) {
-                        return MultiSelectDialog(
-                          listType: MultiSelectListType.CHIP,
-                          title: Text("Regions"),
-                          items: regionsWithoutEverywhere
-                              .map((e) => MultiSelectItem(e.index, e.pretty))
-                              .toList(),
-                          initialValue: additionalRegionsValues,
-                          onConfirm: (values) {
-                            setState(() {
-                              sharedPreferences.setStringList(
-                                  KEY_FLASHCARD_REGIONS,
-                                  values.map((e) => e.toString()).toList());
-                              updateRevisionSettings();
-                            });
-                          },
-                        );
-                      },
-                    );
-                  },
+                initialValue:
+                    sharedPreferences.getBool(KEY_SIGN_TO_WORD) ?? true,
+                onToggle: (newValue) {
+                  onPrefSwitch(KEY_SIGN_TO_WORD, newValue);
+                  updateRevisionSettings();
+                }),
+            SettingsTile.switchTile(
+                title: Text(
+                  'Word -> Sign',
+                  style: TextStyle(fontSize: 15),
                 ),
-                SettingsTile.switchTile(
-                  title: Text(
-                    UNKNOWN_REGIONS_TEXT,
-                    style: TextStyle(fontSize: 15),
-                  ),
-                  initialValue: useUnknownRegionSigns,
-                  onToggle: (newValue) {
-                    onPrefSwitch(KEY_USE_UNKNOWN_REGION_SIGNS, newValue,
-                        influencesStartValidity: false);
-                    updateRevisionSettings();
-                  },
-                  description: Text(
-                    regionsString,
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                SettingsTile.switchTile(
-                  title: Text(
-                    ONLY_ONE_CARD_TEXT,
-                    style: TextStyle(fontSize: 15),
-                  ),
-                  initialValue:
-                      sharedPreferences.getBool(KEY_ONE_CARD_PER_WORD) ?? false,
-                  onToggle: (newValue) {
-                    onPrefSwitch(KEY_ONE_CARD_PER_WORD, newValue,
-                        influencesStartValidity: false);
-                    updateRevisionSettings();
-                  },
-                )
-              ],
-              margin: margin,
-            ),
-          ];
-
-          List<AbstractSettingsSection> nonNullSections = [];
-          for (AbstractSettingsSection? section in sections) {
-            if (section != null) {
-              nonNullSections.add(section);
-            }
-          }
-
-          Widget settings = SettingsList(
-            sections: nonNullSections,
-          );
-
-          Function()? onPressedStart;
-          if (startValid()) {
-            onPressedStart = () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => FlashcardsPage(
-                          di: dolphinInformation,
-                          revisionStrategy: revisionStrategy,
-                          existingReviews: existingReviews,
-                        )),
-              );
-              setState(() {
-                existingReviews = readReviews();
-              });
-              print(
-                  "Pop: Read ${existingReviews!.length} reviews from storage");
-              updateRevisionSettings();
-            };
-          }
-
-          return Container(
-            child: Center(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Padding(
-                    padding: EdgeInsets.only(top: 30, bottom: 10),
-                    child: TextButton(
-                      child: Text(
-                        "Start",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 20),
-                      ),
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.resolveWith(
-                          (states) {
-                            if (states.contains(MaterialState.disabled)) {
-                              return Colors.grey;
-                            } else {
-                              return MAIN_COLOR;
-                            }
-                          },
-                        ),
-                        foregroundColor:
-                            MaterialStateProperty.all<Color>(Colors.white),
-                        minimumSize:
-                            MaterialStateProperty.all<Size>(Size(120, 50)),
-                      ),
-                      onPressed: onPressedStart,
-                    )),
-                Text(
-                  cardNumberString,
-                  textAlign: TextAlign.center,
-                ),
-                Expanded(child: settings),
-              ],
+                initialValue:
+                    sharedPreferences.getBool(KEY_WORD_TO_SIGN) ?? true,
+                onToggle: (newValue) {
+                  onPrefSwitch(KEY_WORD_TO_SIGN, newValue);
+                  updateRevisionSettings();
+                }),
+          ]),
+      SettingsSection(
+        title: Padding(
+            padding: EdgeInsets.only(bottom: 5),
+            child: Text(
+              'Revision Settings',
+              style: TextStyle(fontSize: 16),
             )),
-            color: settingsBackgroundColor,
-          );
+        tiles: [
+          SettingsTile.navigation(
+            title: getText('Select revision strategy'),
+            trailing: Container(),
+            onPressed: (BuildContext context) async {
+              await showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    SimpleDialog dialog = SimpleDialog(
+                      title: const Text('Strategy'),
+                      children: RevisionStrategy.values
+                          .map((e) => SimpleDialogOption(
+                                child: Container(
+                                  padding: EdgeInsets.all(10),
+                                  child: Text(
+                                    e.pretty,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  decoration: BoxDecoration(
+                                      border: Border.all(
+                                          color: settingsBackgroundColor),
+                                      color: settingsBackgroundColor,
+                                      borderRadius: BorderRadius.circular(20)),
+                                ),
+                                onPressed: () async {
+                                  setState(() {
+                                    sharedPreferences.setInt(
+                                        KEY_REVISION_STRATEGY, e.index);
+                                    updateRevisionSettings();
+                                  });
+                                  Navigator.of(context).pop();
+                                },
+                              ))
+                          .toList(),
+                    );
+                    return dialog;
+                  });
+            },
+            description: Text(
+              revisionStrategy.pretty,
+              textAlign: TextAlign.center,
+            ),
+          ),
+          SettingsTile.navigation(
+            title: getText("Select additional sign regions"),
+            trailing: Container(),
+            onPressed: (BuildContext context) async {
+              await showDialog(
+                context: context,
+                builder: (ctx) {
+                  return MultiSelectDialog(
+                    listType: MultiSelectListType.CHIP,
+                    title: Text("Regions"),
+                    items: regionsWithoutEverywhere
+                        .map((e) => MultiSelectItem(e.index, e.pretty))
+                        .toList(),
+                    initialValue: additionalRegionsValues,
+                    onConfirm: (values) {
+                      setState(() {
+                        sharedPreferences.setStringList(KEY_FLASHCARD_REGIONS,
+                            values.map((e) => e.toString()).toList());
+                        updateRevisionSettings();
+                      });
+                    },
+                  );
+                },
+              );
+            },
+          ),
+          SettingsTile.switchTile(
+            title: Text(
+              UNKNOWN_REGIONS_TEXT,
+              style: TextStyle(fontSize: 15),
+            ),
+            initialValue: useUnknownRegionSigns,
+            onToggle: (newValue) {
+              onPrefSwitch(KEY_USE_UNKNOWN_REGION_SIGNS, newValue,
+                  influencesStartValidity: false);
+              updateRevisionSettings();
+            },
+            description: Text(
+              regionsString,
+              textAlign: TextAlign.center,
+            ),
+          ),
+          SettingsTile.switchTile(
+            title: Text(
+              ONLY_ONE_CARD_TEXT,
+              style: TextStyle(fontSize: 15),
+            ),
+            initialValue:
+                sharedPreferences.getBool(KEY_ONE_CARD_PER_WORD) ?? false,
+            onToggle: (newValue) {
+              onPrefSwitch(KEY_ONE_CARD_PER_WORD, newValue,
+                  influencesStartValidity: false);
+              updateRevisionSettings();
+            },
+          )
+        ],
+        margin: margin,
+      ),
+    ];
+
+    List<AbstractSettingsSection> nonNullSections = [];
+    for (AbstractSettingsSection? section in sections) {
+      if (section != null) {
+        nonNullSections.add(section);
+      }
+    }
+
+    Widget settings = SettingsList(
+      sections: nonNullSections,
+    );
+
+    Function()? onPressedStart;
+    if (startValid()) {
+      onPressedStart = () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => FlashcardsPage(
+                    di: dolphinInformation,
+                    revisionStrategy: revisionStrategy,
+                    existingReviews: existingReviews,
+                  )),
+        );
+        setState(() {
+          existingReviews = readReviews();
         });
+        print("Pop: Read ${existingReviews!.length} reviews from storage");
+        updateRevisionSettings();
+      };
+    }
+
+    return Container(
+      child: Center(
+          child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Padding(
+              padding: EdgeInsets.only(top: 30, bottom: 10),
+              child: TextButton(
+                child: Text(
+                  "Start",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 20),
+                ),
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.resolveWith(
+                    (states) {
+                      if (states.contains(MaterialState.disabled)) {
+                        return Colors.grey;
+                      } else {
+                        return MAIN_COLOR;
+                      }
+                    },
+                  ),
+                  foregroundColor:
+                      MaterialStateProperty.all<Color>(Colors.white),
+                  minimumSize: MaterialStateProperty.all<Size>(Size(120, 50)),
+                ),
+                onPressed: onPressedStart,
+              )),
+          Text(
+            cardNumberString,
+            textAlign: TextAlign.center,
+          ),
+          Expanded(child: settings),
+        ],
+      )),
+      color: settingsBackgroundColor,
+    );
   }
 }
