@@ -61,8 +61,6 @@ class _FavouritesPageState extends State<FavouritesPage> {
 
   final _favouritesFieldController = TextEditingController();
 
-  late Future<void> initStateAsyncFuture;
-
   void toggleSort() {
     setState(() {
       controller.viewSortedList = !controller.viewSortedList;
@@ -72,17 +70,8 @@ class _FavouritesPageState extends State<FavouritesPage> {
 
   @override
   void initState() {
-    initStateAsyncFuture = initStateAsync();
-    super.initState();
-  }
-
-  Future<void> initStateAsync() async {
-    await loadFavouritesInner();
-    search();
-  }
-
-  Future<void> loadFavouritesInner() async {
     favouritesSearched = List.from(favouritesGlobal);
+    super.initState();
   }
 
   void updateCurrentSearchTerm(String term) {
@@ -130,58 +119,48 @@ class _FavouritesPageState extends State<FavouritesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: initStateAsyncFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return new Center(
-              child: new CircularProgressIndicator(),
-            );
-          }
-          return Container(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.only(
-                        bottom: 10, left: 32, right: 32, top: 0),
-                    child: Form(
-                        child: Column(children: <Widget>[
-                      TextField(
-                        controller: _favouritesFieldController,
-                        decoration: InputDecoration(
-                          hintText: 'Search your favourites',
-                          suffixIcon: IconButton(
-                            onPressed: () {
-                              clearSearch();
-                            },
-                            icon: Icon(Icons.clear),
-                          ),
-                        ),
-                        // The validator receives the text that the user has entered.
-                        onChanged: (String value) {
-                          updateCurrentSearchTerm(value);
-                          search();
-                        },
-                        autofocus: false,
-                        textInputAction: TextInputAction.search,
-                        keyboardType: TextInputType.visiblePassword,
-                        autocorrect: false,
-                      ),
-                    ])),
+    return Container(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(bottom: 10, left: 32, right: 32, top: 0),
+              child: Form(
+                  child: Column(children: <Widget>[
+                TextField(
+                  controller: _favouritesFieldController,
+                  decoration: InputDecoration(
+                    hintText: 'Search your favourites',
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        clearSearch();
+                      },
+                      icon: Icon(Icons.clear),
+                    ),
                   ),
-                  new Expanded(
-                    child: listWidget(context, favouritesSearched, wordsGlobal,
-                        removeFavourite, refreshFavourites),
-                  ),
-                ],
-              ),
+                  // The validator receives the text that the user has entered.
+                  onChanged: (String value) {
+                    updateCurrentSearchTerm(value);
+                    search();
+                  },
+                  autofocus: false,
+                  textInputAction: TextInputAction.search,
+                  keyboardType: TextInputType.visiblePassword,
+                  autocorrect: false,
+                ),
+              ])),
             ),
-          );
-        });
+            new Expanded(
+              child: listWidget(context, favouritesSearched, wordsGlobal,
+                  removeFavourite, refreshFavourites),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
