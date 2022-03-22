@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import 'common.dart';
 import 'types.dart';
+import 'video_player_screen.dart';
 
 // TODO: Consider prefetching the videos as the user goes through, for speed.
 // TODO: Add forwards and backwards button, to go back and fogrth and see / change your answers.
