@@ -52,20 +52,35 @@ double getDoubleFromPlaybackSpeed(PlaybackSpeed playbackSpeed) {
 }
 
 Widget getPlaybackSpeedDropdownWidget(void Function(PlaybackSpeed?) onChanged) {
-  return Align(
-      alignment: Alignment.center,
-      child: DropdownButton<PlaybackSpeed>(
-        icon: Icon(Icons.slow_motion_video),
-        iconEnabledColor: Colors.white,
-        underline: Container(),
-        items: PlaybackSpeed.values.map((PlaybackSpeed value) {
-          return DropdownMenuItem<PlaybackSpeed>(
-            value: value,
-            child: Text(getPlaybackSpeedString(value)),
-          );
-        }).toList(),
-        onChanged: onChanged,
-      ));
+  return Container(
+      child: Align(
+          alignment: Alignment.center,
+          child: PopupMenuButton<PlaybackSpeed>(
+            icon: Icon(Icons.slow_motion_video),
+            itemBuilder: (BuildContext context) {
+              return PlaybackSpeed.values.map((PlaybackSpeed value) {
+                return PopupMenuItem<PlaybackSpeed>(
+                  value: value,
+                  child: Text(getPlaybackSpeedString(value)),
+                );
+              }).toList();
+            },
+            onSelected: onChanged,
+          )));
+}
+
+Widget getAuslanSignbankLaunchAppBarActionWidget(
+    BuildContext context, String word, int currentPage) {
+  return buildActionButton(
+    context,
+    Icon(Icons.public, semanticLabel: "Link to sign in Auslan Signbank"),
+    () async {
+      print('sdfdsf');
+      var url =
+          'http://www.auslan.org.au/dictionary/words/$word-${currentPage + 1}.html';
+      await launch(url, forceSafariVC: false);
+    },
+  );
 }
 
 class InheritedPlaybackSpeed extends InheritedWidget {
@@ -161,7 +176,23 @@ class _WordPageState extends State<WordPage> {
               return Scaffold(
                 appBar: AppBar(
                   title: Text(word.word),
-                  actions: <Widget>[
+                  actions: buildActionButtons([
+                    buildActionButton(
+                      context,
+                      starIcon,
+                      () async {
+                        setState(() {
+                          isFavourited = !isFavourited;
+                        });
+                        if (isFavourited) {
+                          await addToFavourites(word);
+                        } else {
+                          await removeFromFavourites(word);
+                        }
+                      },
+                    ),
+                    getAuslanSignbankLaunchAppBarActionWidget(
+                        context, word.word, currentPage),
                     getPlaybackSpeedDropdownWidget(
                       (p) {
                         setState(() {
@@ -173,86 +204,8 @@ class _WordPageState extends State<WordPage> {
                             backgroundColor: MAIN_COLOR,
                             duration: Duration(milliseconds: 1000)));
                       },
-                    ),
-                    Padding(padding: EdgeInsets.only(left: 2)),
-                    /*
-                    Container(
-                      padding: const EdgeInsets.all(0),
-                      width: 30.0,
-                      child: FlatButton(
-                        padding: EdgeInsets.zero,
-                        textColor: Colors.white,
-                        onPressed: () async {
-                          setState(() {
-                            switch (playbackSpeed) {
-                              case PlaybackSpeed.One:
-                                playbackSpeed = PlaybackSpeed.PointSevenFive;
-                                break;
-                              case PlaybackSpeed.PointSevenFive:
-                                playbackSpeed = PlaybackSpeed.PointFiveZero;
-                                break;
-                              case PlaybackSpeed.PointFiveZero:
-                                playbackSpeed = PlaybackSpeed.OneFiveZero;
-                                break;
-                              case PlaybackSpeed.OneFiveZero:
-                                playbackSpeed = PlaybackSpeed.OneTwoFive;
-                                break;
-                              case PlaybackSpeed.OneTwoFive:
-                                playbackSpeed = PlaybackSpeed.One;
-                                break;
-                            }
-                          });
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text(
-                                  "Set playback speed to ${getPlaybackSpeedString(playbackSpeed)}"),
-                              backgroundColor: MAIN_COLOR,
-                              duration: Duration(milliseconds: 750)));
-                        },
-                        child: Icon(Icons.slow_motion_video),
-                        shape: CircleBorder(
-                            side: BorderSide(color: Colors.transparent)),
-                      ),
-                    ),
-                    */
-                    Container(
-                      padding: const EdgeInsets.all(0),
-                      width: 50.0,
-                      child: FlatButton(
-                        padding: EdgeInsets.zero,
-                        textColor: Colors.white,
-                        onPressed: () async {
-                          setState(() {
-                            isFavourited = !isFavourited;
-                          });
-                          if (isFavourited) {
-                            await addToFavourites(word);
-                          } else {
-                            await removeFromFavourites(word);
-                          }
-                        },
-                        child: starIcon,
-                        shape: CircleBorder(
-                            side: BorderSide(color: Colors.transparent)),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.only(right: 10),
-                      width: 40.0,
-                      child: FlatButton(
-                        padding: EdgeInsets.zero,
-                        textColor: Colors.white,
-                        onPressed: () async {
-                          var url =
-                              'http://www.auslan.org.au/dictionary/words/${word.word}-${currentPage + 1}.html';
-                          await launch(url, forceSafariVC: false);
-                        },
-                        child: Icon(Icons.public,
-                            semanticLabel: "Link to sign in Auslan Signbank"),
-                        shape: CircleBorder(
-                            side: BorderSide(color: Colors.transparent)),
-                      ),
-                    ),
-                  ],
+                    )
+                  ]),
                 ),
                 bottomNavigationBar: Padding(
                   padding: EdgeInsets.only(top: 5, bottom: 10),

@@ -285,3 +285,38 @@ Future<bool> confirmAlert(BuildContext context, String content) async {
   );
   return confirmed;
 }
+
+Widget buildActionButton(
+    BuildContext context, Icon icon, void Function() onPressed,
+    {bool enabled = true,
+    Color enabledColor = Colors.white,
+    Color disabledColor = Colors.grey}) {
+  void Function()? onPressedFunc = onPressed;
+  if (!enabled) {
+    onPressedFunc = null;
+  }
+  return Container(
+      width: 45,
+      child: TextButton(
+          onPressed: onPressedFunc,
+          child: icon,
+          style: ButtonStyle(
+              padding: MaterialStateProperty.all(EdgeInsets.zero),
+              shape: MaterialStateProperty.all(
+                  CircleBorder(side: BorderSide(color: Colors.transparent))),
+              fixedSize: MaterialStateProperty.all(Size.fromWidth(10)),
+              foregroundColor: MaterialStateProperty.resolveWith(
+                (states) {
+                  if (states.contains(MaterialState.disabled)) {
+                    return disabledColor;
+                  } else {
+                    return enabledColor;
+                  }
+                },
+              ))));
+}
+
+List<Widget> buildActionButtons(List<Widget> actions) {
+  actions = actions + <Widget>[Padding(padding: EdgeInsets.only(right: 5))];
+  return actions;
+}

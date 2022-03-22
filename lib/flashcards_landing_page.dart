@@ -60,8 +60,8 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
   late final bool initialValueSignToWord;
   late final bool initialValueWordToSign;
 
-  late final Map<String, List<SubWord>> favouriteSubWords;
-  Map<String, List<SubWord>> filteredSubWords = Map();
+  late final Map<String, List<SubWordWrapper>> favouriteSubWords;
+  Map<String, List<SubWordWrapper>> filteredSubWords = Map();
 
   late DolphinInformation dolphinInformation;
   List<Review>? existingReviews;

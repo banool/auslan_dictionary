@@ -224,25 +224,15 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
                 BorderSide(color: borderColor, width: 1.5))));
   }
 
-  Widget buildFlashcardWidget(DRCard card, bool revealed) {
+  Widget buildFlashcardWidget(DRCard card, SubWord subWord, String word,
+      bool wordToSign, bool revealed) {
     var shouldUseHorizontalDisplay = getShouldUseHorizontalLayout(context);
-
-    SubWord sw = di.keyToSubWordMap[card.master]!;
-
-    String word;
-    bool wordToSign = card.back![0] == VIDEO_LINKS_MARKER;
-    if (wordToSign) {
-      // Word on front, video on back.
-      word = card.front![0];
-    } else {
-      word = card.back![0];
-    }
 
     // See here for an explanation of why I pass in a key here:
     // https://stackoverflow.com/questions/55237188/flutter-is-not-rebuilding-same-widget-with-different-parameters
     var videoPlayerScreen = VideoPlayerScreen(
-      videoLinks: sw.videoLinks,
-      key: Key(sw.videoLinks[0]),
+      videoLinks: subWord.videoLinks,
+      key: Key(subWord.videoLinks[0]),
     );
 
     Widget topWidget;
@@ -276,7 +266,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
     Widget regionalInformationWidget;
     if (revealed) {
       regionalInformationWidget =
-          getRegionalInformationWidget(sw, shouldUseHorizontalDisplay);
+          getRegionalInformationWidget(subWord, shouldUseHorizontalDisplay);
     } else {
       regionalInformationWidget = Container(
         padding: EdgeInsets.only(top: 25),
@@ -474,26 +464,50 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
     String appBarTitle;
     List<Widget> actions = [];
     if (currentCard != null) {
+      DRCard card = currentCard!;
+
+      SubWordWrapper subWordWrapper = di.keyToSubWordMap[card.master]!;
+
+      String word;
+      bool wordToSign = card.back![0] == VIDEO_LINKS_MARKER;
+      if (wordToSign) {
+        // Word on front, video on back.
+        word = card.front![0];
+      } else {
+        word = card.back![0];
+      }
+
+      bool videoIsShowing = currentCardRevealed || !wordToSign;
+
       body = Center(
           child: InheritedPlaybackSpeed(
               playbackSpeed: playbackSpeed,
-              child: buildFlashcardWidget(currentCard!, currentCardRevealed)));
+              child: buildFlashcardWidget(card, subWordWrapper.subWord, word,
+                  wordToSign, currentCardRevealed)));
       int progressString = getCardsReviewed() + 1;
       if (currentCardRevealed) {
         progressString -= 1;
       }
       appBarTitle = "$progressString / $numCardsToReview";
-      actions.add(getPlaybackSpeedDropdownWidget((p) {
-        setState(() {
-          playbackSpeed = p!;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(
-                "Set playback speed to ${getPlaybackSpeedString(playbackSpeed)}"),
-            backgroundColor: MAIN_COLOR,
-            duration: Duration(milliseconds: 1000)));
-      }));
-      actions.add(Padding(padding: EdgeInsets.only(left: 18)));
+      if (currentCardRevealed) {
+        actions.add(getAuslanSignbankLaunchAppBarActionWidget(
+          context,
+          word,
+          subWordWrapper.index,
+        ));
+      }
+      if (videoIsShowing) {
+        actions.add(getPlaybackSpeedDropdownWidget((p) {
+          setState(() {
+            playbackSpeed = p!;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(
+                  "Set playback speed to ${getPlaybackSpeedString(playbackSpeed)}"),
+              backgroundColor: MAIN_COLOR,
+              duration: Duration(milliseconds: 1000)));
+        }));
+      }
     } else {
       body = buildSummaryWidget();
       appBarTitle = "Revision Summary";
@@ -509,7 +523,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
                 appBarTitle,
                 textAlign: TextAlign.center,
               ),
-              actions: actions,
+              actions: buildActionButtons(actions),
               leading: IconButton(
                   icon: Icon(Icons.close),
                   onPressed: () async {

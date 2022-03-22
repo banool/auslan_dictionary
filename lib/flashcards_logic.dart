@@ -12,13 +12,28 @@ class DolphinInformation {
   });
 
   DolphinSR dolphin;
-  Map<String, SubWord> keyToSubWordMap;
+  Map<String, SubWordWrapper> keyToSubWordMap;
 }
 
-Map<String, List<SubWord>> getSubWordsFromWords(Set<Word> favourites) {
-  Map<String, List<SubWord>> subWords = Map();
+class SubWordWrapper {
+  SubWord subWord;
+  // We need this to know how to build the link to Auslan Signbank.
+  int index;
+
+  SubWordWrapper({
+    required this.subWord,
+    required this.index,
+  });
+}
+
+Map<String, List<SubWordWrapper>> getSubWordsFromWords(Set<Word> favourites) {
+  Map<String, List<SubWordWrapper>> subWords = Map();
   for (Word w in favourites) {
-    subWords[w.word] = w.subWords;
+    int i = 0;
+    subWords[w.word] = [];
+    for (SubWord sw in w.subWords) {
+      subWords[w.word]!.add(SubWordWrapper(subWord: sw, index: i));
+    }
   }
   return subWords;
 }
@@ -33,30 +48,30 @@ int getNumSubWords(Map<String, List<SubWord>> subWords) {
   return subWords.values.map((v) => v.length).reduce((a, b) => a + b);
 }
 
-Map<String, List<SubWord>> filterSubWords(
-    Map<String, List<SubWord>> subWords,
+Map<String, List<SubWordWrapper>> filterSubWords(
+    Map<String, List<SubWordWrapper>> subWords,
     List<Region> allowedRegions,
     bool useUnknownRegionSigns,
     bool oneCardPerWord) {
-  Map<String, List<SubWord>> out = Map();
+  Map<String, List<SubWordWrapper>> out = Map();
 
-  for (MapEntry<String, List<SubWord>> e in subWords.entries) {
-    List<SubWord> validSubWords = [];
-    for (SubWord sw in e.value) {
+  for (MapEntry<String, List<SubWordWrapper>> e in subWords.entries) {
+    List<SubWordWrapper> validSubWords = [];
+    for (SubWordWrapper sww in e.value) {
       if (validSubWords.length > 0 && oneCardPerWord) {
         break;
       }
-      if (sw.regions.contains(Region.EVERYWHERE)) {
-        validSubWords.add(sw);
+      if (sww.subWord.regions.contains(Region.EVERYWHERE)) {
+        validSubWords.add(sww);
         continue;
       }
-      if (sw.regions.length == 0 && useUnknownRegionSigns) {
-        validSubWords.add(sw);
+      if (sww.subWord.regions.length == 0 && useUnknownRegionSigns) {
+        validSubWords.add(sww);
         continue;
       }
-      for (Region r in sw.regions) {
+      for (Region r in sww.subWord.regions) {
         if (allowedRegions.contains(r)) {
-          validSubWords.add(sw);
+          validSubWords.add(sww);
           break;
         }
       }
@@ -69,14 +84,14 @@ Map<String, List<SubWord>> filterSubWords(
 }
 
 // You should provide this function the filtered list of SubWords.
-List<Master> getMasters(
-    Map<String, List<SubWord>> subWords, bool wordToSign, bool signToWord) {
+List<Master> getMasters(Map<String, List<SubWordWrapper>> subWords,
+    bool wordToSign, bool signToWord) {
   print("Making masters from ${subWords.length} words");
   List<Master> masters = [];
   Set<String> keys = {};
-  for (MapEntry<String, List<SubWord>> e in subWords.entries) {
+  for (MapEntry<String, List<SubWordWrapper>> e in subWords.entries) {
     String word = e.key;
-    for (SubWord sw in e.value) {
+    for (SubWordWrapper sww in e.value) {
       List<Combination> combinations = [];
       if (wordToSign) {
         combinations.add(Combination(front: [0], back: [1]));
@@ -84,7 +99,7 @@ List<Master> getMasters(
       if (signToWord) {
         combinations.add(Combination(front: [1], back: [0]));
       }
-      var key = sw.getKey(word);
+      var key = sww.subWord.getKey(word);
       var m = Master(
         id: key,
         fields: [word, VIDEO_LINKS_MARKER],
@@ -108,14 +123,14 @@ int getNumCards(DolphinSR dolphin) {
 }
 
 DolphinInformation getDolphinInformation(
-    Map<String, List<SubWord>> subWords, List<Master> masters,
+    Map<String, List<SubWordWrapper>> subWords, List<Master> masters,
     {List<Review>? reviews}) {
   reviews = reviews ?? [];
-  Map<String, SubWord> keyToSubWordMap = Map();
-  for (MapEntry<String, List<SubWord>> e in subWords.entries) {
+  Map<String, SubWordWrapper> keyToSubWordMap = Map();
+  for (MapEntry<String, List<SubWordWrapper>> e in subWords.entries) {
     String word = e.key;
-    for (SubWord sw in e.value) {
-      keyToSubWordMap[sw.getKey(word)] = sw;
+    for (SubWordWrapper sww in e.value) {
+      keyToSubWordMap[sww.subWord.getKey(word)] = sww;
     }
   }
   DolphinSR dolphin = DolphinSR();

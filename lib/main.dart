@@ -210,32 +210,25 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Icon(Icons.sort));
     }
 
-    List<Widget>? actions;
+    List<Widget> actions = [];
     if (body is FlashcardsLandingPage) {
-      actions = [
-        Container(
-          padding: const EdgeInsets.all(0),
-          width: 55.0,
-          child: FlatButton(
-            padding: EdgeInsets.zero,
-            textColor: Colors.white,
-            onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => FlashcardsHelpPage()),
-              );
-            },
-            child: Icon(Icons.help),
-            shape: CircleBorder(side: BorderSide(color: Colors.transparent)),
-          ),
-        ),
-      ];
+      actions.add(buildActionButton(
+        context,
+        Icon(Icons.help),
+        () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => FlashcardsHelpPage()),
+          );
+        },
+      ));
     }
 
     return Scaffold(
       appBar: AppBar(
         title: Text(information[currentNavBarIndex].appBarTitle),
-        actions: actions,
+        actions: buildActionButtons(actions),
+        centerTitle: true,
       ),
       body: body,
       floatingActionButton: floatingActionButton,
