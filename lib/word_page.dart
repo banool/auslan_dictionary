@@ -35,7 +35,6 @@ class _WordPageState extends State<WordPage> {
   _WordPageState({required this.word});
 
   int currentPage = 0;
-  Future<void>? initStateAsyncFuture;
 
   final Word word;
   bool isFavourited = false;
@@ -44,16 +43,12 @@ class _WordPageState extends State<WordPage> {
 
   @override
   void initState() {
-    initStateAsyncFuture = initStateAsync();
-    super.initState();
-  }
-
-  Future<void> initStateAsync() async {
     if (favouritesGlobal.contains(word)) {
       isFavourited = true;
     } else {
       isFavourited = false;
     }
+    super.initState();
   }
 
   void onPageChanged(int index) {
@@ -65,90 +60,79 @@ class _WordPageState extends State<WordPage> {
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> pages = [];
+    for (int i = 0; i < word.subWords.length; i++) {
+      SubWord subWord = word.subWords[i];
+      SubWordPage subWordPage = SubWordPage(
+        word: word,
+        subWord: subWord,
+      );
+      pages.add(subWordPage);
+    }
+
+    Icon starIcon;
+    if (isFavourited) {
+      starIcon = Icon(Icons.star, semanticLabel: "Already favourited!");
+    } else {
+      starIcon = Icon(Icons.star_outline, semanticLabel: "Favourite this word");
+    }
+
     return InheritedPlaybackSpeed(
         playbackSpeed: playbackSpeed,
-        child: FutureBuilder(
-            future: initStateAsyncFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return new Center(
-                  child: new CircularProgressIndicator(),
-                );
-              }
-              List<Widget> pages = [];
-              for (int i = 0; i < word.subWords.length; i++) {
-                SubWord subWord = word.subWords[i];
-                SubWordPage subWordPage = SubWordPage(
-                  word: word,
-                  subWord: subWord,
-                );
-                pages.add(subWordPage);
-              }
-
-              Icon starIcon;
-              if (isFavourited) {
-                starIcon =
-                    Icon(Icons.star, semanticLabel: "Already favourited!");
-              } else {
-                starIcon = Icon(Icons.star_outline,
-                    semanticLabel: "Favourite this word");
-              }
-
-              return Scaffold(
-                appBar: AppBar(
-                  title: Text(word.word),
-                  actions: buildActionButtons([
-                    buildActionButton(
-                      context,
-                      starIcon,
-                      () async {
-                        setState(() {
-                          isFavourited = !isFavourited;
-                        });
-                        if (isFavourited) {
-                          await addToFavourites(word);
-                        } else {
-                          await removeFromFavourites(word);
-                        }
-                      },
-                    ),
-                    getAuslanSignbankLaunchAppBarActionWidget(
-                        context, word.word, currentPage),
-                    getPlaybackSpeedDropdownWidget(
-                      (p) {
-                        setState(() {
-                          playbackSpeed = p!;
-                        });
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text(
-                                "Set playback speed to ${getPlaybackSpeedString(p!)}"),
-                            backgroundColor: MAIN_COLOR,
-                            duration: Duration(milliseconds: 1000)));
-                      },
-                    )
-                  ]),
-                ),
-                bottomNavigationBar: Padding(
-                  padding: EdgeInsets.only(top: 5, bottom: 10),
-                  child: DotsIndicator(
-                    dotsCount: word.subWords.length,
-                    position: currentPage.toDouble(),
-                    decorator: DotsDecorator(
-                      color: Colors.black, // Inactive color
-                      activeColor: MAIN_COLOR,
-                    ),
-                  ),
-                ),
-                body: Center(
-                    child: PageView.builder(
-                        itemCount: word.subWords.length,
-                        itemBuilder: (context, index) => SubWordPage(
-                              word: word,
-                              subWord: word.subWords[index],
-                            ),
-                        onPageChanged: onPageChanged)),
-              );
-            }));
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(word.word),
+            actions: buildActionButtons([
+              buildActionButton(
+                context,
+                starIcon,
+                () async {
+                  setState(() {
+                    isFavourited = !isFavourited;
+                  });
+                  if (isFavourited) {
+                    await addToFavourites(word);
+                  } else {
+                    await removeFromFavourites(word);
+                  }
+                },
+              ),
+              getAuslanSignbankLaunchAppBarActionWidget(
+                  context, word.word, currentPage),
+              getPlaybackSpeedDropdownWidget(
+                (p) {
+                  setState(() {
+                    playbackSpeed = p!;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(
+                          "Set playback speed to ${getPlaybackSpeedString(p!)}"),
+                      backgroundColor: MAIN_COLOR,
+                      duration: Duration(milliseconds: 1000)));
+                },
+              )
+            ]),
+          ),
+          bottomNavigationBar: Padding(
+            padding: EdgeInsets.only(top: 5, bottom: 10),
+            child: DotsIndicator(
+              dotsCount: word.subWords.length,
+              position: currentPage.toDouble(),
+              decorator: DotsDecorator(
+                color: Colors.black, // Inactive color
+                activeColor: MAIN_COLOR,
+              ),
+            ),
+          ),
+          body: Center(
+              child: PageView.builder(
+                  itemCount: word.subWords.length,
+                  itemBuilder: (context, index) => SubWordPage(
+                        word: word,
+                        subWord: word.subWords[index],
+                      ),
+                  onPageChanged: onPageChanged)),
+        ));
   }
 }
 

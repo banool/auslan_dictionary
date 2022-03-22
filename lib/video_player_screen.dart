@@ -120,14 +120,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   Future<void> initSingleVideo(String videoLink, int idx) async {
-    bool? shouldCache = sharedPreferences.getBool(KEY_SHOULD_CACHE);
+    bool shouldCache = sharedPreferences.getBool(KEY_SHOULD_CACHE) ?? true;
 
     VideoPlayerOptions videoPlayerOptions =
         VideoPlayerOptions(mixWithOthers: true);
 
     try {
       VideoPlayerController controller;
-      if (shouldCache == null || shouldCache) {
+      if (shouldCache) {
         FileInfo? fileInfo =
             await DefaultCacheManager().getFileFromCache(videoLink);
 
@@ -149,10 +149,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       }
 
       // Use the controller to loop the video.
-      controller.setLooping(true);
+      await controller.setLooping(true);
 
       // Turn off the sound (some videos have sound for some reason).
-      controller.setVolume(0.0);
+      await controller.setVolume(0.0);
 
       // Play or pause the video based on whether this is the first video.
       if (idx == currentPage) {
