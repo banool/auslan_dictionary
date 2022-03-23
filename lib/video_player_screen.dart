@@ -154,12 +154,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       // Turn off the sound (some videos have sound for some reason).
       await controller.setVolume(0.0);
 
-      // Play or pause the video based on whether this is the first video.
-      if (idx == currentPage) {
-        await controller.play();
-      } else {
-        await controller.pause();
-      }
+      // Start the video paused.
+      await controller.pause();
 
       // Initialize the controller.
       await controller.initialize();
@@ -223,6 +219,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
   }
 
+  void setPlaybackSpeed(
+      BuildContext context, VideoPlayerController controller) {
+    if (mounted) {
+      double playbackSpeedDouble = getDoubleFromPlaybackSpeed(
+          InheritedPlaybackSpeed.of(context)!.playbackSpeed);
+      controller.setPlaybackSpeed(playbackSpeedDouble);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Get height of screen to ensure that the video only takes up
@@ -249,10 +254,34 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
               return waitingWidget;
             }
             var controller = controllers[idx]!;
+
             // Set playback speed here, since we need the context.
-            double playbackSpeedDouble = getDoubleFromPlaybackSpeed(
-                InheritedPlaybackSpeed.of(context)!.playbackSpeed);
-            controller.setPlaybackSpeed(playbackSpeedDouble);
+            setPlaybackSpeed(context, controller);
+
+            // Set it again repeatedly since there can be a weird race.
+            // I have confirmed that even from within video_player.dart, it is
+            // trying to set the correct value but the video still plays at
+            // the wrong playback speed.
+            Future.delayed(Duration(milliseconds: 100),
+                () => setPlaybackSpeed(context, controller));
+            Future.delayed(Duration(milliseconds: 250),
+                () => setPlaybackSpeed(context, controller));
+            Future.delayed(Duration(milliseconds: 500),
+                () => setPlaybackSpeed(context, controller));
+            Future.delayed(Duration(milliseconds: 1000),
+                () => setPlaybackSpeed(context, controller));
+            Future.delayed(Duration(milliseconds: 2000),
+                () => setPlaybackSpeed(context, controller));
+            Future.delayed(Duration(milliseconds: 4000),
+                () => setPlaybackSpeed(context, controller));
+
+            // Play or pause the video based on whether this is the first video.
+            if (idx == currentPage) {
+              controller.play();
+            } else {
+              controller.pause();
+            }
+
             var player = VideoPlayer(controller);
             var videoContainer =
                 Container(padding: EdgeInsets.only(top: 15), child: player);
