@@ -218,7 +218,7 @@ class _MyHomePageState extends State<MyHomePage> {
         () async {
           await Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => FlashcardsHelpPage()),
+            MaterialPageRoute(builder: (context) => getFlashcardsHelpPage()),
           );
         },
       ));

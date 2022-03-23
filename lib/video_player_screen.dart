@@ -274,6 +274,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                 () => setPlaybackSpeed(context, controller));
             Future.delayed(Duration(milliseconds: 4000),
                 () => setPlaybackSpeed(context, controller));
+            Future.delayed(Duration(milliseconds: 6000),
+                () => setPlaybackSpeed(context, controller));
+            Future.delayed(Duration(milliseconds: 8000),
+                () => setPlaybackSpeed(context, controller));
 
             // Play or pause the video based on whether this is the first video.
             if (idx == currentPage) {
