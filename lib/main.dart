@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 
 import 'package:auslan_dictionary/favourites_page.dart';
+import 'package:auslan_dictionary/settings_help_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -219,6 +220,19 @@ class _MyHomePageState extends State<MyHomePage> {
           await Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => getFlashcardsHelpPage()),
+          );
+        },
+      ));
+    }
+
+    if (body is SettingsPage) {
+      actions.add(buildActionButton(
+        context,
+        Icon(Icons.help),
+        () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => getSettingsHelpPage()),
           );
         },
       ));
