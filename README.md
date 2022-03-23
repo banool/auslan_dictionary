@@ -8,6 +8,7 @@ Currently this must be done manually:
 ```
 flutter pub get
 flutter pub run flutter_launcher_icons:main
+flutter pub run flutter_native_splash:create
 flutter build ios --release --no-codesign
 cd ios && ./publish_do_not_check_in.sh
 ```

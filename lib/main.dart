@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:auslan_dictionary/favourites_page.dart';
 import 'package:auslan_dictionary/settings_help_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'common.dart';
@@ -16,7 +17,10 @@ import 'settings_page.dart';
 Future<void> main() async {
   print("Start of main");
   try {
-    WidgetsFlutterBinding.ensureInitialized();
+    var widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+
+    // Preserve the splash screen while the app initializes.
+    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
     await Future.wait<void>([
       // Load shared preferences. We do this first because the later futures,
@@ -61,6 +65,9 @@ Future<void> main() async {
     } else {
       settingsBackgroundColor = Color.fromRGBO(240, 240, 240, 1);
     }
+
+    // Remove the splash screen.
+    FlutterNativeSplash.remove();
 
     // Finally run the app.
     print("Setup complete, running app");
