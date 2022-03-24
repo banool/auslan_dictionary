@@ -13,6 +13,7 @@ import 'flashcards_landing_page.dart';
 import 'globals.dart';
 import 'search_page.dart';
 import 'settings_page.dart';
+import 'types.dart';
 
 Future<void> main() async {
   print("Start of main");
@@ -31,6 +32,10 @@ Future<void> main() async {
       // We do this first because loadFavourites depends on it later.
       (() async => wordsGlobal = await loadWords())(),
     ]);
+
+    for (Word w in wordsGlobal) {
+      keyedWordsGlobal[w.word] = w;
+    }
 
     // Start all these futures and await them collectively to speed up startup.
     // Only put futures here where the completion order doesn't matter.
