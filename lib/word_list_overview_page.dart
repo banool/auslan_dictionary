@@ -32,6 +32,7 @@ class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
   Widget build(BuildContext context) {
     List<Widget> tiles = [];
     for (MapEntry<String, WordList> e in wordListManager.wordLists.entries) {
+      String key = e.key;
       WordList wl = e.value;
       Widget? trailing;
       if (controller.inEditMode && wl.canBeDeleted()) {
@@ -41,10 +42,13 @@ class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
               color: Colors.red,
             ),
             onPressed: () async {
-              bool deleted = await confirmAlert(
+              bool confirmed = await confirmAlert(
                   context, Text("Are you sure you want to delete this list?"));
-              if (deleted) {
-                setState(() {});
+              if (confirmed) {
+                await wordListManager.deleteWordList(key);
+                setState(() {
+                  controller.inEditMode = false;
+                });
               }
             });
       }
