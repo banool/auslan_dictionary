@@ -77,7 +77,7 @@ class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
         ),
       );
       Widget toAdd = card;
-      if (wl.key == KEY_FAVOURITES_WORDS) {
+      if (wl.key == KEY_FAVOURITES_WORDS && controller.inEditMode) {
         toAdd = IgnorePointer(
           key: ValueKey(name),
           child: toAdd,
