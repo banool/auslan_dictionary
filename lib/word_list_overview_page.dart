@@ -1,4 +1,7 @@
+import 'package:auslan_dictionary/globals.dart';
 import 'package:flutter/material.dart';
+
+import 'word_list_logic.dart';
 
 class WordListsOverviewController {}
 
@@ -19,6 +22,23 @@ class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    List<Widget> tiles = [];
+    for (MapEntry<String, WordList> e in wordListManager.wordLists.entries) {
+      WordList wl = e.value;
+      tiles.add(Card(
+        child: ListTile(
+          leading: wl.getLeadingIcon(),
+          minLeadingWidth: 10,
+          title: Text(
+            wl.getName(),
+            textAlign: TextAlign.start,
+            style: TextStyle(fontSize: 16),
+          ),
+        ),
+      ));
+    }
+    return ListView(
+      children: tiles,
+    );
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'package:flutter/material.dart';
 
 import 'globals.dart';
 import 'types.dart';
@@ -18,7 +19,6 @@ class WordList {
   // storage, and converts them into a name and a list of words respectively.
   factory WordList.fromRaw(String key) {
     LinkedHashSet<Word> words = loadWordList(key);
-
     return WordList(key, words);
   }
 
@@ -44,15 +44,27 @@ class WordList {
     return words;
   }
 
-  String getNameFromKey() {
-    return key.substring(0, key.length - 5);
+  String getName() {
+    if (key == KEY_FAVOURITES_WORDS) {
+      return "Favourites";
+    }
+    return key.substring(0, key.length - 5).replaceAll("_", " ");
+  }
+
+  Widget getLeadingIcon() {
+    if (key == KEY_FAVOURITES_WORDS) {
+      return Icon(
+        Icons.star,
+      );
+    }
+    return Icon(Icons.list);
   }
 
   static String getKeyFromName(String name) {
     if (!validNameCharacters.hasMatch(name)) {
       throw "Invalid name, this should have been caught already";
     }
-    return "${name}_words";
+    return "${name}_words".replaceAll(" ", "_");
   }
 
   Future<void> write() async {
@@ -73,14 +85,15 @@ class WordList {
 
 // This class does not deal with list names at all, only with keys.
 class WordListManager {
-  Map<String, WordList> wordLists;
+  LinkedHashMap<String, WordList> wordLists; // Maintains insertion order.
 
   WordListManager(this.wordLists);
 
   factory WordListManager.fromStartup() {
     List<String> wordListKeys =
-        sharedPreferences.getStringList(KEY_WORD_LIST_KEYS) ?? [];
-    Map<String, WordList> wordLists = {};
+        sharedPreferences.getStringList(KEY_WORD_LIST_KEYS) ??
+            [KEY_FAVOURITES_WORDS];
+    LinkedHashMap<String, WordList> wordLists = LinkedHashMap();
     for (String key in wordListKeys) {
       wordLists[key] = WordList.fromRaw(key);
     }
