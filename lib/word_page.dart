@@ -92,9 +92,11 @@ class _WordPageState extends State<WordPage> {
             isFavourited = !isFavourited;
           });
           if (isFavourited) {
-            await addToFavourites(word);
+            await wordListManager.wordLists[KEY_FAVOURITES_WORDS]!
+                .addWord(word);
           } else {
-            await removeFromFavourites(word);
+            await wordListManager.wordLists[KEY_FAVOURITES_WORDS]!
+                .removeWord(word);
           }
         },
       ));

@@ -77,7 +77,7 @@ class _WordListPageState extends State<WordListPage> {
   }
 
   void removeWord(Word word) async {
-    await removeFromFavourites(word);
+    await wordList.removeWord(word);
     setState(() {
       search();
     });
@@ -118,7 +118,7 @@ class _WordListPageState extends State<WordListPage> {
                 TextField(
                   controller: _searchFieldController,
                   decoration: InputDecoration(
-                    hintText: 'Search your favourites',
+                    hintText: "Search ${wordList.getName()}",
                     suffixIcon: IconButton(
                       onPressed: () {
                         clearSearch();
@@ -140,7 +140,7 @@ class _WordListPageState extends State<WordListPage> {
             ),
             new Expanded(
               child: listWidget(
-                  context, wordsSearched, wordsGlobal, removeWord, refreshWords,
+                  context, wordsSearched, wordsGlobal, refreshWords,
                   showFavouritesButton: wordList.key == KEY_FAVOURITES_WORDS),
             ),
           ],
@@ -151,14 +151,13 @@ class _WordListPageState extends State<WordListPage> {
 }
 
 Widget listWidget(BuildContext context, List<Word?> wordsSearched,
-    Set<Word> allWords, Function removeWordFn, Function refreshWordsFn,
+    Set<Word> allWords, Function refreshWordsFn,
     {bool showFavouritesButton = true}) {
   return ListView.builder(
     itemCount: wordsSearched.length,
     itemBuilder: (context, index) {
       return ListTile(
-          title: listItem(
-              context, wordsSearched[index]!, removeWordFn, refreshWordsFn,
+          title: listItem(context, wordsSearched[index]!, refreshWordsFn,
               showFavouritesButton: showFavouritesButton));
     },
   );
@@ -168,8 +167,7 @@ Widget listWidget(BuildContext context, List<Word?> wordsSearched,
 // aren't the the favourites list, since that star icon might be confusing
 // and lead people to beleive they're interacting with the non-favourites
 // list they just came from.
-Widget listItem(BuildContext context, Word word, Function removeWordFn,
-    Function refreshWordsFn,
+Widget listItem(BuildContext context, Word word, Function refreshWordsFn,
     {bool showFavouritesButton = true}) {
   return FlatButton(
     child: Align(alignment: Alignment.topLeft, child: Text("${word.word}")),
@@ -178,7 +176,6 @@ Widget listItem(BuildContext context, Word word, Function removeWordFn,
           showFavouritesButton: showFavouritesButton),
       await refreshWordsFn(),
     },
-    onLongPress: () async => await removeWordFn(word),
     splashColor: MAIN_COLOR,
   );
 }
