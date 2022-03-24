@@ -252,7 +252,12 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton = FloatingActionButton(
           backgroundColor: Colors.green,
           onPressed: () async {
-            await showCreateListDialog(context);
+            bool confirmed = await applyCreateListDialog(context);
+            if (confirmed) {
+              setState(() {
+                wordListsOverviewController.inEditMode = false;
+              });
+            }
           },
           child: Icon(Icons.add));
     }
@@ -261,7 +266,9 @@ class _MyHomePageState extends State<MyHomePage> {
     if (body is WordListsOverviewPage) {
       actions.add(buildActionButton(
         context,
-        Icon(Icons.edit),
+        wordListsOverviewController.inEditMode
+            ? Icon(Icons.edit)
+            : Icon(Icons.edit_outlined),
         () async {
           setState(() {
             wordListsOverviewController.toggleEditMode();

@@ -1,6 +1,7 @@
 import 'package:auslan_dictionary/common.dart';
 import 'package:auslan_dictionary/globals.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'word_list_logic.dart';
 
@@ -33,14 +34,19 @@ class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
     for (MapEntry<String, WordList> e in wordListManager.wordLists.entries) {
       WordList wl = e.value;
       Widget? trailing;
-      if (controller.inEditMode) {
+      if (controller.inEditMode && wl.canBeDeleted()) {
         trailing = IconButton(
-          icon: Icon(
-            Icons.remove_circle,
-            color: Colors.red,
-          ),
-          onPressed: () => print("todo"),
-        );
+            icon: Icon(
+              Icons.remove_circle,
+              color: Colors.red,
+            ),
+            onPressed: () async {
+              bool deleted = await confirmAlert(
+                  context, Text("Are you sure you want to delete this list?"));
+              if (deleted) {
+                setState(() {});
+              }
+            });
       }
       tiles.add(Card(
         child: ListTile(
@@ -62,6 +68,25 @@ class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
 }
 
 // Returns true if a new list was created.
-Future<bool> showCreateListDialog(BuildContext context) async {
-  return confirmAlert(context, Text("testing"));
+Future<bool> applyCreateListDialog(BuildContext context) async {
+  TextEditingController controller = TextEditingController();
+  Widget body = TextField(
+    controller: controller,
+    decoration: InputDecoration(
+      hintText: 'Enter new list name',
+    ),
+    autofocus: true,
+    inputFormatters: [
+      FilteringTextInputFormatter.allow(WordList.validNameCharacters),
+    ],
+    textInputAction: TextInputAction.send,
+    keyboardType: TextInputType.visiblePassword,
+  );
+  bool confirmed = await confirmAlert(context, body);
+  if (confirmed) {
+    String name = controller.text;
+    String key = WordList.getKeyFromName(name);
+    await wordListManager.createWordList(key);
+  }
+  return confirmed;
 }

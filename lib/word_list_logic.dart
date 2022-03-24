@@ -60,6 +60,10 @@ class WordList {
     return Icon(Icons.list);
   }
 
+  bool canBeDeleted() {
+    return !(key == KEY_FAVOURITES_WORDS);
+  }
+
   static String getKeyFromName(String name) {
     if (!validNameCharacters.hasMatch(name)) {
       throw "Invalid name, this should have been caught already";
