@@ -1,11 +1,11 @@
 import 'dart:collection';
 import 'package:flutter/material.dart';
 
+import 'common.dart';
 import 'globals.dart';
 import 'types.dart';
 
 const String KEY_WORD_LIST_KEYS = "word_list_keys";
-const String KEY_FAVOURITES_WORDS = "favourites_words";
 
 class WordList {
   static final validNameCharacters = RegExp(r'^[a-zA-Z0-9 ]+$');

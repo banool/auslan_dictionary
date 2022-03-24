@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'word_list_logic.dart';
+import 'word_list_page.dart';
 
 class WordListsOverviewController {
   bool inEditMode = false;
@@ -62,6 +63,14 @@ class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
             textAlign: TextAlign.start,
             style: TextStyle(fontSize: 16),
           ),
+          onTap: () async {
+            await Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => WordListPage(
+                          wordList: wl,
+                        )));
+          },
         ),
       ));
     }

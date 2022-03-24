@@ -53,10 +53,13 @@ Set<Word> loadWordsInner(String data) {
   return words;
 }
 
-Future<void> navigateToWordPage(BuildContext context, Word word) {
+Future<void> navigateToWordPage(BuildContext context, Word word,
+    {bool showFavouritesButton = true}) {
   return Navigator.push(
     context,
-    MaterialPageRoute(builder: (context) => WordPage(word: word)),
+    MaterialPageRoute(
+        builder: (context) =>
+            WordPage(word: word, showFavouritesButton: showFavouritesButton)),
   );
 }
 
