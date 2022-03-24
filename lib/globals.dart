@@ -13,6 +13,7 @@ late SharedPreferences sharedPreferences;
 // Values of the knobs.
 late bool enableFlashcardsKnob;
 late bool downloadWordsDataKnob;
+late bool useWordListsKnob;
 
 // This is whether to show the flashcard stuff as a result of the knob + switch.
 late bool showFlashcards;
