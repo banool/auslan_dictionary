@@ -46,12 +46,21 @@ double getDoubleFromPlaybackSpeed(PlaybackSpeed playbackSpeed) {
   }
 }
 
-Widget getPlaybackSpeedDropdownWidget(void Function(PlaybackSpeed?) onChanged) {
+Widget getPlaybackSpeedDropdownWidget(void Function(PlaybackSpeed?) onChanged,
+    {bool enabled = true}) {
+  Color? color;
+  if (!enabled) {
+    color = APP_BAR_DISABLED_COLOR;
+  }
   return Container(
       child: Align(
           alignment: Alignment.center,
           child: PopupMenuButton<PlaybackSpeed>(
-            icon: Icon(Icons.slow_motion_video),
+            icon: Icon(
+              Icons.slow_motion_video,
+              color: color,
+            ),
+            enabled: enabled,
             itemBuilder: (BuildContext context) {
               return PlaybackSpeed.values.map((PlaybackSpeed value) {
                 return PopupMenuItem<PlaybackSpeed>(
@@ -60,7 +69,7 @@ Widget getPlaybackSpeedDropdownWidget(void Function(PlaybackSpeed?) onChanged) {
                 );
               }).toList();
             },
-            onSelected: onChanged,
+            onSelected: enabled ? onChanged : null,
           )));
 }
 
