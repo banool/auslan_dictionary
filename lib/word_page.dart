@@ -48,7 +48,7 @@ class _WordPageState extends State<WordPage> {
 
   @override
   void initState() {
-    if (favouritesGlobal.contains(word)) {
+    if (wordListManager.wordLists[KEY_FAVOURITES_WORDS]!.words.contains(word)) {
       isFavourited = true;
     } else {
       isFavourited = false;

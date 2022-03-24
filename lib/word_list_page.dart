@@ -24,6 +24,7 @@ class _WordListPageState extends State<WordListPage> {
 
   bool viewSortedList = false;
   bool enableSortButton = true;
+  bool inEditMode = false;
 
   String currentSearchTerm = "";
 
@@ -76,7 +77,7 @@ class _WordListPageState extends State<WordListPage> {
     });
   }
 
-  void removeWord(Word word) async {
+  Future<void> removeWord(Word word) async {
     await wordList.removeWord(word);
     setState(() {
       search();
@@ -91,12 +92,26 @@ class _WordListPageState extends State<WordListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(wordList.getName()),
-        centerTitle: true,
-      ),
-      floatingActionButton: FloatingActionButton(
+    List<Widget> actions = [
+      buildActionButton(
+        context,
+        inEditMode ? Icon(Icons.edit) : Icon(Icons.edit_outlined),
+        () async {
+          setState(() {
+            inEditMode = !inEditMode;
+          });
+        },
+      )
+    ];
+
+    String listName = wordList.getName();
+
+    FloatingActionButton? floatingActionButton;
+    String hintText;
+    if (inEditMode) {
+      hintText = "Search for words to add";
+    } else {
+      floatingActionButton = FloatingActionButton(
           backgroundColor: getFloatingActionButtonColor(),
           onPressed: () {
             if (!enableSortButton) {
@@ -104,7 +119,17 @@ class _WordListPageState extends State<WordListPage> {
             }
             toggleSort();
           },
-          child: Icon(Icons.sort)),
+          child: Icon(Icons.sort));
+      hintText = "Search $listName";
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(wordList.getName()),
+        centerTitle: true,
+        actions: actions,
+      ),
+      floatingActionButton: floatingActionButton,
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
         child: Column(
@@ -118,7 +143,7 @@ class _WordListPageState extends State<WordListPage> {
                 TextField(
                   controller: _searchFieldController,
                   decoration: InputDecoration(
-                    hintText: "Search ${wordList.getName()}",
+                    hintText: hintText,
                     suffixIcon: IconButton(
                       onPressed: () {
                         clearSearch();
@@ -141,7 +166,8 @@ class _WordListPageState extends State<WordListPage> {
             new Expanded(
               child: listWidget(
                   context, wordsSearched, wordsGlobal, refreshWords,
-                  showFavouritesButton: wordList.key == KEY_FAVOURITES_WORDS),
+                  showFavouritesButton: wordList.key == KEY_FAVOURITES_WORDS,
+                  deleteWordFn: inEditMode ? removeWord : null),
             ),
           ],
         ),
@@ -152,13 +178,28 @@ class _WordListPageState extends State<WordListPage> {
 
 Widget listWidget(BuildContext context, List<Word?> wordsSearched,
     Set<Word> allWords, Function refreshWordsFn,
-    {bool showFavouritesButton = true}) {
+    {bool showFavouritesButton = true,
+    Future<void> Function(Word)? deleteWordFn}) {
   return ListView.builder(
     itemCount: wordsSearched.length,
     itemBuilder: (context, index) {
+      Word word = wordsSearched[index]!;
+      Widget? trailing;
+      if (deleteWordFn != null) {
+        trailing = IconButton(
+          padding: EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 8),
+          icon: Icon(
+            Icons.remove_circle,
+            color: Colors.red,
+          ),
+          onPressed: () async => await deleteWordFn(word),
+        );
+      }
       return ListTile(
-          title: listItem(context, wordsSearched[index]!, refreshWordsFn,
-              showFavouritesButton: showFavouritesButton));
+        title: listItem(context, word, refreshWordsFn,
+            showFavouritesButton: showFavouritesButton),
+        trailing: trailing,
+      );
     },
   );
 }
