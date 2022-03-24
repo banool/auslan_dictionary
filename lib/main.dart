@@ -56,9 +56,6 @@ Future<void> main() async {
       (() async => favouritesGlobal = await loadFavourites())(),
     ]);
 
-    // TODO: Remove
-    useWordListsKnob = true;
-
     // Check for new words data if appropriate.
     // We don't wait for this on startup, it's too slow.
     if (downloadWordsDataKnob) {
