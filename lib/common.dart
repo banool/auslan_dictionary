@@ -3,11 +3,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:collection/collection.dart' show IterableExtension;
 import 'package:edit_distance/edit_distance.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import 'globals.dart';
@@ -98,17 +96,6 @@ List<Word> searchList(String searchTerm, Set<Word> words, Set<Word> fallback) {
 }
 
 // Run this at startup.
-Future<void> bootstrapFavourites() async {
-  try {
-    sharedPreferences.getStringList(KEY_FAVOURITES_WORDS);
-  } catch (e) {
-    // The key didn't exist in the favourites list yet.
-    await sharedPreferences.setStringList(KEY_FAVOURITES_WORDS, ["love"]);
-    print("Bootstrapped favourites");
-  }
-}
-
-// Run this at startup.
 // Downloads new dictionary data if available.
 // First it checks how recently it attempted to do this, so we don't spam
 // the dictionary data server.
@@ -192,6 +179,17 @@ Future<Set<Word>> loadFavourites() async {
         "Wrote back favourites with ${favouritesRaw.length - favourites.length} fewer words");
   }
   return favourites;
+}
+
+// Run this at startup.
+Future<void> bootstrapFavourites() async {
+  try {
+    sharedPreferences.getStringList(KEY_FAVOURITES_WORDS);
+  } catch (e) {
+    // The key didn't exist in the favourites list yet.
+    await sharedPreferences.setStringList(KEY_FAVOURITES_WORDS, ["love"]);
+    print("Bootstrapped favourites");
+  }
 }
 
 // Clear favourites.
