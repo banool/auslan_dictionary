@@ -259,24 +259,27 @@ bool getShowFlashcards() {
   return !(sharedPreferences.getBool(KEY_HIDE_FLASHCARDS_FEATURE) ?? false);
 }
 
-Future<bool> confirmAlert(BuildContext context, String content) async {
+Future<bool> confirmAlert(BuildContext context, Text content,
+    {String title = "Careful!",
+    String cancelText = "Cancel",
+    String confirmText = "Confirm"}) async {
   bool confirmed = false;
   Widget cancelButton = FlatButton(
-    child: Text("Cancel"),
+    child: Text(cancelText),
     onPressed: () {
       Navigator.of(context).pop();
     },
   );
   Widget continueButton = FlatButton(
-    child: Text("Confirm"),
+    child: Text(confirmText),
     onPressed: () {
       Navigator.of(context).pop();
       confirmed = true;
     },
   );
   AlertDialog alert = AlertDialog(
-    title: Text("Careful!"),
-    content: Text(content),
+    title: Text(title),
+    content: content,
     actions: [
       cancelButton,
       continueButton,
