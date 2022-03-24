@@ -32,9 +32,11 @@ class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
   @override
   Widget build(BuildContext context) {
     List<Widget> tiles = [];
+    int i = 0;
     for (MapEntry<String, WordList> e in wordListManager.wordLists.entries) {
       String key = e.key;
       WordList wl = e.value;
+      String name = wl.getName();
       Widget? trailing;
       if (controller.inEditMode && wl.canBeDeleted()) {
         trailing = IconButton(
@@ -53,13 +55,14 @@ class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
               }
             });
       }
-      tiles.add(Card(
+      Card card = Card(
+        key: ValueKey(name),
         child: ListTile(
-          leading: wl.getLeadingIcon(),
+          leading: wl.getLeadingIcon(inEditMode: controller.inEditMode),
           trailing: trailing,
           minLeadingWidth: 10,
           title: Text(
-            wl.getName(),
+            name,
             textAlign: TextAlign.start,
             style: TextStyle(fontSize: 16),
           ),
@@ -72,11 +75,35 @@ class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
                         )));
           },
         ),
-      ));
+      );
+      Widget toAdd = card;
+      if (wl.key == KEY_FAVOURITES_WORDS) {
+        toAdd = IgnorePointer(
+          key: ValueKey(name),
+          child: toAdd,
+        );
+      }
+      if (controller.inEditMode) {
+        toAdd = ReorderableDragStartListener(
+            key: ValueKey(name), child: toAdd, index: i);
+      }
+      tiles.add(toAdd);
+      i += 1;
     }
-    return ListView(
-      children: tiles,
-    );
+    if (controller.inEditMode) {
+      return ReorderableListView(
+          children: tiles,
+          onReorder: (prev, updated) async {
+            setState(() {
+              wordListManager.reorder(prev, updated);
+            });
+            await wordListManager.writeWordListKeys();
+          });
+    } else {
+      return ListView(
+        children: tiles,
+      );
+    }
   }
 }
 
