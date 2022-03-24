@@ -9,7 +9,8 @@ import 'types.dart';
 import 'video_player_screen.dart';
 
 Widget getAuslanSignbankLaunchAppBarActionWidget(
-    BuildContext context, String word, int currentPage) {
+    BuildContext context, String word, int currentPage,
+    {bool enabled = true}) {
   return buildActionButton(
     context,
     Icon(Icons.public, semanticLabel: "Link to sign in Auslan Signbank"),
@@ -19,6 +20,7 @@ Widget getAuslanSignbankLaunchAppBarActionWidget(
           'http://www.auslan.org.au/dictionary/words/$word-${currentPage + 1}.html';
       await launch(url, forceSafariVC: false);
     },
+    enabled: enabled,
   );
 }
 

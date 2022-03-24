@@ -490,25 +490,22 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         progressString -= 1;
       }
       appBarTitle = "$progressString / $numCardsToReview";
-      if (currentCardRevealed) {
-        actions.add(getAuslanSignbankLaunchAppBarActionWidget(
-          context,
-          word,
-          subWordWrapper.index,
-        ));
-      }
-      if (videoIsShowing) {
-        actions.add(getPlaybackSpeedDropdownWidget((p) {
-          setState(() {
-            playbackSpeed = p!;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(
-                  "Set playback speed to ${getPlaybackSpeedString(playbackSpeed)}"),
-              backgroundColor: MAIN_COLOR,
-              duration: Duration(milliseconds: 1000)));
-        }));
-      }
+      actions.add(getAuslanSignbankLaunchAppBarActionWidget(
+        context,
+        word,
+        subWordWrapper.index,
+        enabled: currentCardRevealed,
+      ));
+      actions.add(getPlaybackSpeedDropdownWidget((p) {
+        setState(() {
+          playbackSpeed = p!;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                "Set playback speed to ${getPlaybackSpeedString(playbackSpeed)}"),
+            backgroundColor: MAIN_COLOR,
+            duration: Duration(milliseconds: 1000)));
+      }, enabled: videoIsShowing));
     } else {
       body = buildSummaryWidget();
       appBarTitle = "Revision Summary";

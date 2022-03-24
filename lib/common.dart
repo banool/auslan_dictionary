@@ -15,6 +15,7 @@ import 'word_page.dart';
 const String APP_NAME = "Auslan Dictionary";
 
 const Color MAIN_COLOR = Colors.blue;
+const Color APP_BAR_DISABLED_COLOR = Color.fromARGB(94, 0, 0, 0);
 
 const String KEY_SHOULD_CACHE = "shouldCache";
 
@@ -295,7 +296,7 @@ Widget buildActionButton(
     BuildContext context, Icon icon, void Function() onPressed,
     {bool enabled = true,
     Color enabledColor = Colors.white,
-    Color disabledColor = Colors.grey}) {
+    Color disabledColor = APP_BAR_DISABLED_COLOR}) {
   void Function()? onPressedFunc = onPressed;
   if (!enabled) {
     onPressedFunc = null;
