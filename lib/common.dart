@@ -166,12 +166,6 @@ Future<Set<Word>> loadFavourites() async {
     Word? matchingWord = keyedWordsGlobal[s];
     if (matchingWord != null) {
       favourites.add(matchingWord);
-    } else {
-      /*
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Your favourite "$s" is no longer in the dictionary'),
-          backgroundColor: MAIN_COLOR));
-      */
     }
   }
   if (favouritesRaw.length != favourites.length) {
@@ -276,8 +270,8 @@ Future<bool> confirmAlert(BuildContext context, Widget content,
   Widget continueButton = FlatButton(
     child: Text(confirmText),
     onPressed: () {
-      Navigator.of(context).pop();
       confirmed = true;
+      Navigator.of(context).pop();
     },
   );
   AlertDialog alert = AlertDialog(
