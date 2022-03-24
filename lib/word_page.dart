@@ -48,12 +48,37 @@ class _WordPageState extends State<WordPage> {
 
   @override
   void initState() {
-    if (wordListManager.wordLists[KEY_FAVOURITES_WORDS]!.words.contains(word)) {
+    if (wordIsFavourited(word)) {
       isFavourited = true;
     } else {
       isFavourited = false;
     }
     super.initState();
+  }
+
+  bool wordIsFavourited(Word word) {
+    if (useWordListsKnob) {
+      return wordListManager.wordLists[KEY_FAVOURITES_WORDS]!.words
+          .contains(word);
+    } else {
+      return favouritesGlobal.contains(word);
+    }
+  }
+
+  Future<void> addWordToFavourites(Word word) async {
+    if (useWordListsKnob) {
+      await wordListManager.wordLists[KEY_FAVOURITES_WORDS]!.addWord(word);
+    } else {
+      await addToFavourites(word);
+    }
+  }
+
+  Future<void> removeWordFromFavourites(Word word) async {
+    if (useWordListsKnob) {
+      await wordListManager.wordLists[KEY_FAVOURITES_WORDS]!.removeWord(word);
+    } else {
+      await removeFromFavourites(word);
+    }
   }
 
   void onPageChanged(int index) {
@@ -92,11 +117,9 @@ class _WordPageState extends State<WordPage> {
             isFavourited = !isFavourited;
           });
           if (isFavourited) {
-            await wordListManager.wordLists[KEY_FAVOURITES_WORDS]!
-                .addWord(word);
+            await addWordToFavourites(word);
           } else {
-            await wordListManager.wordLists[KEY_FAVOURITES_WORDS]!
-                .removeWord(word);
+            await removeWordFromFavourites(word);
           }
         },
       ));
