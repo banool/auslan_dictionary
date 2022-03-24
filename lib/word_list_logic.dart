@@ -65,6 +65,9 @@ class WordList {
   }
 
   static String getKeyFromName(String name) {
+    if (name.length == 0) {
+      throw "List name cannot be empty";
+    }
     if (!validNameCharacters.hasMatch(name)) {
       throw "Invalid name, this should have been caught already";
     }
@@ -106,7 +109,7 @@ class WordListManager {
 
   Future<void> createWordList(String key) async {
     if (wordLists.containsKey(key)) {
-      throw "List $key already exists";
+      throw "List already exists";
     }
     wordLists[key] = WordList.fromRaw(key);
     await wordLists[key]!.write();

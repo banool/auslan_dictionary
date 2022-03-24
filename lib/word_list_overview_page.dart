@@ -83,32 +83,42 @@ class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
 // Returns true if a new list was created.
 Future<bool> applyCreateListDialog(BuildContext context) async {
   TextEditingController controller = TextEditingController();
-  Widget body = Column(
-    children: [
-      Text(
-        "Only letters, numbers, and spaces are allowed",
+
+  List<Widget> children = [
+    Text(
+      "Only letters, numbers, and spaces are allowed.",
+    ),
+    Padding(padding: EdgeInsets.only(top: 10)),
+    TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        hintText: 'Enter new list name',
       ),
-      Padding(padding: EdgeInsets.only(top: 10)),
-      TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          hintText: 'Enter new list name',
-        ),
-        autofocus: true,
-        inputFormatters: [
-          FilteringTextInputFormatter.allow(WordList.validNameCharacters),
-        ],
-        textInputAction: TextInputAction.send,
-        keyboardType: TextInputType.visiblePassword,
-      )
-    ],
+      autofocus: true,
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(WordList.validNameCharacters),
+      ],
+      textInputAction: TextInputAction.send,
+      keyboardType: TextInputType.visiblePassword,
+    )
+  ];
+
+  Widget body = Column(
+    children: children,
     mainAxisSize: MainAxisSize.min,
   );
   bool confirmed = await confirmAlert(context, body, title: "New List");
   if (confirmed) {
     String name = controller.text;
-    String key = WordList.getKeyFromName(name);
-    await wordListManager.createWordList(key);
+    try {
+      String key = WordList.getKeyFromName(name);
+      await wordListManager.createWordList(key);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("Failed to make new list: $e."),
+          backgroundColor: Colors.red));
+      confirmed = false;
+    }
   }
   return confirmed;
 }
