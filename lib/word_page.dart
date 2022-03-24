@@ -23,20 +23,25 @@ Widget getAuslanSignbankLaunchAppBarActionWidget(
 }
 
 class WordPage extends StatefulWidget {
-  WordPage({Key? key, required this.word}) : super(key: key);
+  WordPage({Key? key, required this.word, required this.showFavouritesButton})
+      : super(key: key);
 
   final Word word;
+  final bool showFavouritesButton;
 
   @override
-  _WordPageState createState() => _WordPageState(word: word);
+  _WordPageState createState() =>
+      _WordPageState(word: word, showFavouritesButton: showFavouritesButton);
 }
 
 class _WordPageState extends State<WordPage> {
-  _WordPageState({required this.word});
+  _WordPageState({required this.word, required this.showFavouritesButton});
+
+  final Word word;
+  final bool showFavouritesButton;
 
   int currentPage = 0;
 
-  final Word word;
   bool isFavourited = false;
 
   PlaybackSpeed playbackSpeed = PlaybackSpeed.One;
@@ -77,42 +82,46 @@ class _WordPageState extends State<WordPage> {
       starIcon = Icon(Icons.star_outline, semanticLabel: "Favourite this word");
     }
 
+    List<Widget> actions = [];
+    if (showFavouritesButton) {
+      actions.add(buildActionButton(
+        context,
+        starIcon,
+        () async {
+          setState(() {
+            isFavourited = !isFavourited;
+          });
+          if (isFavourited) {
+            await addToFavourites(word);
+          } else {
+            await removeFromFavourites(word);
+          }
+        },
+      ));
+    }
+
+    actions += [
+      getAuslanSignbankLaunchAppBarActionWidget(
+          context, word.word, currentPage),
+      getPlaybackSpeedDropdownWidget(
+        (p) {
+          setState(() {
+            playbackSpeed = p!;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content:
+                  Text("Set playback speed to ${getPlaybackSpeedString(p!)}"),
+              backgroundColor: MAIN_COLOR,
+              duration: Duration(milliseconds: 1000)));
+        },
+      )
+    ];
+
     return InheritedPlaybackSpeed(
         playbackSpeed: playbackSpeed,
         child: Scaffold(
           appBar: AppBar(
-            title: Text(word.word),
-            actions: buildActionButtons([
-              buildActionButton(
-                context,
-                starIcon,
-                () async {
-                  setState(() {
-                    isFavourited = !isFavourited;
-                  });
-                  if (isFavourited) {
-                    await addToFavourites(word);
-                  } else {
-                    await removeFromFavourites(word);
-                  }
-                },
-              ),
-              getAuslanSignbankLaunchAppBarActionWidget(
-                  context, word.word, currentPage),
-              getPlaybackSpeedDropdownWidget(
-                (p) {
-                  setState(() {
-                    playbackSpeed = p!;
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(
-                          "Set playback speed to ${getPlaybackSpeedString(p!)}"),
-                      backgroundColor: MAIN_COLOR,
-                      duration: Duration(milliseconds: 1000)));
-                },
-              )
-            ]),
-          ),
+              title: Text(word.word), actions: buildActionButtons(actions)),
           bottomNavigationBar: Padding(
             padding: EdgeInsets.only(top: 5, bottom: 10),
             child: DotsIndicator(
