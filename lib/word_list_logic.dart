@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:math';
 import 'package:flutter/material.dart';
 
 import 'common.dart';
@@ -14,6 +15,11 @@ class WordList {
   LinkedHashSet<Word> words; // Ordered by insertion order.
 
   WordList(this.key, this.words);
+
+  @override
+  String toString() {
+    return this.getName();
+  }
 
   // This takes in the raw string key, pulls the list of raw strings from
   // storage, and converts them into a name and a list of words respectively.
@@ -44,24 +50,28 @@ class WordList {
     return words;
   }
 
-  String getName() {
-    if (key == KEY_FAVOURITES_WORDS) {
-      return "Favourites";
-    }
-    return key.substring(0, key.length - 5).replaceAll("_", " ");
-  }
-
-  Widget getLeadingIcon() {
+  Widget getLeadingIcon({bool inEditMode = false}) {
     if (key == KEY_FAVOURITES_WORDS) {
       return Icon(
         Icons.star,
       );
     }
-    return Icon(Icons.list);
+    if (inEditMode) {
+      return Icon(Icons.drag_handle);
+    } else {
+      return Icon(Icons.list_alt);
+    }
   }
 
   bool canBeDeleted() {
     return !(key == KEY_FAVOURITES_WORDS);
+  }
+
+  String getName() {
+    if (key == KEY_FAVOURITES_WORDS) {
+      return "Favourites";
+    }
+    return key.substring(0, key.length - 6).replaceAll("_", " ");
   }
 
   static String getKeyFromName(String name) {
@@ -125,5 +135,37 @@ class WordListManager {
   Future<void> writeWordListKeys() async {
     await sharedPreferences.setStringList(
         KEY_WORD_LIST_KEYS, wordLists.keys.toList());
+  }
+
+  // Given an item that moved from index prev to index current,
+  // reorder the lists and persist that. Deny reordering the favourites.
+  void reorder(int prev, int updated) {
+    if (prev == 0 || updated == 0) {
+      print("Refusing to reorder with favourites list: $prev and $updated");
+      return;
+    }
+    print("Moving item from $prev to $updated");
+
+    MapEntry<String, WordList> toMove = wordLists.entries.toList()[prev];
+
+    LinkedHashMap<String, WordList> modifiedList = LinkedHashMap();
+    int i = 0;
+    for (MapEntry<String, WordList> e in wordLists.entries) {
+      if (i == prev) {
+        i += 1;
+        continue;
+      }
+      if (i == updated) {
+        modifiedList[toMove.key] = toMove.value;
+      }
+      modifiedList[e.key] = e.value;
+      i += 1;
+    }
+
+    if (!modifiedList.containsKey(toMove.key)) {
+      modifiedList[toMove.key] = toMove.value;
+    }
+
+    wordLists = modifiedList;
   }
 }
