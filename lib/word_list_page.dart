@@ -57,8 +57,15 @@ class _WordListPageState extends State<WordListPage> {
   void search() {
     setState(() {
       if (currentSearchTerm.length > 0) {
-        wordsSearched =
-            searchList(currentSearchTerm, wordList.words, wordList.words);
+        if (inEditMode) {
+          Set<Word> wordsGlobalWithoutWordsAlreadyInList =
+              wordsGlobal.difference(wordList.words);
+          wordsSearched = searchList(
+              currentSearchTerm, wordsGlobalWithoutWordsAlreadyInList, {});
+        } else {
+          wordsSearched =
+              searchList(currentSearchTerm, wordList.words, wordList.words);
+        }
       } else {
         wordsSearched = List.from(wordList.words);
         if (viewSortedList) {
@@ -73,6 +80,13 @@ class _WordListPageState extends State<WordListPage> {
       wordsSearched = [];
       _searchFieldController.clear();
       updateCurrentSearchTerm("");
+      search();
+    });
+  }
+
+  Future<void> addWord(Word word) async {
+    await wordList.addWord(word);
+    setState(() {
       search();
     });
   }
@@ -99,6 +113,10 @@ class _WordListPageState extends State<WordListPage> {
         () async {
           setState(() {
             inEditMode = !inEditMode;
+            if (!inEditMode) {
+              clearSearch();
+            }
+            search();
           });
         },
       )
@@ -106,20 +124,23 @@ class _WordListPageState extends State<WordListPage> {
 
     String listName = wordList.getName();
 
-    FloatingActionButton? floatingActionButton;
+    FloatingActionButton? floatingActionButton = FloatingActionButton(
+        backgroundColor: getFloatingActionButtonColor(),
+        onPressed: () {
+          if (!enableSortButton) {
+            return;
+          }
+          toggleSort();
+        },
+        child: Icon(Icons.sort));
+
     String hintText;
     if (inEditMode) {
       hintText = "Search for words to add";
+      if (currentSearchTerm.length > 0) {
+        floatingActionButton = null;
+      }
     } else {
-      floatingActionButton = FloatingActionButton(
-          backgroundColor: getFloatingActionButtonColor(),
-          onPressed: () {
-            if (!enableSortButton) {
-              return;
-            }
-            toggleSort();
-          },
-          child: Icon(Icons.sort));
       hintText = "Search $listName";
     }
 
@@ -167,7 +188,12 @@ class _WordListPageState extends State<WordListPage> {
               child: listWidget(
                   context, wordsSearched, wordsGlobal, refreshWords,
                   showFavouritesButton: wordList.key == KEY_FAVOURITES_WORDS,
-                  deleteWordFn: inEditMode ? removeWord : null),
+                  deleteWordFn: inEditMode && currentSearchTerm.length == 0
+                      ? removeWord
+                      : null,
+                  addWordFn: inEditMode && currentSearchTerm.length > 0
+                      ? addWord
+                      : null),
             ),
           ],
         ),
@@ -176,10 +202,15 @@ class _WordListPageState extends State<WordListPage> {
   }
 }
 
-Widget listWidget(BuildContext context, List<Word?> wordsSearched,
-    Set<Word> allWords, Function refreshWordsFn,
-    {bool showFavouritesButton = true,
-    Future<void> Function(Word)? deleteWordFn}) {
+Widget listWidget(
+  BuildContext context,
+  List<Word?> wordsSearched,
+  Set<Word> allWords,
+  Function refreshWordsFn, {
+  bool showFavouritesButton = true,
+  Future<void> Function(Word)? deleteWordFn,
+  Future<void> Function(Word)? addWordFn,
+}) {
   return ListView.builder(
     itemCount: wordsSearched.length,
     itemBuilder: (context, index) {
@@ -193,6 +224,16 @@ Widget listWidget(BuildContext context, List<Word?> wordsSearched,
             color: Colors.red,
           ),
           onPressed: () async => await deleteWordFn(word),
+        );
+      }
+      if (addWordFn != null) {
+        trailing = IconButton(
+          padding: EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 8),
+          icon: Icon(
+            Icons.add_circle,
+            color: Colors.green,
+          ),
+          onPressed: () async => await addWordFn(word),
         );
       }
       return ListTile(
