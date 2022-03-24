@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 
 import 'package:auslan_dictionary/favourites_page.dart';
 import 'package:auslan_dictionary/settings_help_page.dart';
+import 'package:auslan_dictionary/word_list_logic.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -46,8 +47,7 @@ Future<void> main() async {
           enableFlashcardsKnob = await readKnob("enable_flashcards", true))(),
       (() async => downloadWordsDataKnob =
           await readKnob("download_words_data", false))(),
-      (() async =>
-          useWordListsKnob = await readKnob("use_word_lists", false))(),
+      (() async => useWordListsKnob = await readKnob("use_word_lists", true))(),
 
       // Get favourites stuff ready if this is the first ever app launch.
       (() async => await bootstrapFavourites())(),
@@ -56,10 +56,17 @@ Future<void> main() async {
       (() async => favouritesGlobal = await loadFavourites())(),
     ]);
 
+    // TODO: Remove
+    useWordListsKnob = true;
+
     // Check for new words data if appropriate.
     // We don't wait for this on startup, it's too slow.
     if (downloadWordsDataKnob) {
       updateWordsData();
+    }
+
+    if (useWordListsKnob) {
+      wordListManager = WordListManager.fromStartup();
     }
 
     // Resolve values based on knobs.
