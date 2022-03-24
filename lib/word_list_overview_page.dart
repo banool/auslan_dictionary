@@ -74,19 +74,28 @@ class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
 // Returns true if a new list was created.
 Future<bool> applyCreateListDialog(BuildContext context) async {
   TextEditingController controller = TextEditingController();
-  Widget body = TextField(
-    controller: controller,
-    decoration: InputDecoration(
-      hintText: 'Enter new list name',
-    ),
-    autofocus: true,
-    inputFormatters: [
-      FilteringTextInputFormatter.allow(WordList.validNameCharacters),
+  Widget body = Column(
+    children: [
+      Text(
+        "Only letters, numbers, and spaces are allowed",
+      ),
+      Padding(padding: EdgeInsets.only(top: 10)),
+      TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          hintText: 'Enter new list name',
+        ),
+        autofocus: true,
+        inputFormatters: [
+          FilteringTextInputFormatter.allow(WordList.validNameCharacters),
+        ],
+        textInputAction: TextInputAction.send,
+        keyboardType: TextInputType.visiblePassword,
+      )
     ],
-    textInputAction: TextInputAction.send,
-    keyboardType: TextInputType.visiblePassword,
+    mainAxisSize: MainAxisSize.min,
   );
-  bool confirmed = await confirmAlert(context, body);
+  bool confirmed = await confirmAlert(context, body, title: "New List");
   if (confirmed) {
     String name = controller.text;
     String key = WordList.getKeyFromName(name);
