@@ -231,7 +231,9 @@ class _MyHomePageState extends State<MyHomePage> {
         "Settings"));
 
     Widget body = information[currentNavBarIndex].tabBody;
+
     Widget? floatingActionButton;
+
     if (body is FavouritesPage) {
       floatingActionButton = FloatingActionButton(
           backgroundColor:
@@ -245,7 +247,29 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Icon(Icons.sort));
     }
 
+    if (body is WordListsOverviewPage &&
+        wordListsOverviewController.inEditMode) {
+      floatingActionButton = FloatingActionButton(
+          backgroundColor: Colors.green,
+          onPressed: () async {
+            await showCreateListDialog(context);
+          },
+          child: Icon(Icons.add));
+    }
+
     List<Widget> actions = [];
+    if (body is WordListsOverviewPage) {
+      actions.add(buildActionButton(
+        context,
+        Icon(Icons.edit),
+        () async {
+          setState(() {
+            wordListsOverviewController.toggleEditMode();
+          });
+        },
+      ));
+    }
+
     if (body is FlashcardsLandingPage) {
       actions.add(buildActionButton(
         context,

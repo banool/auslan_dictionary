@@ -81,10 +81,10 @@ class SettingsPageState extends State<SettingsPage> {
               onPressed: (BuildContext context) async {
                 bool confirmed = await confirmAlert(
                     context,
-                    "This will delete all your review progress from all "
-                    "time. Your spaced repetition progress will also be "
-                    "deleted. Your favourites will not be affected. "
-                    "Are you 100% sure you want to do this?");
+                    Text("This will delete all your review progress from all "
+                        "time. Your spaced repetition progress will also be "
+                        "deleted. Your favourites will not be affected. "
+                        "Are you 100% sure you want to do this?"));
                 if (confirmed) {
                   await writeReviews([], [], force: true);
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -101,8 +101,8 @@ class SettingsPageState extends State<SettingsPage> {
               onPressed: (BuildContext context) async {
                 bool confirmed = await confirmAlert(
                     context,
-                    "This will delete all your favourites. "
-                    "Are you 100% sure you want to do this?");
+                    Text("This will delete all your favourites. "
+                        "Are you 100% sure you want to do this?"));
                 if (confirmed) {
                   await clearFavourites();
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
