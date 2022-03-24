@@ -224,8 +224,12 @@ bool getShouldUseHorizontalLayout(BuildContext context) {
   return shouldUseHorizontalDisplay;
 }
 
+// Reaches out to check the value of the knob. If this succeeds, we store the
+// value locally. If this fails, we first check the local store to attempt to
+// use the value the value we last saw for the knob. If there is nothing there,
+// we use the hardcoded `fallback` value.
 Future<bool> readKnob(String key, bool fallback) async {
-  // TODO: Check for internet access first and if not present, don't even try to get GK.
+  String sharedPrefsKey = "knob_$key";
   try {
     String url =
         'https://raw.githubusercontent.com/banool/auslan_dictionary/master/knobs/$key';
@@ -239,11 +243,14 @@ Future<bool> readKnob(String key, bool fallback) async {
     } else {
       throw "Failed to check knob at $url, using fallback value: $fallback, due to ${result.body}";
     }
-    print("Value of knob $key is $out");
+    await sharedPreferences.setBool(sharedPrefsKey, out);
+    print("Value of knob $key is $out, stored at $sharedPrefsKey");
     return out;
   } catch (e, stacktrace) {
     print("$e:\n$stacktrace");
-    return fallback;
+    var out = sharedPreferences.getBool(sharedPrefsKey) ?? fallback;
+    print("Returning fallback value for knob $key: $out");
+    return out;
   }
 }
 
