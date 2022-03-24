@@ -14,6 +14,7 @@ import 'globals.dart';
 import 'search_page.dart';
 import 'settings_page.dart';
 import 'types.dart';
+import 'word_list_overview_page.dart';
 
 Future<void> main() async {
   print("Start of main");
@@ -45,6 +46,8 @@ Future<void> main() async {
           enableFlashcardsKnob = await readKnob("enable_flashcards", true))(),
       (() async => downloadWordsDataKnob =
           await readKnob("download_words_data", false))(),
+      (() async =>
+          useWordListsKnob = await readKnob("use_word_lists", false))(),
 
       // Get favourites stuff ready if this is the first ever app launch.
       (() async => await bootstrapFavourites())(),
@@ -135,6 +138,8 @@ class _MyHomePageState extends State<MyHomePage> {
       FavouritesPageController(refresh);
   late FlashcardsPageController flashcardsPageController =
       FlashcardsPageController(goToSettings);
+  late WordListsOverviewController wordListsOverviewController =
+      WordListsOverviewController();
   late SettingsController settingsPageController =
       SettingsController(refresh, toggleFlashcards);
 
@@ -182,13 +187,23 @@ class _MyHomePageState extends State<MyHomePage> {
         SearchPage(controller: searchPageController),
         "Search"));
 
-    information.add(TabInformation(
-        BottomNavigationBarItem(
-          icon: Icon(Icons.star),
-          label: "Favourites",
-        ),
-        FavouritesPage(controller: favouritesPageController),
-        "Favourites"));
+    if (useWordListsKnob) {
+      information.add(TabInformation(
+          BottomNavigationBarItem(
+            icon: Icon(Icons.view_list),
+            label: "Lists",
+          ),
+          WordListsOverviewPage(controller: wordListsOverviewController),
+          "Lists"));
+    } else {
+      information.add(TabInformation(
+          BottomNavigationBarItem(
+            icon: Icon(Icons.star),
+            label: "Favourites",
+          ),
+          FavouritesPage(controller: favouritesPageController),
+          "Favourites"));
+    }
 
     if (showFlashcards) {
       information.add(TabInformation(
