@@ -129,7 +129,9 @@ class ErrorFallback extends StatelessWidget {
     }
     List<Widget> children = [
       Text(
-        "Failed to start the app correctly. Please email danielporteous1@gmail.com with a screenshot showing this error.",
+        "Failed to start the app correctly. First, please confirm you are "
+        "using the latest version of the app. If you are, please email "
+        "danielporteous1@gmail.com with a screenshot showing this error.",
         textAlign: TextAlign.center,
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
