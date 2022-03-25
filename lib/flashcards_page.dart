@@ -9,9 +9,6 @@ import 'common.dart';
 import 'types.dart';
 import 'video_player_screen.dart';
 
-// TODO: Consider prefetching the videos as the user goes through, for speed.
-// TODO: Add forwards and backwards button, to go back and fogrth and see / change your answers.
-
 class FlashcardsPage extends StatefulWidget {
   FlashcardsPage({
     Key? key,
@@ -58,11 +55,6 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
     numCardsToReview = getNumDueCards(di.dolphin, revisionStrategy);
     nextCard();
   }
-
-  // TODO: Explore how the algorithm actually works and consider using Good.
-  // I suspect when calculating what cards need to be done, we should use Good
-  // but make the number of cards due on a day be the current stuff minus the
-  // number of reviews completed today (floor 0).
 
   // The actual dispose function cannot await async functions. Instead, we
   // ban users from swiping back to ensure that if they want to exit revision,
