@@ -86,8 +86,8 @@ Future<void> main() async {
     // Finally run the app.
     print("Setup complete, running app");
     runApp(MyApp());
-  } catch (error, stacktrace) {
-    print("Initial setup failed: $error:\n$stacktrace");
+  } catch (error, stackTrace) {
+    runApp(ErrorFallback(error: error, stackTrace: stackTrace));
   }
 }
 
@@ -99,6 +99,52 @@ Future<void> updateWordsData() async {
     print("Updated wordsGlobal");
   } else {
     print("There was no new words data, not updating wordsGlobal");
+  }
+}
+
+class ErrorFallback extends StatelessWidget {
+  final Object error;
+  final StackTrace stackTrace;
+
+  ErrorFallback({required this.error, required this.stackTrace});
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> children = [
+      Text(
+        "Failed to start the app correctly. Please email danielporteous1@gmail.com with a screenshot showing this error.",
+        textAlign: TextAlign.center,
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      Padding(padding: EdgeInsets.only(top: 20)),
+      Text(
+        "$error",
+        textAlign: TextAlign.center,
+      ),
+      Text(
+        "$stackTrace",
+      ),
+    ];
+    try {
+      String s = "";
+      for (String key in sharedPreferences.getKeys()) {
+        s += "$key: ${sharedPreferences.get(key).toString()}\n";
+      }
+      children.add(Text(
+        s,
+        textAlign: TextAlign.left,
+      ));
+    } catch (e) {
+      children.add(Text("Failed to get shared prefs: $e"));
+    }
+    return MaterialApp(
+        title: APP_NAME,
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+            body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: children,
+        )));
   }
 }
 
