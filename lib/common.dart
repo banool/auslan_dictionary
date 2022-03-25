@@ -19,6 +19,8 @@ const Color APP_BAR_DISABLED_COLOR = Color.fromARGB(94, 0, 0, 0);
 
 const String KEY_SHOULD_CACHE = "shouldCache";
 
+const String KEY_ADVISORY_VERSION = "advisory_version";
+
 const String KEY_FAVOURITES_WORDS = "favourites_words";
 const String KEY_LAST_DICTIONARY_DATA_CHECK_TIME = "last_data_check_time";
 const String KEY_DICTIONARY_DATA_CURRENT_VERSION = "current_data_version";
@@ -247,6 +249,54 @@ Future<bool> readKnob(String key, bool fallback) async {
     var out = sharedPreferences.getBool(sharedPrefsKey) ?? fallback;
     print("Returning fallback value for knob $key: $out");
     return out;
+  }
+}
+
+Future<String?> getAdvisory() async {
+  String? advisoryRaw;
+
+  // Pull the raw data for the advisory.
+  try {
+    String url =
+        'https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/advisory.txt';
+    var result = await http.get(Uri.parse(url));
+    advisoryRaw = result.body;
+  } catch (e) {
+    print("Failed to get advisory: $e");
+    return null;
+  }
+
+  // Determine the version of the advisory.
+  int newVersion;
+  String advisory;
+  try {
+    List<String> sp = advisoryRaw.split("=====");
+    newVersion = int.parse(sp[0]);
+    advisory = sp[1];
+  } catch (e) {
+    print("Failed to determine advisory version");
+    return null;
+  }
+
+  // Pull the latest seen advisory from storage.
+  int lastSeenVersion;
+  try {
+    lastSeenVersion = sharedPreferences.getInt(KEY_ADVISORY_VERSION) ?? 0;
+  } catch (e) {
+    print("Failed to load previous advisory version, just returning advisory");
+    return advisoryRaw;
+  }
+
+  // Store the new version of the advisory.
+  await sharedPreferences.setInt(KEY_ADVISORY_VERSION, newVersion);
+
+  // Return the advisory only if the new version is newer than the last seen version.
+  if (newVersion > lastSeenVersion) {
+    print("Showing advisory: $advisory");
+    return advisory;
+  } else {
+    print("Not showing advisory because there is no new version");
+    return null;
   }
 }
 

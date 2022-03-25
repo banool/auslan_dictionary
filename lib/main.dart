@@ -19,20 +19,33 @@ import 'word_list_overview_page.dart';
 
 Future<void> main() async {
   print("Start of main");
+
+  String? advisory;
+
   try {
     var widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
 
     // Preserve the splash screen while the app initializes.
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-    await Future.wait<void>([
-      // Load shared preferences. We do this first because the later futures,
-      // such as loadFavourites and the knobs, depend on it being initialized.
-      (() async => sharedPreferences = await SharedPreferences.getInstance())(),
+    // Load shared preferences. We do this first because the later futures,
+    // such as loadFavourites and the knobs, depend on it being initialized.
+    sharedPreferences = await SharedPreferences.getInstance();
 
+    // Load up the advisory (if there is one) next.
+    advisory = await getAdvisory();
+
+    await Future.wait<void>([
       // Load up the words information once at startup from disk.
       // We do this first because loadFavourites depends on it later.
       (() async => wordsGlobal = await loadWords())(),
+
+      // Get knob values.
+      (() async =>
+          enableFlashcardsKnob = await readKnob("enable_flashcards", true))(),
+      (() async => downloadWordsDataKnob =
+          await readKnob("download_words_data", false))(),
+      (() async => useWordListsKnob = await readKnob("use_word_lists", true))(),
     ]);
 
     for (Word w in wordsGlobal) {
@@ -42,13 +55,6 @@ Future<void> main() async {
     // Start all these futures and await them collectively to speed up startup.
     // Only put futures here where the completion order doesn't matter.
     await Future.wait<void>([
-      // Check knobs.
-      (() async =>
-          enableFlashcardsKnob = await readKnob("enable_flashcards", true))(),
-      (() async => downloadWordsDataKnob =
-          await readKnob("download_words_data", false))(),
-      (() async => useWordListsKnob = await readKnob("use_word_lists", true))(),
-
       // Get favourites stuff ready if this is the first ever app launch.
       (() async => await bootstrapFavourites())(),
 
@@ -85,9 +91,13 @@ Future<void> main() async {
 
     // Finally run the app.
     print("Setup complete, running app");
-    runApp(MyApp());
+    runApp(MyApp(advisory: advisory));
   } catch (error, stackTrace) {
-    runApp(ErrorFallback(error: error, stackTrace: stackTrace));
+    runApp(ErrorFallback(
+      error: error,
+      stackTrace: stackTrace,
+      advisory: advisory,
+    ));
   }
 }
 
@@ -105,11 +115,18 @@ Future<void> updateWordsData() async {
 class ErrorFallback extends StatelessWidget {
   final Object error;
   final StackTrace stackTrace;
+  final String? advisory;
 
-  ErrorFallback({required this.error, required this.stackTrace});
+  ErrorFallback({required this.error, required this.stackTrace, this.advisory});
 
   @override
   Widget build(BuildContext context) {
+    Widget advisoryWidget;
+    if (advisory == null) {
+      advisoryWidget = Container();
+    } else {
+      advisoryWidget = Text(advisory!);
+    }
     List<Widget> children = [
       Text(
         "Failed to start the app correctly. Please email danielporteous1@gmail.com with a screenshot showing this error.",
@@ -117,6 +134,7 @@ class ErrorFallback extends StatelessWidget {
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
       Padding(padding: EdgeInsets.only(top: 20)),
+      advisoryWidget,
       Text(
         "$error",
         textAlign: TextAlign.center,
@@ -149,6 +167,10 @@ class ErrorFallback extends StatelessWidget {
 }
 
 class MyApp extends StatelessWidget {
+  final String? advisory;
+
+  MyApp({this.advisory});
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -170,21 +192,26 @@ class MyApp extends StatelessWidget {
                 TargetPlatform.android: CupertinoPageTransitionsBuilder(),
                 TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
               })),
-          home: MyHomePage(title: APP_NAME),
+          home: MyHomePage(advisory: advisory),
         ));
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, this.title}) : super(key: key);
+  MyHomePage({Key? key, this.advisory}) : super(key: key);
 
-  final String? title;
+  final String? advisory;
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _MyHomePageState createState() => _MyHomePageState(advisory: advisory);
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final String? advisory;
+  bool advisoryShownOnce = false;
+
+  _MyHomePageState({this.advisory});
+
   final SearchPageController searchPageController = SearchPageController();
   late FavouritesPageController favouritesPageController =
       FavouritesPageController(refresh);
@@ -227,8 +254,22 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void showAdvisoryDialog() {
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              title: Text("Developer Message"),
+              content: Text(advisory!),
+            ));
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (advisory != null && !advisoryShownOnce) {
+      Future.delayed(Duration(milliseconds: 500), () => showAdvisoryDialog());
+      advisoryShownOnce = true;
+    }
+
     List<TabInformation> information = [];
 
     information.add(TabInformation(
@@ -308,6 +349,16 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     List<Widget> actions = [];
+    if (body is SearchPage && advisory != null) {
+      actions.add(buildActionButton(
+        context,
+        Icon(Icons.info),
+        () async {
+          showAdvisoryDialog();
+        },
+      ));
+    }
+
     if (body is WordListsOverviewPage) {
       actions.add(buildActionButton(
         context,
