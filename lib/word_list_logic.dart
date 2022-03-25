@@ -28,11 +28,8 @@ class WordList {
   }
 
   // Load up a word list. If the key doesn't exist, it'll just return an empty list.
-  // In the empty list case, it'll write the empty list back to storage to ensure
-  // it is there for next time.
   static LinkedHashSet<Word> loadWordList(String key) {
     LinkedHashSet<Word> words = LinkedHashSet();
-    // Load up the Words for the favourites (inefficiently).
     List<String> wordsRaw = sharedPreferences.getStringList(key) ?? [];
     print("Loaded raw words: $wordsRaw");
     for (String s in wordsRaw) {
