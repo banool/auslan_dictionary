@@ -218,7 +218,7 @@ class _MyHomePageState extends State<MyHomePage> {
             label: "Revision",
           ),
           FlashcardsLandingPage(controller: flashcardsPageController),
-          "Revision (Beta)"));
+          "Revision"));
     }
 
     information.add(TabInformation(
