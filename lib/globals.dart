@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:auslan_dictionary/word_list_logic.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'types.dart';
@@ -12,6 +13,7 @@ late Set<Word> favouritesGlobal;
 late WordListManager wordListManager;
 
 late SharedPreferences sharedPreferences;
+late DefaultCacheManager defaultCacheManager;
 
 // Values of the knobs.
 late bool enableFlashcardsKnob;

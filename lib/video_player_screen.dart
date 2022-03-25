@@ -137,18 +137,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     try {
       VideoPlayerController controller;
       if (shouldCache) {
-        FileInfo? fileInfo =
-            await DefaultCacheManager().getFileFromCache(videoLink);
-
-        late File file;
-        if (fileInfo == null) {
-          print("Video for $videoLink not in cache, fetching and caching now");
-          file = await DefaultCacheManager().getSingleFile(videoLink);
-        } else {
-          print("Video for $videoLink is in cache, reading from there");
-          file = fileInfo.file;
-        }
-
+        print("Pulling video $videoLink from either cache or the internet");
+        File file = await defaultCacheManager.getSingleFile(videoLink);
         controller = VideoPlayerController.file(file,
             videoPlayerOptions: videoPlayerOptions);
       } else {
