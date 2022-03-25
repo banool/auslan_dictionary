@@ -174,25 +174,25 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         errorWidgets[idx] = Column(
           children: [
             Text(
-              "Failed to load video. Please confirm your phone is connected to the internet. If it is, the Auslan Signbank servers may be having issues. This is not an issue with the app itself.",
+              "Failed to load video. Please confirm your device is connected to the internet. If it is, the Auslan Signbank servers may be having issues. This is not an issue with the app itself.",
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 15),
+              style: TextStyle(fontSize: 14),
             ),
-            Padding(padding: EdgeInsets.only(top: 20)),
+            Padding(padding: EdgeInsets.only(top: 10)),
             Text(
-              "Error: $e",
-              style: TextStyle(fontSize: 12),
+              "$videoLink: $e",
+              style: TextStyle(fontSize: 11),
               textAlign: TextAlign.center,
-            )
+            ),
           ],
           mainAxisAlignment: MainAxisAlignment.center,
         );
       } else {
         errorWidgets[idx] = Column(children: [
           Text(
-            "Unexpected error: $e",
+            "Unexpected error loading $videoLink: $e",
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14),
+            style: TextStyle(fontSize: 11),
           )
         ]);
       }
@@ -205,7 +205,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         c.pause();
       }
       currentPage = newPage;
-      controllers[currentPage]!.play();
+      controllers[currentPage]?.play();
     });
   }
 
