@@ -93,24 +93,6 @@ class SettingsPageState extends State<SettingsPage> {
                   ));
                 }
               }),
-          SettingsTile.navigation(
-              title: getText(
-                'Delete all favourites',
-              ),
-              trailing: Container(),
-              onPressed: (BuildContext context) async {
-                bool confirmed = await confirmAlert(
-                    context,
-                    Text("This will delete all your favourites. "
-                        "Are you 100% sure you want to do this?"));
-                if (confirmed) {
-                  await clearFavourites();
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text("All favourites deleted"),
-                    backgroundColor: MAIN_COLOR,
-                  ));
-                }
-              }),
         ],
         margin: margin,
       );

@@ -192,12 +192,6 @@ Future<void> bootstrapFavourites() async {
   }
 }
 
-// Clear favourites.
-Future<void> clearFavourites() async {
-  favouritesGlobal = {};
-  await sharedPreferences.setStringList(KEY_FAVOURITES_WORDS, []);
-}
-
 // Write favourites to prefs.
 Future<void> writeFavourites() async {
   await sharedPreferences.setStringList(

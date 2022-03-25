@@ -20,9 +20,10 @@ Widget getFlashcardsHelpPage() {
           "we select that option by default.",
     ],
     "Where do the words for the flashcards come from?": [
-      "We use your favourites as the flashcard source. At some point we may "
-          "add support for other lists / user defined lists, but for now it's "
-          "just your favourites."
+      "You may select one or more lists as the flashcard source. By default "
+          "there is only one list, your favourites, but you may create additional "
+          "lists and use words from many of them at once in a single revision session. ",
+      "If two lists contain the same word, we will still only show the word once."
     ],
     "What do all these sign selection options mean?": [
       "Within a single dictionary entry in Auslan Dictionary there may be "
@@ -44,7 +45,8 @@ Widget getFlashcardsHelpPage() {
           "set of cards per word. If so, you should enable this option."
     ],
     "What is a revision strategy?": [
-      "A revision strategy determines how we decide what flashcards to show you and what information we store about your progress.",
+      "A revision strategy determines how we decide what flashcards to show "
+          "you and what information we store about your progress.",
     ],
     "How does the random revision strategy work?": [
       "The random revision strategy is the simplest option. We simply take "
