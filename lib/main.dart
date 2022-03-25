@@ -68,8 +68,6 @@ Future<void> main() async {
       updateWordsData();
     }
 
-    useWordListsKnob = true;
-
     if (useWordListsKnob) {
       wordListManager = WordListManager.fromStartup();
     }
