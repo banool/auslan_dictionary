@@ -237,7 +237,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
       if (revealed) {
         topWidget = videoPlayerScreen;
       } else {
-        double top = shouldUseHorizontalDisplay ? 40 : 120;
+        double top = shouldUseHorizontalDisplay ? 100 : 120;
         topWidget = Container(
             padding: EdgeInsets.only(top: top, bottom: 70),
             child: Text("What is the sign for this word?",
@@ -387,6 +387,30 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         )
       ]);
     } else {
+      MainAxisAlignment firstColumnMainAxisAlignment;
+      if (wordToSign && !revealed) {
+        firstColumnMainAxisAlignment = MainAxisAlignment.start;
+      } else {
+        firstColumnMainAxisAlignment = MainAxisAlignment.center;
+      }
+      List<Widget> children = [
+        Padding(padding: EdgeInsets.only(top: 100)),
+        bottomWidget,
+      ];
+      if (revealed) {
+        children += openDictionaryEntryWidgets;
+      }
+      children.add(Expanded(
+        child: Container(),
+      ));
+      if (revealed) {
+        children.add(ratingButtonsRow!);
+      }
+      children.add(Padding(padding: EdgeInsets.only(bottom: 80)));
+      var secondColumn = Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: children);
       return Stack(children: [
         Column(children: [
           Expanded(
@@ -405,30 +429,12 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
           children: [
             Column(
               children: [topWidget, regionalInformationWidget],
-              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisAlignment: firstColumnMainAxisAlignment,
             ),
             Padding(padding: EdgeInsets.only(left: 50)),
-            LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-              List<Widget> children = [
-                Padding(padding: EdgeInsets.only(top: 40)),
-                bottomWidget,
-              ];
-              if (revealed) {
-                children += openDictionaryEntryWidgets;
-              }
-              children.add(Expanded(
-                child: Container(),
-              ));
-              if (revealed) {
-                children.add(ratingButtonsRow!);
-              }
-              children.add(Padding(padding: EdgeInsets.only(bottom: 40)));
-              return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: children);
-            }),
+            ConstrainedBox(
+                constraints: BoxConstraints(minWidth: 400),
+                child: secondColumn),
           ],
         )
       ]);
