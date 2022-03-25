@@ -28,6 +28,7 @@ class _WordListPageState extends State<WordListPage> {
 
   String currentSearchTerm = "";
 
+  final textFieldFocus = FocusNode();
   final _searchFieldController = TextEditingController();
 
   @override
@@ -139,6 +140,13 @@ class _WordListPageState extends State<WordListPage> {
       hintText = "Search for words to add";
       if (currentSearchTerm.length > 0) {
         floatingActionButton = null;
+      } else {
+        floatingActionButton = FloatingActionButton(
+            backgroundColor: Colors.green,
+            onPressed: () {
+              textFieldFocus.requestFocus();
+            },
+            child: Icon(Icons.add));
       }
     } else {
       hintText = "Search $listName";
@@ -163,6 +171,7 @@ class _WordListPageState extends State<WordListPage> {
                   child: Column(children: <Widget>[
                 TextField(
                   controller: _searchFieldController,
+                  focusNode: textFieldFocus,
                   decoration: InputDecoration(
                     hintText: hintText,
                     suffixIcon: IconButton(
