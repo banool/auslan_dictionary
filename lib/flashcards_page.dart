@@ -6,6 +6,7 @@ import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 import 'package:flutter/material.dart';
 
 import 'common.dart';
+import 'globals.dart';
 import 'types.dart';
 import 'video_player_screen.dart';
 
@@ -236,8 +237,9 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
       if (revealed) {
         topWidget = videoPlayerScreen;
       } else {
+        double top = shouldUseHorizontalDisplay ? 40 : 120;
         topWidget = Container(
-            padding: EdgeInsets.only(top: 120, bottom: 70),
+            padding: EdgeInsets.only(top: top, bottom: 70),
             child: Text("What is the sign for this word?",
                 textAlign: TextAlign.center, style: TextStyle(fontSize: 20)));
       }
@@ -296,6 +298,38 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
       }
     }
 
+    List<Widget> openDictionaryEntryWidgets = [
+      Padding(padding: EdgeInsets.only(top: 30)),
+      TextButton(
+          child: Text(
+            "Open dictionary entry",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14),
+          ),
+          style: ButtonStyle(
+            padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.all(10)),
+            backgroundColor: MaterialStateProperty.resolveWith(
+              (states) {
+                if (states.contains(MaterialState.disabled)) {
+                  return Colors.grey;
+                } else {
+                  return MAIN_COLOR;
+                }
+              },
+            ),
+            foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+          ),
+          onPressed: () async {
+            await Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => WordPage(
+                          word: keyedWordsGlobal[word]!,
+                          showFavouritesButton: false,
+                        )));
+          })
+    ];
+
     if (!shouldUseHorizontalDisplay) {
       List<Widget?> children = [];
       children.add(topWidget);
@@ -306,6 +340,10 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         endIndent: 20,
       ));
       children.add(bottomWidget);
+
+      if (revealed) {
+        children += openDictionaryEntryWidgets;
+      }
 
       children.add(Expanded(child: Container()));
 
@@ -367,22 +405,25 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
           children: [
             Column(
               children: [topWidget, regionalInformationWidget],
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
             ),
             Padding(padding: EdgeInsets.only(left: 50)),
             LayoutBuilder(
                 builder: (BuildContext context, BoxConstraints constraints) {
               List<Widget> children = [
-                ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: 190, minWidth: 300),
-                    child: Container(
-                      padding: EdgeInsets.only(top: 120, bottom: 95),
-                      child: bottomWidget,
-                    ))
+                Padding(padding: EdgeInsets.only(top: 40)),
+                bottomWidget,
               ];
+              if (revealed) {
+                children += openDictionaryEntryWidgets;
+              }
+              children.add(Expanded(
+                child: Container(),
+              ));
               if (revealed) {
                 children.add(ratingButtonsRow!);
               }
+              children.add(Padding(padding: EdgeInsets.only(bottom: 40)));
               return Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
