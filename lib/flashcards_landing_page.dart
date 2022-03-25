@@ -93,15 +93,19 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
 
   void updateFilteredSubwords() {
     // Get lists we intend to review.
-    listsToReview = sharedPreferences.getStringList(KEY_LISTS_TO_REVIEW) ??
-        [KEY_FAVOURITES_WORDS];
+    if (useWordListsKnob) {
+      listsToReview = sharedPreferences.getStringList(KEY_LISTS_TO_REVIEW) ??
+          [KEY_FAVOURITES_WORDS];
 
-    // Filter out lists that no longer exist.
-    listsToReview.removeWhere(
-        (element) => !wordListManager.wordLists.containsKey(element));
+      // Filter out lists that no longer exist.
+      listsToReview.removeWhere(
+          (element) => !wordListManager.wordLists.containsKey(element));
 
-    // Get the words from all these lists.
-    wordsFromLists = getWordsFromLists(listsToReview);
+      // Get the words from all these lists.
+      wordsFromLists = getWordsFromLists(listsToReview);
+    } else {
+      wordsFromLists = favouritesGlobal;
+    }
 
     // Get the subwords from all these words.
     Map<String, List<SubWordWrapper>> subWordsToReview =
