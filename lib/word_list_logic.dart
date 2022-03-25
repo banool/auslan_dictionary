@@ -66,11 +66,15 @@ class WordList {
     return !(key == KEY_FAVOURITES_WORDS);
   }
 
-  String getName() {
+  static String getNameFromKey(String key) {
     if (key == KEY_FAVOURITES_WORDS) {
       return "Favourites";
     }
     return key.substring(0, key.length - 6).replaceAll("_", " ");
+  }
+
+  String getName() {
+    return WordList.getNameFromKey(key);
   }
 
   static String getKeyFromName(String name) {
