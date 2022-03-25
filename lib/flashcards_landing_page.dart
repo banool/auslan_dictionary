@@ -9,6 +9,7 @@ import 'flashcards_page.dart';
 import 'globals.dart';
 import 'settings_page.dart';
 import 'types.dart';
+import 'word_list_logic.dart';
 
 // - In the flashcards app bar have a history button to see a summary of previous flashcard sessions.
 // - do i need some kind of db compaction? like where i collapse all reviews but the most recent
@@ -19,6 +20,8 @@ const String KEY_WORD_TO_SIGN = "word_to_sign";
 const String KEY_USE_UNKNOWN_REGION_SIGNS = "use_unknown_region_signs";
 const String KEY_REVISION_STRATEGY = "revision_strategy";
 const String KEY_ONE_CARD_PER_WORD = "one_card_per_word";
+
+const String KEY_LISTS_TO_REVIEW = "lists_chosen_to_review";
 
 const String ONLY_ONE_CARD_TEXT = "Show only one set of cards per word";
 const String UNKNOWN_REGIONS_TEXT = "Signs with unknown region";
@@ -57,10 +60,13 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
   }
 
   late int numEnabledFlashcardTypes;
+
   late final bool initialValueSignToWord;
   late final bool initialValueWordToSign;
 
-  late final Map<String, List<SubWordWrapper>> favouriteSubWords;
+  late List<String> listsToReview;
+  late Set<Word> wordsFromLists;
+
   Map<String, List<SubWordWrapper>> filteredSubWords = Map();
 
   late DolphinInformation dolphinInformation;
@@ -69,7 +75,6 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
   @override
   void initState() {
     super.initState();
-    favouriteSubWords = getSubWordsFromWords(favouritesGlobal);
     updateRevisionSettings();
     initialValueSignToWord =
         sharedPreferences.getBool(KEY_SIGN_TO_WORD) ?? true;
@@ -85,6 +90,22 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
   }
 
   void updateFilteredSubwords() {
+    // Get lists we intend to review.
+    listsToReview = sharedPreferences.getStringList(KEY_LISTS_TO_REVIEW) ??
+        [KEY_FAVOURITES_WORDS];
+
+    // Filter out lists that no longer exist.
+    listsToReview.removeWhere(
+        (element) => !wordListManager.wordLists.containsKey(element));
+
+    // Get the words from all these lists.
+    wordsFromLists = getWordsFromLists(listsToReview);
+
+    // Get the subwords from all these words.
+    Map<String, List<SubWordWrapper>> subWordsToReview =
+        getSubWordsFromWords(wordsFromLists);
+
+    // Load up all the data needed to filter the subwords.
     List<Region> allowedRegions =
         (sharedPreferences.getStringList(KEY_FLASHCARD_REGIONS) ?? [])
             .map((i) => Region.values[int.parse(i)])
@@ -93,8 +114,10 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
         sharedPreferences.getBool(KEY_USE_UNKNOWN_REGION_SIGNS) ?? true;
     bool oneCardPerWord =
         sharedPreferences.getBool(KEY_ONE_CARD_PER_WORD) ?? false;
+
+    // Finally get the final list of filtered subwords.
     setState(() {
-      filteredSubWords = filterSubWords(favouriteSubWords, allowedRegions,
+      filteredSubWords = filterSubWords(subWordsToReview, allowedRegions,
           useUnknownRegionSigns, oneCardPerWord);
     });
   }
@@ -220,7 +243,57 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
         break;
     }
 
+    SettingsSection? sourceListSection;
+    if (useWordListsKnob) {
+      sourceListSection = SettingsSection(
+          title: Padding(
+              padding: EdgeInsets.only(bottom: 5),
+              child: Text(
+                'Revision Sources',
+                style: TextStyle(fontSize: 16),
+              )),
+          tiles: [
+            SettingsTile.navigation(
+              title: getText("Select lists to revise"),
+              trailing: Container(),
+              onPressed: (BuildContext context) async {
+                await showDialog(
+                  context: context,
+                  builder: (ctx) {
+                    List<MultiSelectItem<String>> items = [];
+                    for (MapEntry<String, WordList> e
+                        in wordListManager.wordLists.entries) {
+                      items.add(MultiSelectItem(e.key, e.value.getName()));
+                    }
+                    return MultiSelectDialog<String>(
+                      listType: MultiSelectListType.CHIP,
+                      title: Text("Select Lists"),
+                      items: items,
+                      initialValue: listsToReview,
+                      onConfirm: (List<String> values) async {
+                        await sharedPreferences.setStringList(
+                            KEY_LISTS_TO_REVIEW, values);
+                        setState(() {
+                          updateRevisionSettings();
+                        });
+                      },
+                    );
+                  },
+                );
+              },
+              description: Text(
+                listsToReview
+                    .map((key) => WordList.getNameFromKey(key))
+                    .toList()
+                    .join(", "),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ]);
+    }
+
     List<AbstractSettingsSection?> sections = [
+      sourceListSection,
       SettingsSection(
           title: Padding(
               padding: EdgeInsets.only(bottom: 5),

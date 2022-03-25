@@ -26,6 +26,14 @@ class SubWordWrapper {
   });
 }
 
+Set<Word> getWordsFromLists(List<String> listsToUse) {
+  Set<Word> out = {};
+  for (String key in listsToUse) {
+    out.addAll(wordListManager.wordLists[key]!.words);
+  }
+  return out;
+}
+
 Map<String, List<SubWordWrapper>> getSubWordsFromWords(Set<Word> favourites) {
   Map<String, List<SubWordWrapper>> subWords = Map();
   for (Word w in favourites) {
