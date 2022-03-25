@@ -230,7 +230,7 @@ Future<bool> readKnob(String key, bool fallback) async {
   String sharedPrefsKey = "knob_$key";
   try {
     String url =
-        'https://raw.githubusercontent.com/banool/auslan_dictionary/master/knobs/$key';
+        'https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/knobs/$key';
     var result = await http.get(Uri.parse(url));
     String raw = result.body.replaceAll("\n", "");
     bool out;
