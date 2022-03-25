@@ -1,5 +1,6 @@
 import 'package:auslan_dictionary/flashcards_logic.dart';
 import 'package:dolphinsr_dart/dolphinsr_dart.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:settings_ui/settings_ui.dart';
@@ -71,6 +72,11 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance!
+        .addObserver(LifecycleEventHandler(resumeCallBack: () async {
+      updateRevisionSettings();
+      print("Updated revision settings on foregrounding");
+    }));
     updateRevisionSettings();
     initialValueSignToWord =
         sharedPreferences.getBool(KEY_SIGN_TO_WORD) ?? true;
@@ -501,5 +507,26 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
       )),
       color: settingsBackgroundColor,
     );
+  }
+}
+
+class LifecycleEventHandler extends WidgetsBindingObserver {
+  final AsyncCallback resumeCallBack;
+
+  LifecycleEventHandler({
+    required this.resumeCallBack,
+  });
+
+  @override
+  Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        await resumeCallBack();
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        break;
+    }
   }
 }
