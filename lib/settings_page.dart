@@ -82,8 +82,8 @@ class SettingsPageState extends State<SettingsPage> {
                 bool confirmed = await confirmAlert(
                     context,
                     Text("This will delete all your review progress from all "
-                        "time. Your spaced repetition progress will also be "
-                        "deleted. Your favourites will not be affected. "
+                        "time, including your spaced repetition progress. "
+                        "Your lists (including Favourites) will not be affected. "
                         "Are you 100% sure you want to do this?"));
                 if (confirmed) {
                   await writeReviews([], [], force: true);

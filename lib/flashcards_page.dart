@@ -267,7 +267,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
           getRegionalInformationWidget(subWord, shouldUseHorizontalDisplay);
     } else {
       regionalInformationWidget = Container(
-        padding: EdgeInsets.only(top: 25),
+        padding: EdgeInsets.only(top: 30),
       );
     }
 
@@ -427,14 +427,13 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Column(
-              children: [topWidget, regionalInformationWidget],
-              mainAxisAlignment: firstColumnMainAxisAlignment,
-            ),
-            Padding(padding: EdgeInsets.only(left: 50)),
-            ConstrainedBox(
-                constraints: BoxConstraints(minWidth: 400),
-                child: secondColumn),
+            Expanded(
+                flex: 1,
+                child: Column(
+                  children: [topWidget, regionalInformationWidget],
+                  mainAxisAlignment: firstColumnMainAxisAlignment,
+                )),
+            Expanded(flex: 1, child: secondColumn),
           ],
         )
       ]);
