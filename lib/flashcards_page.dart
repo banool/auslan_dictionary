@@ -103,7 +103,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
   }
 
   void completeCard(DRCard card,
-      {Rating rating = Rating.Easy,
+      {Rating rating = Rating.Good,
       DateTime? when,
       bool forceUseTimer = false}) {
     // Don't ack second taps if a timer is running.
@@ -156,44 +156,45 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
     Color overlayColor; // For tap animation, should be translucent.
     Color textColor;
     Color borderColor;
-    switch (rating) {
-      case Rating.Again:
-        textData = "Forgot";
-        overlayColor = Color.fromARGB(90, 211, 88, 79);
-        break;
-      case Rating.Easy:
-        textData = "Got it!";
-        overlayColor = Color.fromARGB(90, 72, 167, 77);
-        break;
-      default:
-        throw "Rating $rating not supported yet";
-    }
-    if (active) {
-      switch (rating) {
-        case Rating.Again:
-          backgroundColor = Color.fromARGB(118, 255, 104, 104);
-          borderColor = Color.fromARGB(255, 189, 40, 29);
-          textColor = Color.fromARGB(255, 179, 59, 50);
-          break;
-        case Rating.Easy:
-          backgroundColor = Color.fromARGB(60, 88, 255, 124);
-          borderColor = Color.fromARGB(255, 33, 102, 37);
-          textColor = Color.fromARGB(255, 63, 156, 67);
-          break;
-        default:
-          throw "Rating $rating not supported yet";
-      }
-    } else {
-      backgroundColor = Color.fromARGB(0, 255, 255, 255);
-      borderColor = Color.fromARGB(255, 116, 116, 116);
-      textColor = Color.fromARGB(204, 0, 0, 0);
-    }
-    if (isNext) {
+    if (rating == Rating.Easy && isNext) {
       textData = "Next";
       overlayColor = Color.fromARGB(92, 30, 143, 250);
       backgroundColor = Color.fromARGB(0, 255, 255, 255);
       borderColor = Color.fromARGB(255, 116, 116, 116);
       textColor = Color.fromARGB(204, 0, 0, 0);
+    } else {
+      switch (rating) {
+        case Rating.Hard:
+          textData = "Forgot";
+          overlayColor = Color.fromARGB(90, 211, 88, 79);
+          break;
+        case Rating.Good:
+          textData = "Got it!";
+          overlayColor = Color.fromARGB(90, 72, 167, 77);
+          break;
+        default:
+          throw "Rating $rating not supported yet";
+      }
+      if (active) {
+        switch (rating) {
+          case Rating.Hard:
+            backgroundColor = Color.fromARGB(118, 255, 104, 104);
+            borderColor = Color.fromARGB(255, 189, 40, 29);
+            textColor = Color.fromARGB(255, 179, 59, 50);
+            break;
+          case Rating.Good:
+            backgroundColor = Color.fromARGB(60, 88, 255, 124);
+            borderColor = Color.fromARGB(255, 33, 102, 37);
+            textColor = Color.fromARGB(255, 63, 156, 67);
+            break;
+          default:
+            throw "Rating $rating not supported yet";
+        }
+      } else {
+        backgroundColor = Color.fromARGB(0, 255, 255, 255);
+        borderColor = Color.fromARGB(255, 116, 116, 116);
+        textColor = Color.fromARGB(204, 0, 0, 0);
+      }
     }
     return TextButton(
         child: Text(
@@ -203,13 +204,15 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         ),
         onPressed: () {
           switch (rating) {
-            case Rating.Again:
+            case Rating.Hard:
               forgotRatingWidgetActive = true;
               rememberedRatingWidgetActive = false;
               break;
-            case Rating.Easy:
+            case Rating.Good:
               rememberedRatingWidgetActive = true;
               forgotRatingWidgetActive = false;
+              break;
+            case Rating.Easy:
               break;
             default:
               throw "Rating $rating not supported yet";
@@ -280,11 +283,11 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         case RevisionStrategy.SpacedRepetition:
           ratingButtonsRow = Row(
             children: [
-              getRatingButton(Rating.Again, forgotRatingWidgetActive),
+              getRatingButton(Rating.Hard, forgotRatingWidgetActive),
               Padding(
                 padding: EdgeInsets.only(left: 15, right: 15),
               ),
-              getRatingButton(Rating.Easy, rememberedRatingWidgetActive),
+              getRatingButton(Rating.Good, rememberedRatingWidgetActive),
             ],
             mainAxisAlignment: MainAxisAlignment.center,
           );
@@ -339,7 +342,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
               child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => setState(() {
-              completeCard(currentCard!, rating: Rating.Easy);
+              completeCard(currentCard!, rating: Rating.Good);
             }),
             child: Container(
               constraints: BoxConstraints.expand(),
@@ -360,7 +363,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
               child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => setState(() {
-              completeCard(currentCard!, rating: Rating.Easy);
+              completeCard(currentCard!, rating: Rating.Good);
             }),
             child: Container(
               constraints: BoxConstraints.expand(),
@@ -402,12 +405,12 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
   Widget buildSummaryWidget() {
     int numCardsRemembered = answers.values
         .where(
-          (element) => element.rating == Rating.Easy,
+          (element) => element.rating == Rating.Good,
         )
         .length;
     int numCardsForgotten = answers.values
         .where(
-          (element) => element.rating == Rating.Again,
+          (element) => element.rating == Rating.Hard,
         )
         .length;
     int totalAnswers = answers.length;
