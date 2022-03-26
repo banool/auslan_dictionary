@@ -225,7 +225,7 @@ Future<bool> readKnob(String key, bool fallback) async {
   try {
     String url =
         'https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/knobs/$key';
-    var result = await http.get(Uri.parse(url));
+    var result = await http.get(Uri.parse(url)).timeout(Duration(seconds: 4));
     String raw = result.body.replaceAll("\n", "");
     bool out;
     if (raw == "true") {
@@ -253,7 +253,7 @@ Future<String?> getAdvisory() async {
   try {
     String url =
         'https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/advisory.txt';
-    var result = await http.get(Uri.parse(url));
+    var result = await http.get(Uri.parse(url)).timeout(Duration(seconds: 4));
     advisoryRaw = result.body;
   } catch (e) {
     print("Failed to get advisory: $e");
