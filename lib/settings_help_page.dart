@@ -8,8 +8,10 @@ Widget getSettingsHelpPage() {
           "it saves the video locally. The next time you look at the word, you don't need to download the "
           "video from the internet again because you already have a copy. This helps save your mobile data "
           "and reduces load on the Auslan Signbank servers.",
+      "Note that the caching is best effort. If loading a video from cache "
+          "fails, the app will just download the video directly from the internet. ",
       "Generally you should keep this feature enabled unless you're running "
-          "out of storage space on your device."
+          "out of storage space on your device.",
     ],
     "What does \"Drop cache\" do?": [
       "All the videos saved locally due to the caching feature will be deleted. "

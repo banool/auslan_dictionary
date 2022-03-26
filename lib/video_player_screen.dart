@@ -135,14 +135,24 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         VideoPlayerOptions(mixWithOthers: true);
 
     try {
-      VideoPlayerController controller;
+      late VideoPlayerController controller;
+      bool shouldDownloadDirectly = !shouldCache;
       if (shouldCache) {
-        print("Pulling video $videoLink from either cache or the internet");
-        File file = await defaultCacheManager.getSingleFile(videoLink);
-        controller = VideoPlayerController.file(file,
-            videoPlayerOptions: videoPlayerOptions);
-      } else {
-        print("Caching is disabled, pulling from the network");
+        try {
+          print("Pulling video $videoLink from either cache or the internet");
+          File file = await videoCacheManager.getSingleFile(videoLink);
+          controller = VideoPlayerController.file(file,
+              videoPlayerOptions: videoPlayerOptions);
+        } catch (e) {
+          print(
+              "Failed to use cache despite caching being enabled, just trying to download directly: $e");
+          shouldDownloadDirectly = true;
+        }
+      }
+      if (shouldDownloadDirectly) {
+        if (!shouldCache) {
+          print("Caching is disabled, pulling from the network");
+        }
         controller = VideoPlayerController.network(videoLink,
             videoPlayerOptions: videoPlayerOptions);
       }

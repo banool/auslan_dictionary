@@ -13,7 +13,7 @@ late Set<Word> favouritesGlobal;
 late WordListManager wordListManager;
 
 late SharedPreferences sharedPreferences;
-late DefaultCacheManager defaultCacheManager;
+late CacheManager videoCacheManager;
 
 // Values of the knobs.
 late bool enableFlashcardsKnob;

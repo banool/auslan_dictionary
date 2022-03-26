@@ -116,7 +116,7 @@ class SettingsPageState extends State<SettingsPage> {
               ),
               trailing: Container(),
               onPressed: (BuildContext context) async {
-                await defaultCacheManager.emptyCache();
+                await videoCacheManager.emptyCache();
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: Text("Cache dropped"),
                   backgroundColor: MAIN_COLOR,

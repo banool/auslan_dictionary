@@ -34,7 +34,14 @@ Future<void> main() async {
     sharedPreferences = await SharedPreferences.getInstance();
 
     // Build the cache manager.
-    defaultCacheManager = DefaultCacheManager();
+    String cacheManagerKey = "myVideoCacheManager";
+    videoCacheManager = CacheManager(
+      Config(
+        cacheManagerKey,
+        stalePeriod: const Duration(days: 14),
+        maxNrOfCacheObjects: 500,
+      ),
+    );
 
     // Load up the advisory (if there is one) next.
     advisory = await getAdvisory();

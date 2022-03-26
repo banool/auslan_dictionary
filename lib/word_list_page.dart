@@ -138,7 +138,8 @@ class _WordListPageState extends State<WordListPage> {
     String hintText;
     if (inEditMode) {
       hintText = "Search for words to add";
-      if (currentSearchTerm.length > 0) {
+      bool keyboardIsShowing = MediaQuery.of(context).viewInsets.bottom > 0;
+      if (currentSearchTerm.length > 0 || keyboardIsShowing) {
         floatingActionButton = null;
       } else {
         floatingActionButton = FloatingActionButton(
