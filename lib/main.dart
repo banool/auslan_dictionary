@@ -16,6 +16,7 @@ import 'globals.dart';
 import 'search_page.dart';
 import 'settings_page.dart';
 import 'types.dart';
+import 'word_list_overview_help_page.dart';
 import 'word_list_overview_page.dart';
 
 Future<void> main() async {
@@ -380,6 +381,17 @@ class _MyHomePageState extends State<MyHomePage> {
           setState(() {
             wordListsOverviewController.toggleEditMode();
           });
+        },
+      ));
+      actions.add(buildActionButton(
+        context,
+        Icon(Icons.help),
+        () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => getWordListOverviewHelpPage()),
+          );
         },
       ));
     }

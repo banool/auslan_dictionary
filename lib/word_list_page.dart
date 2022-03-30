@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'common.dart';
 import 'globals.dart';
 import 'types.dart';
+import 'word_list_help_page.dart';
 import 'word_list_logic.dart';
 
 class WordListPage extends StatefulWidget {
@@ -120,7 +121,17 @@ class _WordListPageState extends State<WordListPage> {
             search();
           });
         },
-      )
+      ),
+      buildActionButton(
+        context,
+        Icon(Icons.help),
+        () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => getWordListHelpPage()),
+          );
+        },
+      ),
     ];
 
     String listName = wordList.getName();
