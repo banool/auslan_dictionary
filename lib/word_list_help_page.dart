@@ -8,6 +8,8 @@ Widget getWordListHelpPage() {
           "Tap this to enter edit mode. Once in edit mode, you can use the search "
           "bar to search for words that you would like to add to the list. Press "
           "the green button to the right of each item to add it your list.",
+      "The green plus button in the bottom right is a convenience only "
+          "that opens up the keyboard for you.",
       "Once you are done, press the pencil icon again to exit edit mode."
     ],
     "How do I remove words from a list?": [
@@ -28,6 +30,14 @@ Widget getWordListHelpPage() {
           "items in the order you added them to the list. If you press this button, "
           "we instead show the items in alphabetical order. Each time you press the "
           "button the sort order will switch between these options."
+    ],
+    "Why can't I see the star icon on a word page?": [
+      "Originally, when you visited a word page from a list other than your favourites, "
+          "we showed the star icon. How it actually worked was it would add the word to "
+          "your favourites no matter what, but some users expected it to add the word "
+          "to the list they just came from. To avoid this confusing situation, we just "
+          "do not show that button when visiting a word from a list (unless that list "
+          "is your favourites)."
     ],
   });
 }
