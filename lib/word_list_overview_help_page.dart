@@ -24,9 +24,9 @@ Widget getWordListOverviewHelpPage() {
           "a word page, there is a star icon that you can use to save words to your "
           "favourites. The intention here is to make it easy to quickly save a word "
           "that you come across while searching.",
-      "To add words to any other list, you must "
-          "use the standard word adding flow. To see more information about this flow, "
-          "tap into any list, click the help icon in the top right, and read the information "
+      "To add words to any other list, you must add them from the page for that list. "
+          "To see more information about this how to do this, open any list (e.g. "
+          "favourites), click the help icon in the top right, and read the information "
           "under 'How do I add words to a list?'",
     ],
   });
