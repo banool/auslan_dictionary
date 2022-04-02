@@ -170,6 +170,7 @@ Future<bool> applyCreateListDialog(BuildContext context) async {
       ],
       textInputAction: TextInputAction.send,
       keyboardType: TextInputType.visiblePassword,
+      textCapitalization: TextCapitalization.words,
     )
   ];
 
