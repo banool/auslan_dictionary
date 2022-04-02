@@ -266,15 +266,9 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
       }
     }
 
-    Widget regionalInformationWidget;
-    if (revealed) {
-      regionalInformationWidget =
-          getRegionalInformationWidget(subWord, shouldUseHorizontalDisplay);
-    } else {
-      regionalInformationWidget = Container(
-        padding: EdgeInsets.only(top: 30),
-      );
-    }
+    Widget regionalInformationWidget = getRegionalInformationWidget(
+        subWord, shouldUseHorizontalDisplay,
+        hide: !revealed);
 
     Widget? ratingButtonsRow;
     if (revealed) {

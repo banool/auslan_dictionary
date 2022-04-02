@@ -222,8 +222,12 @@ Widget? getRelatedWordsWidget(
 }
 
 Widget getRegionalInformationWidget(
-    SubWord subWord, bool shouldUseHorizontalDisplay) {
+    SubWord subWord, bool shouldUseHorizontalDisplay,
+    {bool hide = false}) {
   String regionsStr = subWord.getRegionsString();
+  if (hide) {
+    regionsStr = "";
+  }
   if (shouldUseHorizontalDisplay) {
     return Padding(
         padding: EdgeInsets.only(top: 15.0),
