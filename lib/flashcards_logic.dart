@@ -4,6 +4,8 @@ import 'globals.dart';
 import 'types.dart';
 
 const String VIDEO_LINKS_MARKER = "videolinks";
+const String KEY_RANDOM_REVIEWS_COUNTER = "mykey_random_reviews_counter";
+const String KEY_FIRST_RANDOM_REVIEW = "mykey_first_random_review";
 
 class DolphinInformation {
   DolphinInformation({
@@ -266,5 +268,18 @@ int getNumDueCards(DolphinSR dolphin, RevisionStrategy revisionStrategy) {
       int due =
           (summary.due ?? 0) + (summary.overdue ?? 0) + (summary.learning ?? 0);
       return due;
+  }
+}
+
+Future<void> bumpRandomReviewCounter(int bumpAmount) async {
+  int current = sharedPreferences.getInt(KEY_RANDOM_REVIEWS_COUNTER) ?? 0;
+  int updated = current + bumpAmount;
+  await sharedPreferences.setInt(KEY_RANDOM_REVIEWS_COUNTER, updated);
+  print(
+      "Incremented random review counter by $bumpAmount ($current to $updated)");
+  int? firstUnixtime = sharedPreferences.getInt(KEY_FIRST_RANDOM_REVIEW);
+  if (firstUnixtime == null) {
+    await sharedPreferences.setInt(
+        KEY_FIRST_RANDOM_REVIEW, DateTime.now().millisecondsSinceEpoch ~/ 1000);
   }
 }

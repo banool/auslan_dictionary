@@ -62,9 +62,14 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
   // they do it by pressing one of our buttons, which ensures this function
   // gets called.
   Future<void> beforePop() async {
-    if (revisionStrategy == RevisionStrategy.SpacedRepetition) {
-      if (!reviewsWritten) {
-        await writeReviews(existingReviews!, answers.values.toList());
+    if (!reviewsWritten) {
+      switch (revisionStrategy) {
+        case RevisionStrategy.SpacedRepetition:
+          await writeReviews(existingReviews!, answers.values.toList());
+          break;
+        case RevisionStrategy.Random:
+          await bumpRandomReviewCounter(answers.length);
+          break;
       }
       setState(() {
         reviewsWritten = true;

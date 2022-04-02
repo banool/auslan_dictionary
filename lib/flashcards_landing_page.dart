@@ -10,6 +10,7 @@ import 'common.dart';
 import 'flashcards_logic.dart';
 import 'flashcards_page.dart';
 import 'globals.dart';
+import 'revision_history_page.dart';
 import 'settings_page.dart';
 import 'types.dart';
 import 'word_list_logic.dart';
@@ -17,7 +18,6 @@ import 'word_list_logic.dart';
 const String KEY_SIGN_TO_WORD = "sign_to_word";
 const String KEY_WORD_TO_SIGN = "word_to_sign";
 const String KEY_USE_UNKNOWN_REGION_SIGNS = "use_unknown_region_signs";
-const String KEY_REVISION_STRATEGY = "revision_strategy";
 const String KEY_ONE_CARD_PER_WORD = "one_card_per_word";
 
 const String KEY_LISTS_TO_REVIEW = "lists_chosen_to_review";
@@ -146,8 +146,8 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
         validBasedOnRevisionStrategy;
   }
 
-  DolphinInformation getDolphin() {
-    var revisionStrategy = loadRevisionStrategy();
+  DolphinInformation getDolphin({RevisionStrategy? revisionStrategy}) {
+    revisionStrategy = revisionStrategy ?? loadRevisionStrategy();
     var wordToSign = sharedPreferences.getBool(KEY_WORD_TO_SIGN) ?? true;
     var signToWord = sharedPreferences.getBool(KEY_SIGN_TO_WORD) ?? true;
     var masters = getMasters(filteredSubWords, wordToSign, signToWord);
@@ -177,15 +177,6 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
       updateFilteredSubwords();
       updateDolphin();
     });
-  }
-
-  RevisionStrategy loadRevisionStrategy() {
-    int revisionStrategyIndex =
-        sharedPreferences.getInt(KEY_REVISION_STRATEGY) ??
-            RevisionStrategy.SpacedRepetition.index;
-    RevisionStrategy revisionStrategy =
-        RevisionStrategy.values[revisionStrategyIndex];
-    return revisionStrategy;
   }
 
   @override
@@ -492,6 +483,16 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
     );
 
     List<Widget> actions = [
+      buildActionButton(
+        context,
+        Icon(Icons.timeline),
+        () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => RevisionHistoryPage()),
+          );
+        },
+      ),
       buildActionButton(
         context,
         Icon(Icons.help),

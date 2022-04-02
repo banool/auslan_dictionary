@@ -121,15 +121,6 @@ class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
     List<Widget> actions = [
       buildActionButton(
         context,
-        inEditMode ? Icon(Icons.edit) : Icon(Icons.edit_outlined),
-        () async {
-          setState(() {
-            inEditMode = !inEditMode;
-          });
-        },
-      ),
-      buildActionButton(
-        context,
         Icon(Icons.help),
         () async {
           await Navigator.push(

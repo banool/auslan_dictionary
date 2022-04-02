@@ -26,6 +26,7 @@ const String KEY_LAST_DICTIONARY_DATA_CHECK_TIME = "last_data_check_time";
 const String KEY_DICTIONARY_DATA_CURRENT_VERSION = "current_data_version";
 const String KEY_HIDE_FLASHCARDS_FEATURE = "hide_flashcards_feature";
 const String KEY_FLASHCARD_REGIONS = "flashcard_regions";
+const String KEY_REVISION_STRATEGY = "revision_strategy";
 
 const int DATA_CHECK_INTERVAL = 60 * 60 * 24 * 7; // 1 week.
 
@@ -313,4 +314,12 @@ Widget buildActionButton(
 List<Widget> buildActionButtons(List<Widget> actions) {
   actions = actions + <Widget>[Padding(padding: EdgeInsets.only(right: 5))];
   return actions;
+}
+
+RevisionStrategy loadRevisionStrategy() {
+  int revisionStrategyIndex = sharedPreferences.getInt(KEY_REVISION_STRATEGY) ??
+      RevisionStrategy.SpacedRepetition.index;
+  RevisionStrategy revisionStrategy =
+      RevisionStrategy.values[revisionStrategyIndex];
+  return revisionStrategy;
 }

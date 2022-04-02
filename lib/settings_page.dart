@@ -78,11 +78,13 @@ class SettingsPageState extends State<SettingsPage> {
                 bool confirmed = await confirmAlert(
                     context,
                     Text("This will delete all your review progress from all "
-                        "time, including your spaced repetition progress. "
-                        "Your lists (including Favourites) will not be affected. "
-                        "Are you 100% sure you want to do this?"));
+                        "time for both the spaced repetition and random review "
+                        "strategies. Your lists (including favourites) will not "
+                        "be affected. Are you 100% sure you want to do this?"));
                 if (confirmed) {
                   await writeReviews([], [], force: true);
+                  await sharedPreferences.setInt(KEY_RANDOM_REVIEWS_COUNTER, 0);
+                  await sharedPreferences.remove(KEY_FIRST_RANDOM_REVIEW);
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     content: Text("All review progress deleted"),
                     backgroundColor: MAIN_COLOR,
