@@ -189,55 +189,60 @@ class _RevisionHistoryPageState extends State<RevisionHistoryPage> {
           title: Text("Revision Progress"),
           centerTitle: true,
         ),
-        body: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.only(top: 50),
-            ),
-            Text("Revision strategy to show stats for"),
-            Padding(
-              padding: EdgeInsets.only(top: 15),
-            ),
-            Row(children: [
-              getRevisionStrategyButton(RevisionStrategy.SpacedRepetition),
-              Padding(
-                padding: EdgeInsets.only(left: 20),
-              ),
-              getRevisionStrategyButton(RevisionStrategy.Random),
-            ], mainAxisAlignment: MainAxisAlignment.center),
-            Padding(
-              padding: EdgeInsets.only(top: 30),
-            ),
-            Divider(
-              height: 20,
-              thickness: 2,
-              indent: 20,
-              endIndent: 20,
-            ),
-            Row(children: [
-              Padding(
-                padding: EdgeInsets.only(left: 60),
-              ),
-              Column(
-                children: leftColumn,
-                crossAxisAlignment: CrossAxisAlignment.start,
-              ),
-              Spacer(),
-              Column(
-                children: rightColumn,
-                crossAxisAlignment: CrossAxisAlignment.end,
-              ),
-              Padding(
-                padding: EdgeInsets.only(left: 60),
-              ),
-            ], mainAxisAlignment: MainAxisAlignment.center),
-            Expanded(child: Container()),
-            disclaimer,
-            Padding(
-              padding: EdgeInsets.only(bottom: 50),
-            )
-          ],
-          mainAxisAlignment: MainAxisAlignment.start,
-        ));
+        body: CustomScrollView(slivers: [
+          SliverFillRemaining(
+              hasScrollBody: false,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(top: 50),
+                  ),
+                  Text("Revision strategy to show stats for"),
+                  Padding(
+                    padding: EdgeInsets.only(top: 15),
+                  ),
+                  Row(children: [
+                    getRevisionStrategyButton(
+                        RevisionStrategy.SpacedRepetition),
+                    Padding(
+                      padding: EdgeInsets.only(left: 20),
+                    ),
+                    getRevisionStrategyButton(RevisionStrategy.Random),
+                  ], mainAxisAlignment: MainAxisAlignment.center),
+                  Padding(
+                    padding: EdgeInsets.only(top: 30),
+                  ),
+                  Divider(
+                    height: 20,
+                    thickness: 2,
+                    indent: 20,
+                    endIndent: 20,
+                  ),
+                  Row(children: [
+                    Padding(
+                      padding: EdgeInsets.only(left: 60),
+                    ),
+                    Column(
+                      children: leftColumn,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                    ),
+                    Spacer(),
+                    Column(
+                      children: rightColumn,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(left: 60),
+                    ),
+                  ], mainAxisAlignment: MainAxisAlignment.center),
+                  Expanded(child: Container()),
+                  disclaimer,
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 50),
+                  )
+                ],
+                mainAxisAlignment: MainAxisAlignment.start,
+              ))
+        ]));
   }
 }
