@@ -154,62 +154,6 @@ Future<File> get _dictionaryDataFilePath async {
   return File('$path/word_dictionary.json');
 }
 
-// Load up favourites.
-Future<Set<Word>> loadFavourites() async {
-  Map<String, Word> keyedWordsGlobal = {};
-  for (Word w in wordsGlobal) {
-    keyedWordsGlobal[w.word] = w;
-  }
-  Set<Word> favourites = {};
-  // Load up the Words for the favourites (inefficiently).
-  List<String> favouritesRaw =
-      sharedPreferences.getStringList(KEY_FAVOURITES_WORDS) ?? [];
-  print("Loaded favourites: $favouritesRaw");
-  for (String s in favouritesRaw) {
-    Word? matchingWord = keyedWordsGlobal[s];
-    if (matchingWord != null) {
-      favourites.add(matchingWord);
-    }
-  }
-  if (favouritesRaw.length != favourites.length) {
-    // Write back the favourites, without the missing entries.
-    await sharedPreferences.setStringList(
-        KEY_FAVOURITES_WORDS, favourites.map((e) => e.word).toList());
-    print(
-        "Wrote back favourites with ${favouritesRaw.length - favourites.length} fewer words");
-  }
-  return favourites;
-}
-
-// Run this at startup.
-Future<void> bootstrapFavourites() async {
-  try {
-    sharedPreferences.getStringList(KEY_FAVOURITES_WORDS);
-  } catch (e) {
-    // The key didn't exist in the favourites list yet.
-    await sharedPreferences.setStringList(KEY_FAVOURITES_WORDS, ["love"]);
-    print("Bootstrapped favourites");
-  }
-}
-
-// Write favourites to prefs.
-Future<void> writeFavourites() async {
-  await sharedPreferences.setStringList(
-      KEY_FAVOURITES_WORDS, favouritesGlobal.map((e) => e.word).toList());
-}
-
-// Add to favourites.
-Future<void> addToFavourites(Word favouriteToAdd) async {
-  favouritesGlobal.add(favouriteToAdd);
-  await writeFavourites();
-}
-
-// Remove from favourites.
-Future<void> removeFromFavourites(Word favouriteToRemove) async {
-  favouritesGlobal.remove(favouriteToRemove);
-  await writeFavourites();
-}
-
 bool getShouldUseHorizontalLayout(BuildContext context) {
   var screenSize = MediaQuery.of(context).size;
   var shouldUseHorizontalDisplay = screenSize.width > screenSize.height * 1.2;

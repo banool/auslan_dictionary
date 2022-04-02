@@ -168,7 +168,7 @@ class _WordListPageState extends State<WordListPage> {
       appBar: AppBar(
         title: Text(wordList.getName()),
         centerTitle: true,
-        actions: actions,
+        actions: buildActionButtons(actions),
       ),
       floatingActionButton: floatingActionButton,
       body: Padding(

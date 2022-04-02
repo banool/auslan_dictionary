@@ -1,6 +1,6 @@
-import 'package:auslan_dictionary/globals.dart';
 import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 
+import 'globals.dart';
 import 'types.dart';
 
 const String VIDEO_LINKS_MARKER = "videolinks";
@@ -192,7 +192,6 @@ DolphinInformation getDolphinInformation(
       continue;
     }
     filteredReviews.add(r);
-    print("Added review $r");
   }
   print(
       "Added ${filteredReviews.length} total reviews to Dolphin (excluding seed reviews)");

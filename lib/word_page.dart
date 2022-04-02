@@ -59,28 +59,16 @@ class _WordPageState extends State<WordPage> {
   }
 
   bool wordIsFavourited(Word word) {
-    if (useWordListsKnob) {
-      return wordListManager.wordLists[KEY_FAVOURITES_WORDS]!.words
-          .contains(word);
-    } else {
-      return favouritesGlobal.contains(word);
-    }
+    return wordListManager.wordLists[KEY_FAVOURITES_WORDS]!.words
+        .contains(word);
   }
 
   Future<void> addWordToFavourites(Word word) async {
-    if (useWordListsKnob) {
-      await wordListManager.wordLists[KEY_FAVOURITES_WORDS]!.addWord(word);
-    } else {
-      await addToFavourites(word);
-    }
+    await wordListManager.wordLists[KEY_FAVOURITES_WORDS]!.addWord(word);
   }
 
   Future<void> removeWordFromFavourites(Word word) async {
-    if (useWordListsKnob) {
-      await wordListManager.wordLists[KEY_FAVOURITES_WORDS]!.removeWord(word);
-    } else {
-      await removeFromFavourites(word);
-    }
+    await wordListManager.wordLists[KEY_FAVOURITES_WORDS]!.removeWord(word);
   }
 
   void onPageChanged(int index) {

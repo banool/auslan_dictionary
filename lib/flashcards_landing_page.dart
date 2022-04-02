@@ -1,4 +1,3 @@
-import 'package:auslan_dictionary/flashcards_logic.dart';
 import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +5,7 @@ import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 import 'common.dart';
+import 'flashcards_logic.dart';
 import 'flashcards_page.dart';
 import 'globals.dart';
 import 'settings_page.dart';
@@ -93,19 +93,15 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
 
   void updateFilteredSubwords() {
     // Get lists we intend to review.
-    if (useWordListsKnob) {
-      listsToReview = sharedPreferences.getStringList(KEY_LISTS_TO_REVIEW) ??
-          [KEY_FAVOURITES_WORDS];
+    listsToReview = sharedPreferences.getStringList(KEY_LISTS_TO_REVIEW) ??
+        [KEY_FAVOURITES_WORDS];
 
-      // Filter out lists that no longer exist.
-      listsToReview.removeWhere(
-          (element) => !wordListManager.wordLists.containsKey(element));
+    // Filter out lists that no longer exist.
+    listsToReview.removeWhere(
+        (element) => !wordListManager.wordLists.containsKey(element));
 
-      // Get the words from all these lists.
-      wordsFromLists = getWordsFromLists(listsToReview);
-    } else {
-      wordsFromLists = favouritesGlobal;
-    }
+    // Get the words from all these lists.
+    wordsFromLists = getWordsFromLists(listsToReview);
 
     // Get the subwords from all these words.
     Map<String, List<SubWordWrapper>> subWordsToReview =
@@ -250,53 +246,51 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
     }
 
     SettingsSection? sourceListSection;
-    if (useWordListsKnob) {
-      sourceListSection = SettingsSection(
-          title: Padding(
-              padding: EdgeInsets.only(bottom: 5),
-              child: Text(
-                'Revision Sources',
-                style: TextStyle(fontSize: 16),
-              )),
-          tiles: [
-            SettingsTile.navigation(
-              title: getText("Select lists to revise"),
-              trailing: Container(),
-              onPressed: (BuildContext context) async {
-                await showDialog(
-                  context: context,
-                  builder: (ctx) {
-                    List<MultiSelectItem<String>> items = [];
-                    for (MapEntry<String, WordList> e
-                        in wordListManager.wordLists.entries) {
-                      items.add(MultiSelectItem(e.key, e.value.getName()));
-                    }
-                    return MultiSelectDialog<String>(
-                      listType: MultiSelectListType.CHIP,
-                      title: Text("Select Lists"),
-                      items: items,
-                      initialValue: listsToReview,
-                      onConfirm: (List<String> values) async {
-                        await sharedPreferences.setStringList(
-                            KEY_LISTS_TO_REVIEW, values);
-                        setState(() {
-                          updateRevisionSettings();
-                        });
-                      },
-                    );
-                  },
-                );
-              },
-              description: Text(
-                listsToReview
-                    .map((key) => WordList.getNameFromKey(key))
-                    .toList()
-                    .join(", "),
-                textAlign: TextAlign.center,
-              ),
+    sourceListSection = SettingsSection(
+        title: Padding(
+            padding: EdgeInsets.only(bottom: 5),
+            child: Text(
+              'Revision Sources',
+              style: TextStyle(fontSize: 16),
+            )),
+        tiles: [
+          SettingsTile.navigation(
+            title: getText("Select lists to revise"),
+            trailing: Container(),
+            onPressed: (BuildContext context) async {
+              await showDialog(
+                context: context,
+                builder: (ctx) {
+                  List<MultiSelectItem<String>> items = [];
+                  for (MapEntry<String, WordList> e
+                      in wordListManager.wordLists.entries) {
+                    items.add(MultiSelectItem(e.key, e.value.getName()));
+                  }
+                  return MultiSelectDialog<String>(
+                    listType: MultiSelectListType.CHIP,
+                    title: Text("Select Lists"),
+                    items: items,
+                    initialValue: listsToReview,
+                    onConfirm: (List<String> values) async {
+                      await sharedPreferences.setStringList(
+                          KEY_LISTS_TO_REVIEW, values);
+                      setState(() {
+                        updateRevisionSettings();
+                      });
+                    },
+                  );
+                },
+              );
+            },
+            description: Text(
+              listsToReview
+                  .map((key) => WordList.getNameFromKey(key))
+                  .toList()
+                  .join(", "),
+              textAlign: TextAlign.center,
             ),
-          ]);
-    }
+          ),
+        ]);
 
     List<AbstractSettingsSection?> sections = [
       sourceListSection,

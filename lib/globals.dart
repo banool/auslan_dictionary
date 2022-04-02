@@ -1,10 +1,10 @@
 import 'dart:ui';
 
-import 'package:auslan_dictionary/word_list_logic.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'types.dart';
+import 'word_list_logic.dart';
 
 late Set<Word> wordsGlobal;
 late Map<String, Word> keyedWordsGlobal = {};
@@ -18,7 +18,6 @@ late CacheManager videoCacheManager;
 // Values of the knobs.
 late bool enableFlashcardsKnob;
 late bool downloadWordsDataKnob;
-late bool useWordListsKnob;
 
 // This is whether to show the flashcard stuff as a result of the knob + switch.
 late bool showFlashcards;

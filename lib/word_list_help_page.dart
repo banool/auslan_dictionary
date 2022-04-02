@@ -1,5 +1,6 @@
-import 'package:auslan_dictionary/help_page_common.dart';
 import 'package:flutter/material.dart';
+
+import 'help_page_common.dart';
 
 Widget getWordListHelpPage() {
   return HelpPage(title: "List FAQ", items: {

@@ -1,8 +1,8 @@
-import 'package:auslan_dictionary/common.dart';
-import 'package:auslan_dictionary/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'common.dart';
+import 'globals.dart';
 import 'word_list_logic.dart';
 import 'word_list_page.dart';
 

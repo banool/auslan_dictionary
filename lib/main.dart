@@ -1,21 +1,19 @@
 import 'dart:io' show Platform;
 
-import 'package:auslan_dictionary/favourites_page.dart';
-import 'package:auslan_dictionary/settings_help_page.dart';
-import 'package:auslan_dictionary/word_list_logic.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'common.dart';
-import 'favourites_page.dart';
 import 'flashcards_help_page.dart';
 import 'flashcards_landing_page.dart';
 import 'globals.dart';
 import 'search_page.dart';
+import 'settings_help_page.dart';
 import 'settings_page.dart';
 import 'types.dart';
+import 'word_list_logic.dart';
 import 'word_list_overview_help_page.dart';
 import 'word_list_overview_page.dart';
 
@@ -34,6 +32,9 @@ Future<void> main() async {
     // such as loadFavourites and the knobs, depend on it being initialized.
     sharedPreferences = await SharedPreferences.getInstance();
 
+    // Load up the advisory (if there is one) next.
+    advisory = await getAdvisory();
+
     // Build the cache manager.
     String cacheManagerKey = "myVideoCacheManager";
     videoCacheManager = CacheManager(
@@ -43,9 +44,6 @@ Future<void> main() async {
         maxNrOfCacheObjects: 500,
       ),
     );
-
-    // Load up the advisory (if there is one) next.
-    advisory = await getAdvisory();
 
     await Future.wait<void>([
       // Load up the words information once at startup from disk.
@@ -57,22 +55,11 @@ Future<void> main() async {
           enableFlashcardsKnob = await readKnob("enable_flashcards", true))(),
       (() async => downloadWordsDataKnob =
           await readKnob("download_words_data", false))(),
-      (() async => useWordListsKnob = await readKnob("use_word_lists", true))(),
     ]);
 
     for (Word w in wordsGlobal) {
       keyedWordsGlobal[w.word] = w;
     }
-
-    // Start all these futures and await them collectively to speed up startup.
-    // Only put futures here where the completion order doesn't matter.
-    await Future.wait<void>([
-      // Get favourites stuff ready if this is the first ever app launch.
-      (() async => await bootstrapFavourites())(),
-
-      // Load up favourites once at startup from disk.
-      (() async => favouritesGlobal = await loadFavourites())(),
-    ]);
 
     // Check for new words data if appropriate.
     // We don't wait for this on startup, it's too slow.
@@ -80,9 +67,8 @@ Future<void> main() async {
       updateWordsData();
     }
 
-    if (useWordListsKnob) {
-      wordListManager = WordListManager.fromStartup();
-    }
+    // Build the word list manager.
+    wordListManager = WordListManager.fromStartup();
 
     // Resolve values based on knobs.
     showFlashcards = getShowFlashcards();
@@ -225,8 +211,6 @@ class _MyHomePageState extends State<MyHomePage> {
   _MyHomePageState({this.advisory});
 
   final SearchPageController searchPageController = SearchPageController();
-  late FavouritesPageController favouritesPageController =
-      FavouritesPageController(refresh);
   late FlashcardsPageController flashcardsPageController =
       FlashcardsPageController(goToSettings);
   late WordListsOverviewController wordListsOverviewController =
@@ -292,23 +276,13 @@ class _MyHomePageState extends State<MyHomePage> {
         SearchPage(controller: searchPageController),
         "Search"));
 
-    if (useWordListsKnob) {
-      information.add(TabInformation(
-          BottomNavigationBarItem(
-            icon: Icon(Icons.view_list),
-            label: "Lists",
-          ),
-          WordListsOverviewPage(controller: wordListsOverviewController),
-          "Lists"));
-    } else {
-      information.add(TabInformation(
-          BottomNavigationBarItem(
-            icon: Icon(Icons.star),
-            label: "Favourites",
-          ),
-          FavouritesPage(controller: favouritesPageController),
-          "Favourites"));
-    }
+    information.add(TabInformation(
+        BottomNavigationBarItem(
+          icon: Icon(Icons.view_list),
+          label: "Lists",
+        ),
+        WordListsOverviewPage(controller: wordListsOverviewController),
+        "Lists"));
 
     if (showFlashcards) {
       information.add(TabInformation(
@@ -331,19 +305,6 @@ class _MyHomePageState extends State<MyHomePage> {
     Widget body = information[currentNavBarIndex].tabBody;
 
     Widget? floatingActionButton;
-
-    if (body is FavouritesPage) {
-      floatingActionButton = FloatingActionButton(
-          backgroundColor:
-              favouritesPageController.getFloatingActionButtonColor(),
-          onPressed: () {
-            if (!favouritesPageController.enableSortButton) {
-              return;
-            }
-            favouritesPageController.toggleSort();
-          },
-          child: Icon(Icons.sort));
-    }
 
     if (body is WordListsOverviewPage &&
         wordListsOverviewController.inEditMode) {

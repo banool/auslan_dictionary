@@ -27,7 +27,6 @@ void main() async {
 
   enableFlashcardsKnob = true;
   downloadWordsDataKnob = false;
-  useWordListsKnob = true;
 
   showFlashcards = true;
 
