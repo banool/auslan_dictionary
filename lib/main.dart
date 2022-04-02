@@ -6,21 +6,13 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'common.dart';
-import 'flashcards_help_page.dart';
-import 'flashcards_landing_page.dart';
 import 'globals.dart';
-import 'search_page.dart';
-import 'settings_help_page.dart';
-import 'settings_page.dart';
+import 'home_page.dart';
 import 'types.dart';
 import 'word_list_logic.dart';
-import 'word_list_overview_help_page.dart';
-import 'word_list_overview_page.dart';
 
 Future<void> main() async {
   print("Start of main");
-
-  String? advisory;
 
   try {
     var widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -87,12 +79,11 @@ Future<void> main() async {
 
     // Finally run the app.
     print("Setup complete, running app");
-    runApp(MyApp(advisory: advisory));
+    runApp(MyApp());
   } catch (error, stackTrace) {
     runApp(ErrorFallback(
       error: error,
       stackTrace: stackTrace,
-      advisory: advisory,
     ));
   }
 }
@@ -111,9 +102,8 @@ Future<void> updateWordsData() async {
 class ErrorFallback extends StatelessWidget {
   final Object error;
   final StackTrace stackTrace;
-  final String? advisory;
 
-  ErrorFallback({required this.error, required this.stackTrace, this.advisory});
+  ErrorFallback({required this.error, required this.stackTrace});
 
   @override
   Widget build(BuildContext context) {
@@ -165,10 +155,6 @@ class ErrorFallback extends StatelessWidget {
 }
 
 class MyApp extends StatelessWidget {
-  final String? advisory;
-
-  MyApp({this.advisory});
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -193,219 +179,4 @@ class MyApp extends StatelessWidget {
           home: MyHomePage(advisory: advisory),
         ));
   }
-}
-
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, this.advisory}) : super(key: key);
-
-  final String? advisory;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState(advisory: advisory);
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  final String? advisory;
-  bool advisoryShownOnce = false;
-
-  _MyHomePageState({this.advisory});
-
-  final SearchPageController searchPageController = SearchPageController();
-  late FlashcardsPageController flashcardsPageController =
-      FlashcardsPageController(goToSettings);
-  late WordListsOverviewController wordListsOverviewController =
-      WordListsOverviewController();
-  late SettingsController settingsPageController =
-      SettingsController(refresh, toggleFlashcards);
-
-  int currentNavBarIndex = 0;
-
-  void refresh() {
-    setState(() {});
-  }
-
-  void toggleFlashcards(bool enabled) {
-    setState(() {
-      showFlashcards = getShowFlashcards();
-      if (enabled) {
-        currentNavBarIndex -= 1;
-      } else {
-        currentNavBarIndex += 1;
-      }
-    });
-  }
-
-  void goToSettings() {
-    setState(() {
-      currentNavBarIndex = 3;
-    });
-  }
-
-  void onNavBarItemTapped(int index) {
-    setState(() {
-      currentNavBarIndex = index;
-      if (searchPageController.isMounted) {
-        searchPageController.clearSearch();
-      }
-    });
-  }
-
-  void showAdvisoryDialog() {
-    showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-              title: Text("Developer Message"),
-              content: Text(advisory!),
-            ));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (advisory != null && !advisoryShownOnce) {
-      Future.delayed(Duration(milliseconds: 500), () => showAdvisoryDialog());
-      advisoryShownOnce = true;
-    }
-
-    List<TabInformation> information = [];
-
-    information.add(TabInformation(
-        BottomNavigationBarItem(
-          icon: Icon(Icons.search),
-          label: "Dictionary",
-        ),
-        SearchPage(controller: searchPageController),
-        "Search"));
-
-    information.add(TabInformation(
-        BottomNavigationBarItem(
-          icon: Icon(Icons.view_list),
-          label: "Lists",
-        ),
-        WordListsOverviewPage(controller: wordListsOverviewController),
-        "Lists"));
-
-    if (showFlashcards) {
-      information.add(TabInformation(
-          BottomNavigationBarItem(
-            icon: Icon(Icons.style),
-            label: "Revision",
-          ),
-          FlashcardsLandingPage(controller: flashcardsPageController),
-          "Revision"));
-    }
-
-    information.add(TabInformation(
-        BottomNavigationBarItem(
-          icon: Icon(Icons.settings),
-          label: "Settings",
-        ),
-        SettingsPage(controller: settingsPageController),
-        "Settings"));
-
-    Widget body = information[currentNavBarIndex].tabBody;
-
-    Widget? floatingActionButton;
-
-    if (body is WordListsOverviewPage &&
-        wordListsOverviewController.inEditMode) {
-      floatingActionButton = FloatingActionButton(
-          backgroundColor: Colors.green,
-          onPressed: () async {
-            bool confirmed = await applyCreateListDialog(context);
-            if (confirmed) {
-              setState(() {
-                wordListsOverviewController.inEditMode = false;
-              });
-            }
-          },
-          child: Icon(Icons.add));
-    }
-
-    List<Widget> actions = [];
-    if (body is SearchPage && advisory != null) {
-      actions.add(buildActionButton(
-        context,
-        Icon(Icons.info),
-        () async {
-          showAdvisoryDialog();
-        },
-      ));
-    }
-
-    if (body is WordListsOverviewPage) {
-      actions.add(buildActionButton(
-        context,
-        wordListsOverviewController.inEditMode
-            ? Icon(Icons.edit)
-            : Icon(Icons.edit_outlined),
-        () async {
-          setState(() {
-            wordListsOverviewController.toggleEditMode();
-          });
-        },
-      ));
-      actions.add(buildActionButton(
-        context,
-        Icon(Icons.help),
-        () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => getWordListOverviewHelpPage()),
-          );
-        },
-      ));
-    }
-
-    if (body is FlashcardsLandingPage) {
-      actions.add(buildActionButton(
-        context,
-        Icon(Icons.help),
-        () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => getFlashcardsHelpPage()),
-          );
-        },
-      ));
-    }
-
-    if (body is SettingsPage) {
-      actions.add(buildActionButton(
-        context,
-        Icon(Icons.help),
-        () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => getSettingsHelpPage()),
-          );
-        },
-      ));
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(information[currentNavBarIndex].appBarTitle),
-        actions: buildActionButtons(actions),
-        centerTitle: true,
-      ),
-      body: body,
-      floatingActionButton: floatingActionButton,
-      bottomNavigationBar: BottomNavigationBar(
-        items: information.map((e) => e.bottomNavBarItem).toList(),
-        currentIndex: currentNavBarIndex,
-        selectedItemColor: MAIN_COLOR,
-        onTap: onNavBarItemTapped,
-        type: BottomNavigationBarType.fixed,
-      ),
-    );
-  }
-}
-
-class TabInformation {
-  final BottomNavigationBarItem bottomNavBarItem;
-  final Widget tabBody;
-  final String appBarTitle;
-
-  TabInformation(this.bottomNavBarItem, this.tabBody, this.appBarTitle);
 }

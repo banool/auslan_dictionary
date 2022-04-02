@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'common.dart';
 import 'globals.dart';
+import 'home_page.dart';
 import 'types.dart';
 
 class SearchPageController {
@@ -19,53 +20,25 @@ class SearchPageController {
 }
 
 class SearchPage extends StatefulWidget {
-  final SearchPageController? controller;
+  final MyHomePageController myHomePageController;
 
-  SearchPage({Key? key, this.controller}) : super(key: key);
+  SearchPage({Key? key, required this.myHomePageController}) : super(key: key);
 
   @override
-  _SearchPageState createState() => _SearchPageState(controller);
+  _SearchPageState createState() => _SearchPageState(myHomePageController);
 }
 
 class _SearchPageState extends State<SearchPage> {
-  SearchPageController? controller;
+  MyHomePageController myHomePageController;
 
-  // We do this so the parent can call clearSearch
-  // https://stackoverflow.com/a/60869283/3846032
-  _SearchPageState(SearchPageController? _controller) {
-    controller = _controller;
-    controller!.clearSearch = clearSearch;
-    controller!.onMount();
-  }
+  _SearchPageState(this.myHomePageController);
 
-  bool wordsLoaded = false;
   List<Word?> wordsSearched = [];
   int currentNavBarIndex = 0;
 
   final _formSearchKey = GlobalKey<FormState>();
 
   final _searchFieldController = TextEditingController();
-
-  @override
-  void initState() {
-    // We don't care about waiting for the future, we check wordsLoaded
-    // instead and use that to determine whether to show the content.
-    // Not really good practice, but it's how I did it.
-    initStateAsync();
-    super.initState();
-  }
-
-  Future<void> initStateAsync() async {
-    setState(() {
-      wordsLoaded = true;
-    });
-  }
-
-  @override
-  void dispose() {
-    controller!.dispose();
-    super.dispose();
-  }
 
   void search(String searchTerm) {
     setState(() {
@@ -82,52 +55,79 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return wordsLoaded
-        ? Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.only(
-                        bottom: 10, left: 32, right: 32, top: 0),
-                    child: Form(
-                        key: _formSearchKey,
-                        child: Column(children: <Widget>[
-                          TextField(
-                            controller: _searchFieldController,
-                            decoration: InputDecoration(
-                              hintText: 'Search for a word',
-                              suffixIcon: IconButton(
-                                onPressed: () {
-                                  clearSearch();
-                                },
-                                icon: Icon(Icons.clear),
-                              ),
-                            ),
-                            // The validator receives the text that the user has entered.
-                            onChanged: (String value) {
-                              search(value);
-                            },
-                            autofocus: true,
-                            textInputAction: TextInputAction.search,
-                            keyboardType: TextInputType.visiblePassword,
-                            autocorrect: false,
-                          ),
-                        ])),
-                  ),
-                  new Expanded(
-                    child: listWidget(context, wordsSearched),
-                  ),
-                ],
-              ),
+    if (advisory != null && !myHomePageController.advisoryShownOnce) {
+      Future.delayed(Duration(milliseconds: 500), () => showAdvisoryDialog());
+      myHomePageController.advisoryShownOnce = true;
+    }
+
+    Widget body = Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(bottom: 10, left: 32, right: 32, top: 0),
+              child: Form(
+                  key: _formSearchKey,
+                  child: Column(children: <Widget>[
+                    TextField(
+                      controller: _searchFieldController,
+                      decoration: InputDecoration(
+                        hintText: 'Search for a word',
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            clearSearch();
+                          },
+                          icon: Icon(Icons.clear),
+                        ),
+                      ),
+                      // The validator receives the text that the user has entered.
+                      onChanged: (String value) {
+                        search(value);
+                      },
+                      autofocus: true,
+                      textInputAction: TextInputAction.search,
+                      keyboardType: TextInputType.visiblePassword,
+                      autocorrect: false,
+                    ),
+                  ])),
             ),
-          )
-        : new Center(
-            child: new CircularProgressIndicator(),
-          );
+            new Expanded(
+              child: listWidget(context, wordsSearched),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    List<Widget> actions = [];
+    if (advisory != null) {
+      actions.add(buildActionButton(
+        context,
+        Icon(Icons.announcement),
+        () async {
+          showAdvisoryDialog();
+        },
+      ));
+    }
+
+    return buildTopLevelScaffold(
+      myHomePageController: myHomePageController,
+      body: body,
+      title: "Search",
+      actions: actions,
+    );
+  }
+
+  void showAdvisoryDialog() {
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              title: Text("Announcement"),
+              content: Text(advisory!),
+            ));
   }
 }
 

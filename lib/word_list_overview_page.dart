@@ -3,31 +3,28 @@ import 'package:flutter/services.dart';
 
 import 'common.dart';
 import 'globals.dart';
+import 'home_page.dart';
 import 'word_list_logic.dart';
+import 'word_list_overview_help_page.dart';
 import 'word_list_page.dart';
 
-class WordListsOverviewController {
-  bool inEditMode = false;
-
-  void toggleEditMode() {
-    inEditMode = !inEditMode;
-  }
-}
-
 class WordListsOverviewPage extends StatefulWidget {
-  final WordListsOverviewController controller;
+  final MyHomePageController myHomePageController;
 
-  WordListsOverviewPage({Key? key, required this.controller}) : super(key: key);
+  WordListsOverviewPage({Key? key, required this.myHomePageController})
+      : super(key: key);
 
   @override
   _WordListsOverviewPageState createState() =>
-      _WordListsOverviewPageState(controller: controller);
+      _WordListsOverviewPageState(myHomePageController: myHomePageController);
 }
 
 class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
-  WordListsOverviewController controller;
+  MyHomePageController myHomePageController;
 
-  _WordListsOverviewPageState({required this.controller});
+  _WordListsOverviewPageState({required this.myHomePageController});
+
+  bool inEditMode = false;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +35,7 @@ class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
       WordList wl = e.value;
       String name = wl.getName();
       Widget? trailing;
-      if (controller.inEditMode && wl.canBeDeleted()) {
+      if (inEditMode && wl.canBeDeleted()) {
         trailing = IconButton(
             icon: Icon(
               Icons.remove_circle,
@@ -50,7 +47,7 @@ class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
               if (confirmed) {
                 await wordListManager.deleteWordList(key);
                 setState(() {
-                  controller.inEditMode = false;
+                  inEditMode = false;
                 });
               }
             });
@@ -58,7 +55,7 @@ class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
       Card card = Card(
         key: ValueKey(name),
         child: ListTile(
-          leading: wl.getLeadingIcon(inEditMode: controller.inEditMode),
+          leading: wl.getLeadingIcon(inEditMode: inEditMode),
           trailing: trailing,
           minLeadingWidth: 10,
           title: Text(
@@ -77,21 +74,22 @@ class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
         ),
       );
       Widget toAdd = card;
-      if (wl.key == KEY_FAVOURITES_WORDS && controller.inEditMode) {
+      if (wl.key == KEY_FAVOURITES_WORDS && inEditMode) {
         toAdd = IgnorePointer(
           key: ValueKey(name),
           child: toAdd,
         );
       }
-      if (controller.inEditMode) {
+      if (inEditMode) {
         toAdd = ReorderableDragStartListener(
             key: ValueKey(name), child: toAdd, index: i);
       }
       tiles.add(toAdd);
       i += 1;
     }
-    if (controller.inEditMode) {
-      return ReorderableListView(
+    Widget body;
+    if (inEditMode) {
+      body = ReorderableListView(
           children: tiles,
           onReorder: (prev, updated) async {
             setState(() {
@@ -100,10 +98,55 @@ class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
             await wordListManager.writeWordListKeys();
           });
     } else {
-      return ListView(
+      body = ListView(
         children: tiles,
       );
     }
+
+    FloatingActionButton? floatingActionButton;
+    if (inEditMode) {
+      floatingActionButton = FloatingActionButton(
+          backgroundColor: Colors.green,
+          onPressed: () async {
+            bool confirmed = await applyCreateListDialog(context);
+            if (confirmed) {
+              setState(() {
+                inEditMode = false;
+              });
+            }
+          },
+          child: Icon(Icons.add));
+    }
+
+    List<Widget> actions = [
+      buildActionButton(
+        context,
+        inEditMode ? Icon(Icons.edit) : Icon(Icons.edit_outlined),
+        () async {
+          setState(() {
+            inEditMode = !inEditMode;
+          });
+        },
+      ),
+      buildActionButton(
+        context,
+        Icon(Icons.help),
+        () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => getWordListOverviewHelpPage()),
+          );
+        },
+      )
+    ];
+
+    return buildTopLevelScaffold(
+        myHomePageController: myHomePageController,
+        body: body,
+        title: "Lists",
+        actions: actions,
+        floatingActionButton: floatingActionButton);
   }
 }
 

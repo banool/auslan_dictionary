@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 
+import 'package:auslan_dictionary/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:launch_review/launch_review.dart';
 import 'package:mailto/mailto.dart';
@@ -9,27 +10,23 @@ import 'package:url_launcher/url_launcher.dart';
 import 'common.dart';
 import 'flashcards_logic.dart';
 import 'globals.dart';
-
-class SettingsController {
-  void Function() refreshParent;
-  void Function(bool) toggleFlashcards;
-
-  SettingsController(this.refreshParent, this.toggleFlashcards);
-}
+import 'home_page.dart';
+import 'settings_help_page.dart';
 
 class SettingsPage extends StatefulWidget {
-  final SettingsController controller;
+  final MyHomePageController myHomePageController;
 
-  SettingsPage({Key? key, required this.controller}) : super(key: key);
+  SettingsPage({Key? key, required this.myHomePageController})
+      : super(key: key);
 
   @override
-  SettingsPageState createState() => SettingsPageState(controller);
+  SettingsPageState createState() => SettingsPageState(myHomePageController);
 }
 
 class SettingsPageState extends State<SettingsPage> {
-  final SettingsController controller;
+  MyHomePageController myHomePageController;
 
-  SettingsPageState(this.controller);
+  SettingsPageState(this.myHomePageController);
 
   void onChangeShouldCache(bool newValue) {
     setState(() {
@@ -40,7 +37,7 @@ class SettingsPageState extends State<SettingsPage> {
   void onChangeHideFlashcardsFeature(bool newValue) {
     setState(() {
       sharedPreferences.setBool(KEY_HIDE_FLASHCARDS_FEATURE, newValue);
-      controller.toggleFlashcards(newValue);
+      myHomePageController.toggleFlashcards(newValue);
     });
   }
 
@@ -229,7 +226,27 @@ class SettingsPageState extends State<SettingsPage> {
       }
     }
 
-    return SettingsList(sections: nonNullSections);
+    Widget body = SettingsList(sections: nonNullSections);
+
+    List<Widget> actions = [
+      buildActionButton(
+        context,
+        Icon(Icons.help),
+        () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => getSettingsHelpPage()),
+          );
+        },
+      )
+    ];
+
+    return buildTopLevelScaffold(
+      myHomePageController: myHomePageController,
+      body: body,
+      title: "Settings",
+      actions: actions,
+    );
   }
 }
 

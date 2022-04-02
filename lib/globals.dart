@@ -24,3 +24,6 @@ late bool showFlashcards;
 
 // The settings page background color.
 late Color settingsBackgroundColor;
+
+// Advisory if there is a new one.
+String? advisory;

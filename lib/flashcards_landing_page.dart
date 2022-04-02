@@ -1,3 +1,5 @@
+import 'package:auslan_dictionary/flashcards_help_page.dart';
+import 'package:auslan_dictionary/home_page.dart';
 import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -23,38 +25,21 @@ const String KEY_LISTS_TO_REVIEW = "lists_chosen_to_review";
 const String ONLY_ONE_CARD_TEXT = "Show only one set of cards per word";
 const String UNKNOWN_REGIONS_TEXT = "Signs with unknown region";
 
-class FlashcardsPageController {
-  bool isMounted = false;
-
-  void onMount() {
-    isMounted = true;
-  }
-
-  void dispose() {
-    isMounted = false;
-  }
-
-  void Function() goToSettingsFunction;
-
-  FlashcardsPageController(this.goToSettingsFunction);
-}
-
 class FlashcardsLandingPage extends StatefulWidget {
-  final FlashcardsPageController controller;
+  final MyHomePageController myHomePageController;
 
-  FlashcardsLandingPage({Key? key, required this.controller}) : super(key: key);
+  FlashcardsLandingPage({Key? key, required this.myHomePageController})
+      : super(key: key);
 
   @override
   _FlashcardsLandingPageState createState() =>
-      _FlashcardsLandingPageState(controller);
+      _FlashcardsLandingPageState(myHomePageController);
 }
 
 class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
-  late FlashcardsPageController controller;
+  MyHomePageController myHomePageController;
 
-  _FlashcardsLandingPageState(FlashcardsPageController _controller) {
-    controller = _controller;
-  }
+  _FlashcardsLandingPageState(this.myHomePageController);
 
   late int numEnabledFlashcardTypes;
 
@@ -466,7 +451,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
       };
     }
 
-    return Container(
+    Widget body = Container(
       child: Center(
           child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -504,6 +489,26 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
         ],
       )),
       color: settingsBackgroundColor,
+    );
+
+    List<Widget> actions = [
+      buildActionButton(
+        context,
+        Icon(Icons.help),
+        () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => getFlashcardsHelpPage()),
+          );
+        },
+      )
+    ];
+
+    return buildTopLevelScaffold(
+      myHomePageController: myHomePageController,
+      body: body,
+      title: "Revision",
+      actions: actions,
     );
   }
 }
