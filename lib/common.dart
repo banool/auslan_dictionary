@@ -30,6 +30,8 @@ const String KEY_REVISION_STRATEGY = "revision_strategy";
 
 const int DATA_CHECK_INTERVAL = 60 * 60 * 24 * 7; // 1 week.
 
+const int NUM_DAYS_TO_CACHE = 14;
+
 Future<Set<Word>> loadWords() async {
   String data;
   try {

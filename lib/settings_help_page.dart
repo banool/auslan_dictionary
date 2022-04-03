@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'common.dart';
 import 'help_page_common.dart';
 
 Widget getSettingsHelpPage() {
@@ -11,6 +12,8 @@ Widget getSettingsHelpPage() {
           "and reduces load on the Auslan Signbank servers.",
       "Note that the caching is best effort. If loading a video from cache "
           "fails, the app will just download the video directly from the internet. ",
+      "Videos are only cached for $NUM_DAYS_TO_CACHE days, after that the app will "
+          "need to download them again. This is to help save space on your device. ",
       "Generally you should keep this feature enabled unless you're running "
           "out of storage space on your device.",
     ],
