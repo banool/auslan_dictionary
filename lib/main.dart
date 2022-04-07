@@ -11,74 +11,83 @@ import 'home_page.dart';
 import 'types.dart';
 import 'word_list_logic.dart';
 
+Future<void> setup({Set<Word>? wordsGlobalReplacement}) async {
+  var widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+
+  // Preserve the splash screen while the app initializes.
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
+  // Load shared preferences. We do this first because the later futures,
+  // such as loadFavourites and the knobs, depend on it being initialized.
+  sharedPreferences = await SharedPreferences.getInstance();
+
+  // Load up the advisory (if there is one) next.
+  advisory = await getAdvisory();
+
+  // Build the cache manager.
+  String cacheManagerKey = "myVideoCacheManager";
+  videoCacheManager = CacheManager(
+    Config(
+      cacheManagerKey,
+      stalePeriod: const Duration(days: NUM_DAYS_TO_CACHE),
+      maxNrOfCacheObjects: 500,
+    ),
+  );
+
+  await Future.wait<void>([
+    // Load up the words information once at startup from disk.
+    // We do this first because loadFavourites depends on it later.
+    (() async {
+      if (wordsGlobalReplacement == null) {
+        wordsGlobal = await loadWords();
+      } else {
+        wordsGlobal = wordsGlobalReplacement;
+      }
+    })(),
+
+    // Get knob values.
+    (() async =>
+        enableFlashcardsKnob = await readKnob("enable_flashcards", true))(),
+    (() async =>
+        downloadWordsDataKnob = await readKnob("download_words_data", false))(),
+  ]);
+
+  for (Word w in wordsGlobal) {
+    keyedWordsGlobal[w.word] = w;
+  }
+
+  // Check for new words data if appropriate.
+  // We don't wait for this on startup, it's too slow.
+  if (downloadWordsDataKnob && wordsGlobalReplacement == null) {
+    updateWordsData();
+  }
+
+  // Build the word list manager.
+  wordListManager = WordListManager.fromStartup();
+
+  // Resolve values based on knobs.
+  showFlashcards = getShowFlashcards();
+
+  // Get background color of settings pages.
+  if (Platform.isAndroid) {
+    settingsBackgroundColor = Color.fromRGBO(240, 240, 240, 1);
+  } else if (Platform.isIOS) {
+    settingsBackgroundColor = Color.fromRGBO(242, 242, 247, 1);
+  } else {
+    settingsBackgroundColor = Color.fromRGBO(240, 240, 240, 1);
+  }
+
+  // Remove the splash screen.
+  FlutterNativeSplash.remove();
+
+  // Finally run the app.
+  print("Setup complete, running app");
+}
+
 Future<void> main() async {
   print("Start of main");
-
   try {
-    var widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-
-    // Preserve the splash screen while the app initializes.
-    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-
-    // Load shared preferences. We do this first because the later futures,
-    // such as loadFavourites and the knobs, depend on it being initialized.
-    sharedPreferences = await SharedPreferences.getInstance();
-
-    // Load up the advisory (if there is one) next.
-    advisory = await getAdvisory();
-
-    // Build the cache manager.
-    String cacheManagerKey = "myVideoCacheManager";
-    videoCacheManager = CacheManager(
-      Config(
-        cacheManagerKey,
-        stalePeriod: const Duration(days: NUM_DAYS_TO_CACHE),
-        maxNrOfCacheObjects: 500,
-      ),
-    );
-
-    await Future.wait<void>([
-      // Load up the words information once at startup from disk.
-      // We do this first because loadFavourites depends on it later.
-      (() async => wordsGlobal = await loadWords())(),
-
-      // Get knob values.
-      (() async =>
-          enableFlashcardsKnob = await readKnob("enable_flashcards", true))(),
-      (() async => downloadWordsDataKnob =
-          await readKnob("download_words_data", false))(),
-    ]);
-
-    for (Word w in wordsGlobal) {
-      keyedWordsGlobal[w.word] = w;
-    }
-
-    // Check for new words data if appropriate.
-    // We don't wait for this on startup, it's too slow.
-    if (downloadWordsDataKnob) {
-      updateWordsData();
-    }
-
-    // Build the word list manager.
-    wordListManager = WordListManager.fromStartup();
-
-    // Resolve values based on knobs.
-    showFlashcards = getShowFlashcards();
-
-    // Get background color of settings pages.
-    if (Platform.isAndroid) {
-      settingsBackgroundColor = Color.fromRGBO(240, 240, 240, 1);
-    } else if (Platform.isIOS) {
-      settingsBackgroundColor = Color.fromRGBO(242, 242, 247, 1);
-    } else {
-      settingsBackgroundColor = Color.fromRGBO(240, 240, 240, 1);
-    }
-
-    // Remove the splash screen.
-    FlutterNativeSplash.remove();
-
-    // Finally run the app.
-    print("Setup complete, running app");
+    await setup();
     runApp(MyApp());
   } catch (error, stackTrace) {
     runApp(ErrorFallback(

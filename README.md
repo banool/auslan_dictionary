@@ -22,18 +22,26 @@ sudo gem update
 pod install
 ```
 
-To generate and upload screenshots:
+## Screenshots
+First, make sure you've implemented the fix in https://github.com/flutter/flutter/issues/91668 if the issue is still active. In short, make the following change to `~/homebrew/Caskroom/flutter/2.10.3/flutter/packages/integration_test/ios/Classes/IntegrationTestPlugin.m`
+```
++ (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
+    [[IntegrationTestPlugin instance] setupChannels:registrar.messenger];
+}
+```
+
+You may also need to `flutter clean` after this.
+
+Then invoke the following in each of the directories:
 ```
 fastlane screenshots
 ```
-This invokes the `screenshots` lane we defined in the Fastfile.
 
 ## General dev guide
-
-Run this before committing:
+When first pulling this repo, add this to `.git/hooks/pre-commit`:
 ```
+#!/bin/bash
+
 ./bump_version.sh
+git add pubspec.yaml
 ```
-Update: Now there is a hook that does this, you don't need to do it manually
-
-

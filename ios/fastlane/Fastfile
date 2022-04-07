@@ -21,11 +21,27 @@ else
 end
 
 platform :ios do
-  desc “Generate new screenshots”
+  desc “Upload screenshots”
   lane :screenshots do
-    capture_screenshots
+    create_keychain(
+      name: ENV['MATCH_KEYCHAIN_NAME'],
+      password: ENV["MATCH_KEYCHAIN_PASSWORD"],
+      default_keychain: true,
+      unlock: true,
+      timeout: 3600,
+      lock_when_sleeps: false
+    )
+    match(
+      type: "appstore",
+      readonly: is_ci,
+      keychain_name: ENV['MATCH_KEYCHAIN_NAME'],
+      keychain_password: ENV["MATCH_KEYCHAIN_PASSWORD"],
+    )
+    get_certificates
+    get_provisioning_profile
     upload_to_app_store(
       skip_binary_upload: true,
+      screenshots_path: "../screenshots/ios",
       overwrite_screenshots: true
     )
   end

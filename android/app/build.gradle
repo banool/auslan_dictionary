@@ -46,6 +46,7 @@ android {
     }
 
     defaultConfig {
+        multiDexEnabled true
         applicationId "com.banool.auslan_dictionary"
         minSdkVersion 16
         targetSdkVersion 31
@@ -80,4 +81,5 @@ flutter {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'com.android.support:multidex:1.0.3'
 }
