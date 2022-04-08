@@ -10,7 +10,7 @@ flutter pub get
 flutter pub run flutter_launcher_icons:main
 flutter pub run flutter_native_splash:create
 flutter build ios --release --no-codesign
-cd ios && ./publish_do_not_check_in.sh
+cd ios && ./publish.sh
 ```
 
 If you run into problems with this, run some combination of these commands:
@@ -36,8 +36,14 @@ Then run this:
 ```
 python3 screenshots/take_screenshots.py
 ```
+The Apple App Store will expect that you also upload a build for this app version.
 
-It should take screenshots for both platforms on multiple devices and upload them.
+This takes screenshots for both platforms on multiple devices. You can then upload them with these commands:
+```
+ios/upload_screenshots.sh
+```
+
+For Android, you need to just go to the Google Play Console and do it manually right now.
 
 See my [Stack OVverflow question](https://stackoverflow.com/questions/71699078/how-to-locate-elements-in-ios-ui-test-for-flutter-fastlane-screnshots/71801310#71801310) for more information about this whole setup.
 

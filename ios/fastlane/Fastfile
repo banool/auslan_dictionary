@@ -47,6 +47,7 @@ platform :ios do
     upload_to_app_store(
       skip_binary_upload: true,
       screenshots_path: "../screenshots/ios",
+      overwrite_screenshots: true,
     )
   end
 end

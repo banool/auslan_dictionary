@@ -1,9 +1,16 @@
+"""
+This whole script is a bit janky, sometimes all you need is some strategic
+retries and flutter cleans and what was previously not working will
+magically start to work.
+"""
+
 import argparse
 import asyncio
 import logging
 import os
 import re
 
+from subprocess import Popen, PIPE, STDOUT
 
 # The list of iOS simulators to run.
 # This comes from inspecting `xcrun simctl list`
@@ -32,13 +39,24 @@ LOG.addHandler(ch)
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--debug", action="store_true")
-    parser.add_argument("--clear-screenshots", action="store_true", help="Delete all existing screenshots")
+    parser.add_argument(
+        "--clear-screenshots",
+        action="store_true",
+        help="Delete all existing local screenshots",
+    )
+    parser.add_argument(
+        "--ios-only", action="store_true", help="Only take screenshots for iOS"
+    )
+    parser.add_argument(
+        "--android-only", action="store_true", help="Only take screenshots for Android"
+    )
     args = parser.parse_args()
     return args
 
 
 class cd:
     """Context manager for changing the current working directory"""
+
     def __init__(self, newPath):
         self.newPath = os.path.expanduser(newPath)
 
@@ -94,7 +112,7 @@ async def start_android_emulators(android_emulator_names):
     )
 
 
-async def get_all_device_ids():
+async def get_all_device_ids(ios_only=False, android_only=False):
     raw = await run_command(["flutter", "devices"])
     out = []
     for line in raw.splitlines():
@@ -103,6 +121,10 @@ async def get_all_device_ids():
         if "Daniel" in line:
             continue
         if "Chrome" in line:
+            continue
+        if ios_only and "android" in line:
+            continue
+        if android_only and "apple" in line:
             continue
         device_id = line.split("•")[1].lstrip().rstrip()
         out.append(device_id)
@@ -131,12 +153,6 @@ async def run_tests(device_ids):
     # await asyncio.gather(*[run_test(device_id) for device_id in device_ids])
 
 
-async def upload_to_apple():
-    with cd("../ios"):
-        # TODO: Ensure this handles when the user needs to enter a code for 2fa.
-        await run_command(["./upload_screenshots.sh"])
-
-
 async def main():
     args = parse_args()
 
@@ -151,37 +167,35 @@ async def main():
         LOG.setLevel("INFO")
 
     if args.clear_screenshots:
-        await run_command(["rm", "ios/en-AU/*"])
-        await run_command(["rm", "android/en-AU/*"])
+        await run_command(["rm", "-rf", "ios/en-AU"])
+        await run_command(["rm", "-rf", "android/en-AU"])
+        await run_command(["mkdir", "ios/en-AU"])
+        await run_command(["mkdir", "android/en-AU"])
         LOG.info("Cleared existing screenshots")
 
     uuids_of_ios_simulators = await get_uuids_of_ios_simulators(IOS_SIMULATORS)
     LOG.info(f"iOS simulatior name to UUID: {uuids_of_ios_simulators}")
 
-    LOG.info("Launching iOS simulators")
-    await start_ios_simulators(uuids_of_ios_simulators)
-    LOG.info("Launched iOS simulators")
+    if not args.android_only:
+        LOG.info("Launching iOS simulators")
+        await start_ios_simulators(uuids_of_ios_simulators)
+        LOG.info("Launched iOS simulators")
 
-    LOG.info("Launching Android emulators")
-    await start_android_emulators(ANDROID_EMULATORS)
-    LOG.info("Launched Android emulators")
+    if not args.ios_only:
+        LOG.info("Launching Android emulators")
+        await start_android_emulators(ANDROID_EMULATORS)
+        LOG.info("Launched Android emulators")
 
     await asyncio.sleep(5)
 
-    device_ids = await get_all_device_ids()
+    device_ids = await get_all_device_ids(
+        ios_only=args.ios_only, android_only=args.android_only
+    )
     LOG.debug(f"Device IDs: {device_ids}")
 
     LOG.info("Running tests")
     await run_tests(device_ids)
     LOG.info("Ran tests")
-
-    LOG.info("Uploading to Apple")
-    await upload_to_apple()
-    LOG.info("Uploaded to Apple")
-
-    LOG.info("Uploading to Google")
-    await upload_to_google()
-    LOG.info("Uploaded to Google")
 
     LOG.info("Done!")
 

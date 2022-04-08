@@ -61,9 +61,12 @@ Future<void> takeScreenshot(
     IntegrationTestWidgetsFlutterBinding binding,
     ScreenshotNameInfo screenshotNameInfo,
     String name) async {
-  name =
-      "${screenshotNameInfo.platformName}/en-AU/${screenshotNameInfo.deviceName}-${screenshotNameInfo.physicalScreenSize}-${screenshotNameInfo.getAndIncrementCounter()}-$name";
+  name = "${screenshotNameInfo.platformName}/en-AU/"
+      "${screenshotNameInfo.deviceName}-${screenshotNameInfo.physicalScreenSize}-"
+      "${screenshotNameInfo.getAndIncrementCounter().toString().padLeft(2, '0')}-"
+      "$name";
   await tester.pumpAndSettle();
+  sleep(Duration(milliseconds: 250));
   if (Platform.isAndroid) {
     await takeScreenshotForAndroid(binding, name);
   } else {
@@ -201,6 +204,8 @@ void main() async {
     sleep(Duration(seconds: 4));
     await takeScreenshot(tester, binding, screenshotNameInfo, "revisionPage");
 
+    sleep(Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
     final Finder revealTapArea = find.byKey(ValueKey("revealTapArea"));
     await tester.tap(revealTapArea);
     await tester.pumpAndSettle();
