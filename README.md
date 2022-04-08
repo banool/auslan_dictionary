@@ -36,12 +36,12 @@ Then run this:
 ```
 python3 screenshots/take_screenshots.py
 ```
-The Apple App Store will expect that you also upload a build for this app version.
 
 This takes screenshots for both platforms on multiple devices. You can then upload them with these commands:
 ```
 ios/upload_screenshots.sh
 ```
+The Apple App Store will expect that you also upload a build for this app version first. You might need to also manually upload the photos for the 2nd gen 12.9 inch iPad (just use the 5th gen pics).
 
 For Android, you need to just go to the Google Play Console and do it manually right now.
 
