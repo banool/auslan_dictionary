@@ -32,10 +32,14 @@ First, make sure you've implemented the fix in https://github.com/flutter/flutte
 
 You may also need to `flutter clean` after this.
 
-Then invoke the following in each of the directories:
+Then run this:
 ```
-fastlane screenshots
+python3 screenshots/take_screenshots.py
 ```
+
+It should take screenshots for both platforms on multiple devices and upload them.
+
+See my [Stack OVverflow question](https://stackoverflow.com/questions/71699078/how-to-locate-elements-in-ios-ui-test-for-flutter-fastlane-screnshots/71801310#71801310) for more information about this whole setup.
 
 ## General dev guide
 When first pulling this repo, add this to `.git/hooks/pre-commit`:

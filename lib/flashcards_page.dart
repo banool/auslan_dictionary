@@ -368,15 +368,16 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
       return Stack(children: [
         Column(children: [
           Expanded(
+              key: ValueKey("revealTapArea"),
               child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => setState(() {
-              completeCard(currentCard!, rating: Rating.Good);
-            }),
-            child: Container(
-              constraints: BoxConstraints.expand(),
-            ),
-          ))
+                behavior: HitTestBehavior.opaque,
+                onTap: () => setState(() {
+                  completeCard(currentCard!, rating: Rating.Good);
+                }),
+                child: Container(
+                  constraints: BoxConstraints.expand(),
+                ),
+              ))
         ]),
         Column(
           mainAxisAlignment: MainAxisAlignment.start,

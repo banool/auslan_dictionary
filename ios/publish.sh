@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. publish.env
+
 [[ -z "${FASTLANE_USER}" ]] && echo 'Please set FASTLANE_USER' && exit
 [[ -z "${FASTLANE_PASSWORD}" ]] && echo 'Please set FASTLANE_PASSWORD' && exit
 [[ -z "${FASTLANE_SESSION}" ]] && echo 'Please set FASTLANE_SESSION' && exit

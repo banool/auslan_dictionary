@@ -333,9 +333,9 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
                                       borderRadius: BorderRadius.circular(20)),
                                 ),
                                 onPressed: () async {
+                                  await sharedPreferences.setInt(
+                                      KEY_REVISION_STRATEGY, e.index);
                                   setState(() {
-                                    sharedPreferences.setInt(
-                                        KEY_REVISION_STRATEGY, e.index);
                                     updateRevisionSettings();
                                   });
                                   Navigator.of(context).pop();
@@ -451,6 +451,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
           Padding(
               padding: EdgeInsets.only(top: 30, bottom: 10),
               child: TextButton(
+                key: ValueKey("startButton"),
                 child: Text(
                   "Start",
                   textAlign: TextAlign.center,

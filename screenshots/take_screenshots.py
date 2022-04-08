@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import logging
+import os
 import re
 
 
@@ -34,6 +35,19 @@ def parse_args():
     parser.add_argument("--clear-screenshots", action="store_true", help="Delete all existing screenshots")
     args = parser.parse_args()
     return args
+
+
+class cd:
+    """Context manager for changing the current working directory"""
+    def __init__(self, newPath):
+        self.newPath = os.path.expanduser(newPath)
+
+    def __enter__(self):
+        self.savedPath = os.getcwd()
+        os.chdir(self.newPath)
+
+    def __exit__(self, etype, value, traceback):
+        os.chdir(self.savedPath)
 
 
 async def run_command(command):
@@ -117,8 +131,19 @@ async def run_tests(device_ids):
     # await asyncio.gather(*[run_test(device_id) for device_id in device_ids])
 
 
+async def upload_to_apple():
+    with cd("../ios"):
+        # TODO: Ensure this handles when the user needs to enter a code for 2fa.
+        await run_command(["./upload_screenshots.sh"])
+
+
 async def main():
     args = parse_args()
+
+    # chdir to location of python file.
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    os.chdir(dname)
 
     if args.debug:
         LOG.setLevel("DEBUG")
@@ -126,8 +151,8 @@ async def main():
         LOG.setLevel("INFO")
 
     if args.clear_screenshots:
-        await run_command(["rm", "ios/*"])
-        await run_command(["rm", "android/*"])
+        await run_command(["rm", "ios/en-AU/*"])
+        await run_command(["rm", "android/en-AU/*"])
         LOG.info("Cleared existing screenshots")
 
     uuids_of_ios_simulators = await get_uuids_of_ios_simulators(IOS_SIMULATORS)

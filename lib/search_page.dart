@@ -36,8 +36,6 @@ class _SearchPageState extends State<SearchPage> {
   List<Word?> wordsSearched = [];
   int currentNavBarIndex = 0;
 
-  final _formSearchKey = GlobalKey<FormState>();
-
   final _searchFieldController = TextEditingController();
 
   void search(String searchTerm) {
@@ -70,7 +68,7 @@ class _SearchPageState extends State<SearchPage> {
             Padding(
               padding: EdgeInsets.only(bottom: 10, left: 32, right: 32, top: 0),
               child: Form(
-                  key: _formSearchKey,
+                  key: ValueKey("searchPage.searchForm"),
                   child: Column(children: <Widget>[
                     TextField(
                       controller: _searchFieldController,

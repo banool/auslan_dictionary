@@ -258,6 +258,7 @@ Widget listWidget(
         );
       }
       return ListTile(
+        key: ValueKey(word.word),
         title: listItem(context, word, refreshWordsFn,
             showFavouritesButton: showFavouritesButton),
         trailing: trailing,
