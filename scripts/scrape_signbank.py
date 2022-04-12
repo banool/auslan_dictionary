@@ -75,8 +75,8 @@ class Region(IntEnum):
     @classmethod
     def regions_from_link(cls, link):
         d = {
-            "/static/img/maps/Auslan/AustraliaWide-traditional": [e.value for e in cls],
-            "/static/img/maps/Auslan/SouthernDialect-traditional": [
+            "/img/maps/Auslan/AustraliaWide-traditional": [e.value for e in cls],
+            "/img/maps/Auslan/SouthernDialect-traditional": [
                 cls.SOUTHERN,
                 cls.WA,
                 cls.NT,
@@ -84,22 +84,26 @@ class Region(IntEnum):
                 cls.VIC,
                 cls.TAS,
             ],
-            "/static/img/maps/Auslan/NorthernDialect-traditional": [
+            "/img/maps/Auslan/NorthernDialect-traditional": [
                 cls.NORTHERN,
                 cls.QLD,
                 cls.NSW,
                 cls.ACT
             ],
-            "/static/img/maps/Auslan/WesternAustralia-traditional": [cls.WA],
-            "/static/img/maps/Auslan/NorthernTerritory-traditional": [cls.NT],
-            "/static/img/maps/Auslan/SouthAustralia-traditional": [cls.SA],
-            "/static/img/maps/Auslan/Queensland-traditional": [cls.QLD],
-            "/static/img/maps/Auslan/NewSouthWales-traditional": [cls.NSW, cls.ACT],
-            "/static/img/maps/Auslan/Victoria-traditional": [cls.VIC],
-            "/static/img/maps/Auslan/Tasmania-traditional": [cls.TAS],
+            "/img/maps/Auslan/WesternAustralia-traditional": [cls.WA],
+            "/img/maps/Auslan/NorthernTerritory-traditional": [cls.NT],
+            "/img/maps/Auslan/SouthAustralia-traditional": [cls.SA],
+            "/img/maps/Auslan/Queensland-traditional": [cls.QLD],
+            "/img/maps/Auslan/NewSouthWales-traditional": [cls.NSW, cls.ACT],
+            "/img/maps/Auslan/Victoria-traditional": [cls.VIC],
+            "/img/maps/Auslan/Tasmania-traditional": [cls.TAS],
         }
+        updated = {}
+        for k, v in d.items():
+            updated[k] = v
+            updated["/static" + k] = v
         regions = None
-        for link_substring in d.keys():
+        for link_substring in updated.keys():
             if link_substring in link:
                 regions = d[link_substring]
         return regions
