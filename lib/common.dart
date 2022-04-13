@@ -59,6 +59,12 @@ Set<Word> loadWordsInner(String data) {
   return words;
 }
 
+void updateKeyedWordsGlobal() {
+  for (Word w in wordsGlobal) {
+    keyedWordsGlobal[w.word] = w;
+  }
+}
+
 Future<void> navigateToWordPage(BuildContext context, Word word,
     {bool showFavouritesButton = true}) {
   return Navigator.push(

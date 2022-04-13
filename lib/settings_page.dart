@@ -136,6 +136,7 @@ class SettingsPageState extends State<SettingsPage> {
               String message;
               if (updated) {
                 wordsGlobal = await loadWords();
+                updateKeyedWordsGlobal();
                 message = "Successfully updated dictionary data";
               } else {
                 message = "Data is already up to date";

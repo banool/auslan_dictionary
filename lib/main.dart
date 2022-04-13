@@ -52,9 +52,7 @@ Future<void> setup({Set<Word>? wordsGlobalReplacement}) async {
         downloadWordsDataKnob = await readKnob("download_words_data", false))(),
   ]);
 
-  for (Word w in wordsGlobal) {
-    keyedWordsGlobal[w.word] = w;
-  }
+  updateKeyedWordsGlobal();
 
   // Check for new words data if appropriate.
   // We don't wait for this on startup, it's too slow.
@@ -102,6 +100,7 @@ Future<void> updateWordsData() async {
   if (thereWasNewData) {
     print("There was new data");
     wordsGlobal = await loadWords();
+    updateKeyedWordsGlobal();
     print("Updated wordsGlobal");
   } else {
     print("There was no new words data, not updating wordsGlobal");
