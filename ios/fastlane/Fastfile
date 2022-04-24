@@ -14,11 +14,7 @@ update_fastlane
 
 default_platform(:ios)
 
-if is_ci
-  xcode_select "/Applications/Xcode_13.2.1.app"
-else
-  xcode_select "/Applications/Xcode_13.2.1_fb.app"
-end
+xcode_select "/Applications/Xcode.app"
 
 platform :ios do
   desc “Upload screenshots”
