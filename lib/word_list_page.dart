@@ -280,6 +280,5 @@ Widget listItem(BuildContext context, Word word, Function refreshWordsFn,
           showFavouritesButton: showFavouritesButton),
       await refreshWordsFn(),
     },
-    splashColor: MAIN_COLOR,
   );
 }

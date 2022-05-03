@@ -142,6 +142,5 @@ Widget listItem(BuildContext context, Word word) {
   return FlatButton(
     child: Align(alignment: Alignment.topLeft, child: Text("${word.word}")),
     onPressed: () => navigateToWordPage(context, word),
-    splashColor: MAIN_COLOR,
   );
 }
