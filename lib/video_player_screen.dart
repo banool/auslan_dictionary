@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 
 import 'common.dart';
@@ -135,6 +137,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
     try {
       late VideoPlayerController controller;
+      // Don't cache .bak files. They're rare and tricky to handle. In short,
+      // the underlying video players depend on the extension to figure out
+      // what kind of file we're working with. We need to remove the .bak
+      // extension for the video player to work correctly.
+      if (videoLink.endsWith(".bak")) {
+        shouldCache = false;
+      }
       bool shouldDownloadDirectly = !shouldCache;
       if (shouldCache) {
         try {
@@ -152,8 +161,25 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         if (!shouldCache) {
           print("Caching is disabled, pulling from the network");
         }
-        controller = VideoPlayerController.network(videoLink,
-            videoPlayerOptions: videoPlayerOptions);
+        if (videoLink.endsWith(".bak")) {
+          print("Building video controller with custom .bak behaviour");
+          HttpClient httpClient = new HttpClient();
+          var request = await httpClient.getUrl(Uri.parse(videoLink));
+          var response = await request.close();
+          if (response.statusCode != 200) {
+            throw "Failed to load $videoLink with custom .bak behaviour: $response";
+          }
+          String dir = (await getTemporaryDirectory()).path;
+          var bytes = await consolidateHttpClientResponseBytes(response);
+          String newFileName = videoLink.split("/").last.replaceAll(".bak", "");
+          File file = new File("$dir/$newFileName");
+          await file.writeAsBytes(bytes);
+          controller = VideoPlayerController.file(file,
+              videoPlayerOptions: videoPlayerOptions);
+        } else {
+          controller = VideoPlayerController.network(videoLink,
+              videoPlayerOptions: videoPlayerOptions);
+        }
       }
 
       // Use the controller to loop the video.
