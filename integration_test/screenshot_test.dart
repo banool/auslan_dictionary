@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:device_info/device_info.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -103,11 +103,11 @@ class ScreenshotNameInfo {
     if (Platform.isAndroid) {
       platformName = "android";
       AndroidDeviceInfo info = await deviceInfo.androidInfo;
-      deviceName = info.product;
+      deviceName = info.product!;
     } else if (Platform.isIOS) {
       platformName = "ios";
       IosDeviceInfo info = await deviceInfo.iosInfo;
-      deviceName = info.name;
+      deviceName = info.name!;
     } else {
       throw "Unsupported platform";
     }

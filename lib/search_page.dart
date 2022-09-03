@@ -93,7 +93,9 @@ class _SearchPageState extends State<SearchPage> {
                   ])),
             ),
             new Expanded(
-              child: listWidget(context, wordsSearched),
+              child: Padding(
+                  padding: EdgeInsets.only(left: 8),
+                  child: listWidget(context, wordsSearched)),
             ),
           ],
         ),
@@ -139,8 +141,10 @@ Widget listWidget(BuildContext context, List<Word?> wordsSearched) {
 }
 
 Widget listItem(BuildContext context, Word word) {
-  return FlatButton(
-    child: Align(alignment: Alignment.topLeft, child: Text("${word.word}")),
+  return TextButton(
+    child: Align(
+        alignment: Alignment.topLeft,
+        child: Text("${word.word}", style: TextStyle(color: Colors.black))),
     onPressed: () => navigateToWordPage(context, word),
   );
 }

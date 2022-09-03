@@ -259,14 +259,14 @@ Future<bool> confirmAlert(BuildContext context, Widget content,
     String cancelText = "Cancel",
     String confirmText = "Confirm"}) async {
   bool confirmed = false;
-  Widget cancelButton = FlatButton(
-    child: Text(cancelText),
+  Widget cancelButton = TextButton(
+    child: Text(cancelText, style: TextStyle(color: Colors.black)),
     onPressed: () {
       Navigator.of(context).pop();
     },
   );
-  Widget continueButton = FlatButton(
-    child: Text(confirmText),
+  Widget continueButton = TextButton(
+    child: Text(confirmText, style: TextStyle(color: Colors.black)),
     onPressed: () {
       confirmed = true;
       Navigator.of(context).pop();
@@ -278,6 +278,7 @@ Future<bool> confirmAlert(BuildContext context, Widget content,
     actions: [
       cancelButton,
       continueButton,
+      Padding(padding: EdgeInsets.only(right: 0))
     ],
   );
   await showDialog(

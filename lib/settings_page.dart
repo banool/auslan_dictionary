@@ -10,7 +10,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'common.dart';
 import 'flashcards_logic.dart';
 import 'globals.dart';
-import 'home_page.dart';
 import 'settings_help_page.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -253,7 +252,7 @@ class SettingsPageState extends State<SettingsPage> {
   }
 }
 
-Text getText(String s, {bool larger = false}) {
+Text getText(String s, {bool larger = false, Color? color}) {
   double size = 15;
   if (larger) {
     size = 18;
@@ -261,7 +260,7 @@ Text getText(String s, {bool larger = false}) {
   return Text(
     s,
     textAlign: TextAlign.center,
-    style: TextStyle(fontSize: size),
+    style: TextStyle(fontSize: size, color: color),
   );
 }
 
@@ -287,7 +286,7 @@ class LegalInformationPage extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.only(top: 10),
                   ),
-                  FlatButton(
+                  TextButton(
                     child: Text(
                         "This content is licensed under\nCreative Commons BY-NC-ND 4.0.",
                         textAlign: TextAlign.center,

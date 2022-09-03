@@ -205,7 +205,9 @@ class _WordListPageState extends State<WordListPage> {
                 ),
               ])),
             ),
-            new Expanded(
+            Expanded(
+                child: Padding(
+              padding: EdgeInsets.only(left: 8),
               child: listWidget(
                   context, wordsSearched, wordsGlobal, refreshWords,
                   showFavouritesButton: wordList.key == KEY_FAVOURITES_WORDS,
@@ -215,7 +217,7 @@ class _WordListPageState extends State<WordListPage> {
                   addWordFn: inEditMode && currentSearchTerm.length > 0
                       ? addWord
                       : null),
-            ),
+            )),
           ],
         ),
       ),
@@ -273,8 +275,13 @@ Widget listWidget(
 // list they just came from.
 Widget listItem(BuildContext context, Word word, Function refreshWordsFn,
     {bool showFavouritesButton = true}) {
-  return FlatButton(
-    child: Align(alignment: Alignment.topLeft, child: Text("${word.word}")),
+  return TextButton(
+    child: Align(
+        alignment: Alignment.topLeft,
+        child: Text(
+          "${word.word}",
+          style: TextStyle(color: Colors.black),
+        )),
     onPressed: () async => {
       await navigateToWordPage(context, word,
           showFavouritesButton: showFavouritesButton),

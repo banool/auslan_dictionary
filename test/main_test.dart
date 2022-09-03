@@ -2,6 +2,7 @@ import 'package:auslan_dictionary/types.dart';
 import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:auslan_dictionary/common.dart';
 import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/globals.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -58,5 +59,9 @@ void main() async {
     DRCard card = dolphin.nextCard()!;
 
     print(card);
+  });
+
+  test('json data valid', () async {
+    await loadWords();
   });
 }
