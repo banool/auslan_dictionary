@@ -1,9 +1,10 @@
-import 'dart:io' show Platform;
+import 'dart:io' show HttpClient, HttpOverrides, Platform, SecurityContext;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:system_proxy/system_proxy.dart';
 
 import 'common.dart';
 import 'globals.dart';
@@ -20,6 +21,11 @@ Future<void> setup({Set<Word>? wordsGlobalReplacement}) async {
   // Load shared preferences. We do this first because the later futures,
   // such as loadFavourites and the knobs, depend on it being initialized.
   sharedPreferences = await SharedPreferences.getInstance();
+
+  // Set the HTTP proxy if necessary.
+  Map<String, String> proxy = await SystemProxy.getProxySettings() ?? {};
+  HttpOverrides.global = new ProxiedHttpOverrides(proxy["host"], proxy["port"]);
+  print("Set HTTP proxy overrides to $proxy");
 
   // Load up the advisory (if there is one) next.
   advisory = await getAdvisory();
@@ -186,5 +192,20 @@ class MyApp extends StatelessWidget {
               })),
           home: MyHomePage(advisory: advisory),
         ));
+  }
+}
+
+class ProxiedHttpOverrides extends HttpOverrides {
+  String? _port;
+  String? _host;
+  ProxiedHttpOverrides(this._host, this._port);
+
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      // Set proxy
+      ..findProxy = (uri) {
+        return _host != null ? "PROXY $_host:$_port;" : 'DIRECT';
+      };
   }
 }

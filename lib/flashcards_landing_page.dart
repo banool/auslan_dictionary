@@ -57,7 +57,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!
+    WidgetsBinding.instance
         .addObserver(LifecycleEventHandler(resumeCallBack: () async {
       updateRevisionSettings();
       print("Updated revision settings on foregrounding");
