@@ -120,6 +120,7 @@ class ScreenshotNameInfo {
 }
 
 void main() async {
+  // ignore: unnecessary_cast
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized()
       as IntegrationTestWidgetsFlutterBinding;
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
