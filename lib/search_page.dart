@@ -5,32 +5,34 @@ import 'globals.dart';
 import 'top_level_scaffold.dart';
 import 'types.dart';
 
-class SearchPageController {
-  bool isMounted = false;
-
-  void onMount() {
-    isMounted = true;
-  }
-
-  void dispose() {
-    isMounted = false;
-  }
-
-  late void Function() clearSearch;
-}
-
 class SearchPage extends StatefulWidget {
+  final String? initialQuery;
+
+  SearchPage({Key? key, this.initialQuery}) : super(key: key);
+
   @override
-  _SearchPageState createState() => _SearchPageState();
+  _SearchPageState createState() =>
+      _SearchPageState(initialQuery: initialQuery);
 }
 
 class _SearchPageState extends State<SearchPage> {
-  _SearchPageState();
+  final String? initialQuery;
+
+  _SearchPageState({this.initialQuery});
 
   List<Word?> wordsSearched = [];
   int currentNavBarIndex = 0;
 
   final _searchFieldController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    if (initialQuery != null) {
+      _searchFieldController.text = initialQuery!;
+      search(initialQuery!);
+    }
+  }
 
   void search(String searchTerm) {
     setState(() {

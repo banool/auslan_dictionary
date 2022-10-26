@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 
 import 'common.dart';
 import 'flashcards_landing_page.dart';
-import 'globals.dart';
 import 'search_page.dart';
 import 'settings_page.dart';
 import 'word_list_overview_page.dart';
@@ -15,8 +14,6 @@ const SETTINGS_ROUTE = "/settings";
 
 final GlobalKey<NavigatorState> rootNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'root');
-final GlobalKey<NavigatorState> shellNavigatorKey =
-    GlobalKey<NavigatorState>(debugLabel: 'shell');
 
 class RootApp extends StatelessWidget {
   final GoRouter router = GoRouter(
@@ -25,12 +22,16 @@ class RootApp extends StatelessWidget {
       routes: [
         GoRoute(
           path: "/",
-          redirect: (context, state) => "/search",
+          redirect: (context, state) => SEARCH_ROUTE,
         ),
         GoRoute(
             path: SEARCH_ROUTE,
             pageBuilder: (BuildContext context, GoRouterState state) {
-              return NoTransitionPage(child: SearchPage());
+              String? initialQuery = state.queryParams["query"];
+              return NoTransitionPage(
+                  // https://stackoverflow.com/a/73458529/3846032
+                  key: UniqueKey(),
+                  child: SearchPage(initialQuery: initialQuery));
             }),
         GoRoute(
             path: LISTS_ROUTE,
