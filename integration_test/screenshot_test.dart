@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:auslan_dictionary/root.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -149,7 +150,7 @@ void main() async {
     await sharedPreferences.setInt(
         KEY_REVISION_STRATEGY, RevisionStrategy.SpacedRepetition.index);
 
-    await tester.pumpWidget(MyApp());
+    await tester.pumpWidget(RootApp());
     await tester.pumpAndSettle(Duration(seconds: 10));
     var screenshotNameInfo = await ScreenshotNameInfo.buildScreenshotNameInfo();
 

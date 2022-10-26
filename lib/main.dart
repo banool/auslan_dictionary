@@ -1,5 +1,6 @@
 import 'dart:io' show HttpClient, HttpOverrides, Platform, SecurityContext;
 
+import 'package:auslan_dictionary/root.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -8,7 +9,6 @@ import 'package:system_proxy/system_proxy.dart';
 
 import 'common.dart';
 import 'globals.dart';
-import 'home_page.dart';
 import 'types.dart';
 import 'word_list_logic.dart';
 
@@ -92,7 +92,7 @@ Future<void> main() async {
   print("Start of main");
   try {
     await setup();
-    runApp(MyApp());
+    runApp(RootApp());
   } catch (error, stackTrace) {
     runApp(ErrorFallback(
       error: error,
@@ -165,33 +165,6 @@ class ErrorFallback extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: children,
         )));
-  }
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-        onTap: () {
-          FocusScopeNode currentFocus = FocusScope.of(context);
-          if (!currentFocus.hasPrimaryFocus &&
-              currentFocus.focusedChild != null) {
-            FocusManager.instance.primaryFocus!.unfocus();
-          }
-        },
-        child: MaterialApp(
-          title: APP_NAME,
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-              primarySwatch: MAIN_COLOR as MaterialColor?,
-              visualDensity: VisualDensity.adaptivePlatformDensity,
-              // Make swiping to pop back the navigation work.
-              pageTransitionsTheme: PageTransitionsTheme(builders: {
-                TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-                TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-              })),
-          home: MyHomePage(advisory: advisory),
-        ));
   }
 }
 

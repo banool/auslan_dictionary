@@ -1,9 +1,9 @@
+import 'package:auslan_dictionary/root.dart';
 import 'package:auslan_dictionary/types.dart';
 import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:auslan_dictionary/common.dart';
-import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/globals.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -33,7 +33,7 @@ void main() async {
 
   testWidgets('Pump app test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp());
+    await tester.pumpWidget(RootApp());
     print("Pump successful!");
   });
 
