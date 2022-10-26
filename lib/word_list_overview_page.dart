@@ -3,27 +3,17 @@ import 'package:flutter/services.dart';
 
 import 'common.dart';
 import 'globals.dart';
-import 'home_page.dart';
+import 'top_level_scaffold.dart';
 import 'word_list_logic.dart';
 import 'word_list_overview_help_page.dart';
 import 'word_list_page.dart';
 
 class WordListsOverviewPage extends StatefulWidget {
-  final MyHomePageController myHomePageController;
-
-  WordListsOverviewPage({Key? key, required this.myHomePageController})
-      : super(key: key);
-
   @override
-  _WordListsOverviewPageState createState() =>
-      _WordListsOverviewPageState(myHomePageController: myHomePageController);
+  _WordListsOverviewPageState createState() => _WordListsOverviewPageState();
 }
 
 class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
-  MyHomePageController myHomePageController;
-
-  _WordListsOverviewPageState({required this.myHomePageController});
-
   bool inEditMode = false;
 
   @override
@@ -141,8 +131,7 @@ class _WordListsOverviewPageState extends State<WordListsOverviewPage> {
       )
     ];
 
-    return buildTopLevelScaffold(
-        myHomePageController: myHomePageController,
+    return TopLevelScaffold(
         body: body,
         title: "Lists",
         actions: actions,

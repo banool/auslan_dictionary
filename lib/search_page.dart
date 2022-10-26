@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'common.dart';
 import 'globals.dart';
-import 'home_page.dart';
+import 'top_level_scaffold.dart';
 import 'types.dart';
 
 class SearchPageController {
@@ -20,18 +20,12 @@ class SearchPageController {
 }
 
 class SearchPage extends StatefulWidget {
-  final MyHomePageController myHomePageController;
-
-  SearchPage({Key? key, required this.myHomePageController}) : super(key: key);
-
   @override
-  _SearchPageState createState() => _SearchPageState(myHomePageController);
+  _SearchPageState createState() => _SearchPageState();
 }
 
 class _SearchPageState extends State<SearchPage> {
-  MyHomePageController myHomePageController;
-
-  _SearchPageState(this.myHomePageController);
+  _SearchPageState();
 
   List<Word?> wordsSearched = [];
   int currentNavBarIndex = 0;
@@ -53,9 +47,9 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (advisory != null && !myHomePageController.advisoryShownOnce) {
+    if (advisory != null && !advisoryShownOnce) {
       Future.delayed(Duration(milliseconds: 500), () => showAdvisoryDialog());
-      myHomePageController.advisoryShownOnce = true;
+      advisoryShownOnce = true;
     }
 
     Widget body = Center(
@@ -113,12 +107,7 @@ class _SearchPageState extends State<SearchPage> {
       ));
     }
 
-    return buildTopLevelScaffold(
-      myHomePageController: myHomePageController,
-      body: body,
-      title: "Search",
-      actions: actions,
-    );
+    return TopLevelScaffold(body: body, title: "Search", actions: actions);
   }
 
   void showAdvisoryDialog() {

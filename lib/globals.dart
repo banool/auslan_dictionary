@@ -27,3 +27,4 @@ late Color settingsBackgroundColor;
 
 // Advisory if there is a new one.
 String? advisory;
+bool advisoryShownOnce = false;

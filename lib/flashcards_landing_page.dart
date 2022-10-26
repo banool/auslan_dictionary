@@ -1,5 +1,3 @@
-import 'package:auslan_dictionary/flashcards_help_page.dart';
-import 'package:auslan_dictionary/home_page.dart';
 import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -7,11 +5,13 @@ import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 import 'common.dart';
+import 'flashcards_help_page.dart';
 import 'flashcards_logic.dart';
 import 'flashcards_page.dart';
 import 'globals.dart';
 import 'revision_history_page.dart';
 import 'settings_page.dart';
+import 'top_level_scaffold.dart';
 import 'types.dart';
 import 'word_list_logic.dart';
 
@@ -26,21 +26,11 @@ const String ONLY_ONE_CARD_TEXT = "Show only one set of cards per word";
 const String UNKNOWN_REGIONS_TEXT = "Signs with unknown region";
 
 class FlashcardsLandingPage extends StatefulWidget {
-  final MyHomePageController myHomePageController;
-
-  FlashcardsLandingPage({Key? key, required this.myHomePageController})
-      : super(key: key);
-
   @override
-  _FlashcardsLandingPageState createState() =>
-      _FlashcardsLandingPageState(myHomePageController);
+  _FlashcardsLandingPageState createState() => _FlashcardsLandingPageState();
 }
 
 class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
-  MyHomePageController myHomePageController;
-
-  _FlashcardsLandingPageState(this.myHomePageController);
-
   late int numEnabledFlashcardTypes;
 
   late final bool initialValueSignToWord;
@@ -506,12 +496,7 @@ class _FlashcardsLandingPageState extends State<FlashcardsLandingPage> {
       )
     ];
 
-    return buildTopLevelScaffold(
-      myHomePageController: myHomePageController,
-      body: body,
-      title: "Revision",
-      actions: actions,
-    );
+    return TopLevelScaffold(body: body, title: "Revision", actions: actions);
   }
 }
 

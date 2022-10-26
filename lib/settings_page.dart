@@ -1,6 +1,5 @@
 import 'dart:io' show Platform;
 
-import 'package:auslan_dictionary/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:launch_review/launch_review.dart';
 import 'package:mailto/mailto.dart';
@@ -11,22 +10,14 @@ import 'common.dart';
 import 'flashcards_logic.dart';
 import 'globals.dart';
 import 'settings_help_page.dart';
+import 'top_level_scaffold.dart';
 
 class SettingsPage extends StatefulWidget {
-  final MyHomePageController myHomePageController;
-
-  SettingsPage({Key? key, required this.myHomePageController})
-      : super(key: key);
-
   @override
-  SettingsPageState createState() => SettingsPageState(myHomePageController);
+  SettingsPageState createState() => SettingsPageState();
 }
 
 class SettingsPageState extends State<SettingsPage> {
-  MyHomePageController myHomePageController;
-
-  SettingsPageState(this.myHomePageController);
-
   void onChangeShouldCache(bool newValue) {
     setState(() {
       sharedPreferences.setBool(KEY_SHOULD_CACHE, newValue);
@@ -36,7 +27,7 @@ class SettingsPageState extends State<SettingsPage> {
   void onChangeHideFlashcardsFeature(bool newValue) {
     setState(() {
       sharedPreferences.setBool(KEY_HIDE_FLASHCARDS_FEATURE, newValue);
-      myHomePageController.toggleFlashcards(newValue);
+      //myHomePageController.toggleFlashcards(newValue);
     });
   }
 
@@ -243,12 +234,7 @@ class SettingsPageState extends State<SettingsPage> {
       )
     ];
 
-    return buildTopLevelScaffold(
-      myHomePageController: myHomePageController,
-      body: body,
-      title: "Settings",
-      actions: actions,
-    );
+    return TopLevelScaffold(body: body, title: "Search", actions: actions);
   }
 }
 
