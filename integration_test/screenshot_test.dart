@@ -104,7 +104,7 @@ class ScreenshotNameInfo {
     if (Platform.isAndroid) {
       platformName = "android";
       AndroidDeviceInfo info = await deviceInfo.androidInfo;
-      deviceName = info.product!;
+      deviceName = info.product;
     } else if (Platform.isIOS) {
       platformName = "ios";
       IosDeviceInfo info = await deviceInfo.iosInfo;
