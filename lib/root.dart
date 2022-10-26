@@ -28,10 +28,15 @@ class RootApp extends StatelessWidget {
             path: SEARCH_ROUTE,
             pageBuilder: (BuildContext context, GoRouterState state) {
               String? initialQuery = state.queryParams["query"];
+              bool? navigateToFirstMatch =
+                  state.queryParams["navigate_to_first_match"] == "true";
               return NoTransitionPage(
                   // https://stackoverflow.com/a/73458529/3846032
                   key: UniqueKey(),
-                  child: SearchPage(initialQuery: initialQuery));
+                  child: SearchPage(
+                    initialQuery: initialQuery,
+                    navigateToFirstMatch: navigateToFirstMatch,
+                  ));
             }),
         GoRoute(
             path: LISTS_ROUTE,

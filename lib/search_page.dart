@@ -7,18 +7,24 @@ import 'types.dart';
 
 class SearchPage extends StatefulWidget {
   final String? initialQuery;
+  final bool? navigateToFirstMatch;
 
-  SearchPage({Key? key, this.initialQuery}) : super(key: key);
+  SearchPage({Key? key, this.initialQuery, this.navigateToFirstMatch})
+      : super(key: key);
 
   @override
-  _SearchPageState createState() =>
-      _SearchPageState(initialQuery: initialQuery);
+  _SearchPageState createState() => _SearchPageState(
+      initialQuery: initialQuery, navigateToFirstMatch: navigateToFirstMatch);
 }
 
 class _SearchPageState extends State<SearchPage> {
+  // This will only ever be set if this page was opened via a deeplink.
   final String? initialQuery;
 
-  _SearchPageState({this.initialQuery});
+  // If this is set we'll navigate to the first match immediately upon load.
+  final bool? navigateToFirstMatch;
+
+  _SearchPageState({this.initialQuery, this.navigateToFirstMatch});
 
   List<Word?> wordsSearched = [];
   int currentNavBarIndex = 0;
@@ -52,6 +58,18 @@ class _SearchPageState extends State<SearchPage> {
     if (advisory != null && !advisoryShownOnce) {
       Future.delayed(Duration(milliseconds: 500), () => showAdvisoryDialog());
       advisoryShownOnce = true;
+    }
+
+    // Navigate to the first match if words have been searched and the page
+    // was built with that setting enabled.
+    if (navigateToFirstMatch ?? false) {
+      if (wordsSearched.length > 0) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          print(
+              "Navigating to first match because navigateToFirstMatch was set");
+          navigateToWordPage(context, wordsSearched[0]!);
+        });
+      }
     }
 
     Widget body = Center(
