@@ -1,5 +1,7 @@
 #!/bin/sh
 
+cd "$(dirname "$0")"
+
 . publish.env
 
 [[ -z "${FASTLANE_USER}" ]] && echo 'Please set FASTLANE_USER' && exit
