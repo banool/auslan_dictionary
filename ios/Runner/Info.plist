@@ -72,5 +72,7 @@
 			</array>
 			</dict>
 		</array>
-	</dict>
+		<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+</dict>
 </plist>

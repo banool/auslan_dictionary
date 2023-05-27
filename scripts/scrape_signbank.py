@@ -105,7 +105,7 @@ class Region(IntEnum):
         regions = None
         for link_substring in updated.keys():
             if link_substring in link:
-                regions = d[link_substring]
+                return d[link_substring]
         return regions
 
 
@@ -188,6 +188,9 @@ async def get_word_page_urls(executor, letters=None) -> List[str]:
             url = LETTER_PAGE_TEMPLATE.format(letter=letter, page=page)
             other_letter_pages_urls.append(url)
 
+    # todo remove
+    # other_letter_pages_urls = other_letter_pages_urls[0:2]
+
     # Get the HTML for all of the letter pages.
     letter_pages_html = first_letter_pages_html
     other_letter_pages_html = await get_pages_html(executor, other_letter_pages_urls)
@@ -263,6 +266,8 @@ async def parse_information(executor, html) -> Word:
     # Get links to the subpages
     subpages_tags = soup.find_all("a", {"class": "btn btn-default navbar-btn"})
     subpages_urls = [WORDS_PAGE_BASE + t["href"] for t in subpages_tags]
+    # TODO: REMOVE
+    # subpages_urls = subpages_urls[:2]
 
     # Fetch their HTML
     # TODO: This part is synchronous and slow, surface this and gather it later.
@@ -294,14 +299,6 @@ def parse_subpage(html, word_str) -> SubWord:
     # Get the video links
     video_links = [t["src"] for t in soup.find_all("source")]
 
-    # Assert that all the videos come from the same URL.
-    for l in video_links:
-        if not l.startswith("https://media.auslan.org.au"):
-            raise RuntimeError(f"Unexpected video source: {l}")
-
-    # Trim the base from the video links
-    video_links = [l.split(".org.au/")[1] for l in video_links]
-
     # Get the definitions
     definition_divs_html = soup.find_all("div", {"class": "definition-panel"})
     definitions = {}
@@ -323,8 +320,8 @@ def parse_subpage(html, word_str) -> SubWord:
             LOG.warning(f"Encountered unexpected regions image URL: {regions_img_link}")
             regions = []
     except IndexError:
-        # This implies that there is no regions img, or an issue with the scraper.
-        LOG.warning(f"Failed to get regions information for {html.url}")
+        # This implies that there is no regions img (which is pretty common), or an issue with the scraper.
+        LOG.debug(f"Failed to get regions information for {html.url}")
         regions = []
 
     return SubWord(
@@ -385,6 +382,9 @@ async def main():
             urls = f.read().splitlines()
     else:
         urls = await get_word_page_urls(executor, letters=args.letters)
+
+    # todo remove
+    # urls = urls[0:5]
 
     # Get the HTML for each of the word pages.
     word_pages_html = await get_pages_html(executor, urls)

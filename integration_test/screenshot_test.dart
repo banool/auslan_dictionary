@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:auslan_dictionary/root.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,6 +12,7 @@ import 'package:auslan_dictionary/common.dart';
 import 'package:auslan_dictionary/flashcards_landing_page.dart';
 import 'package:auslan_dictionary/globals.dart';
 import 'package:auslan_dictionary/main.dart';
+import 'package:auslan_dictionary/root.dart';
 import 'package:auslan_dictionary/types.dart';
 import 'package:auslan_dictionary/word_list_logic.dart';
 
@@ -108,7 +108,7 @@ class ScreenshotNameInfo {
     } else if (Platform.isIOS) {
       platformName = "ios";
       IosDeviceInfo info = await deviceInfo.iosInfo;
-      deviceName = info.name!;
+      deviceName = info.name;
     } else {
       throw "Unsupported platform";
     }

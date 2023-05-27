@@ -1,12 +1,12 @@
 import 'dart:math';
 
-import 'package:auslan_dictionary/common.dart';
-import 'package:auslan_dictionary/flashcards_logic.dart';
-import 'package:auslan_dictionary/types.dart';
 import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 import 'package:flutter/material.dart';
 
+import 'common.dart';
+import 'flashcards_logic.dart';
 import 'globals.dart';
+import 'types.dart';
 
 class RevisionHistoryPage extends StatefulWidget {
   RevisionHistoryPage({Key? key}) : super(key: key);

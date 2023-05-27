@@ -1,6 +1,5 @@
 import 'dart:io' show HttpClient, HttpOverrides, Platform, SecurityContext;
 
-import 'package:auslan_dictionary/root.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -11,6 +10,7 @@ import 'common.dart';
 import 'globals.dart';
 import 'types.dart';
 import 'word_list_logic.dart';
+import 'root.dart';
 
 Future<void> setup({Set<Word>? wordsGlobalReplacement}) async {
   var widgetsBinding = WidgetsFlutterBinding.ensureInitialized();

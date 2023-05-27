@@ -141,7 +141,7 @@ class _WordPageState extends State<WordPage> {
             padding: EdgeInsets.only(top: 5, bottom: 10),
             child: DotsIndicator(
               dotsCount: word.subWords.length,
-              position: currentPage.toDouble(),
+              position: currentPage,
               decorator: DotsDecorator(
                 color: Colors.black, // Inactive color
                 activeColor: MAIN_COLOR,
