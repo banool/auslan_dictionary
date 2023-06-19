@@ -1,5 +1,9 @@
 # Auslan Dictionary
 
+This repo contains all the code for Auslan Dictionary, the free forever video dictionary and revision tool for Australian sign language.
+
+As of 2022-06-19 the app has been downloaded by 130k unique users (86% Apple, 14% Android). Interestingly for the downloads on Apple platforms it is roughly 50/50 between desktop and mobile installs (48% desktop, 45% iOS, 6% iPad).
+
 ## Deploying to Android
 This is done automatically via Github Actions.
 
