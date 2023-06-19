@@ -8,7 +8,7 @@ jobs:
   buildandroid:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
 
     - uses: actions/setup-java@v1
       with:
@@ -16,16 +16,16 @@ jobs:
 
     - uses: subosito/flutter-action@v1
       with:
-        flutter-version: '3.3.10'
+        flutter-version: '3.10.4'
         channel: stable
 
-    # Initial build and test
+    # Initial build and test.
     - run: flutter pub get
 
-    # Run tests
+    # Run tests.
     - run: flutter test
 
-    # For the apk build to Github Packages
+    # For the apk build to Github Packages.
     - run: flutter build apk
 
     # Sign apk release.
@@ -48,10 +48,10 @@ jobs:
         title: "latest apk build"
         files: build/app/outputs/flutter-apk/app-release-signed.apk
 
-    # Build Android
+    # Build appbundle.
     - run: flutter build appbundle
 
-    # Publish Android
+    # Sign appbundle.
     - name: Sign Android release
       id: sign_release
       uses: r0adkll/sign-android-release@v1
@@ -62,11 +62,11 @@ jobs:
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
 
+    # Publish it.
     - name: Publish Android build to internal track
       uses: r0adkll/upload-google-play@v1.0.15
       with:
         serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
-        packageName: com.banool.auslan_dictionary
-        # releaseFile: ${{ steps.run_tests.outputs.signedReleaseFile }}
+        packageName: com.banool.slsl_dictionary
         releaseFile: build/app/outputs/bundle/release/app-release.aab
         track: internal
