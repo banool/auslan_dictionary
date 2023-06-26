@@ -1,8 +1,10 @@
 import 'dart:io' show HttpClient, HttpOverrides, Platform, SecurityContext;
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:system_proxy/system_proxy.dart';
 
@@ -79,6 +81,29 @@ Future<void> setup({Set<Word>? wordsGlobalReplacement}) async {
     settingsBackgroundColor = Color.fromRGBO(242, 242, 247, 1);
   } else {
     settingsBackgroundColor = Color.fromRGBO(240, 240, 240, 1);
+  }
+
+  // Load device info once at startup.
+  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+  try {
+    if (Platform.isAndroid) {
+      androidDeviceInfo = await deviceInfo.androidInfo;
+    } else if (Platform.isIOS) {
+      iosDeviceInfo = await deviceInfo.iosInfo;
+    }
+    print("Successfully loaded device info");
+  } catch (e) {
+    print(
+        "Failed to get device info: $e (continuing without raising any error)");
+  }
+
+  // Load package info once at startup.
+  try {
+    packageInfo = await PackageInfo.fromPlatform();
+    print("Successfully loaded package info");
+  } catch (e) {
+    print(
+        "Failed to get package info: $e (continuing without raising any error)");
   }
 
   // Remove the splash screen.

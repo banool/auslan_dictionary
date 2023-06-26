@@ -191,7 +191,7 @@ class SettingsPageState extends State<SettingsPage> {
                     to: ['danielporteous1@gmail.com'],
                     subject: 'Issue with Auslan Dictionary',
                     body:
-                        'Please tell me what device you are using and describe the issue in detail. Thanks!');
+                        'Please tell me what device you are using and describe the issue in detail.\n${getBugInfo()}\nThanks!');
                 String url = "$mailto";
                 if (await canLaunch(url)) {
                   await launch(url);
@@ -208,6 +208,19 @@ class SettingsPageState extends State<SettingsPage> {
                     iOSAppId: "1531368368", writeReview: true);
               },
             ),
+            SettingsTile.navigation(
+              title: getText(
+                'Show build information',
+              ),
+              trailing: Container(),
+              onPressed: (BuildContext context) async {
+                return await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BuildInformationPage(),
+                    ));
+              },
+            )
           ],
           margin: margin),
     ];
@@ -250,6 +263,27 @@ Text getText(String s, {bool larger = false, Color? color}) {
   );
 }
 
+String getBugInfo() {
+  String info = "";
+  if (packageInfo != null) {
+    info += "App version: ${packageInfo!.version}\n";
+    info += "Build number: ${packageInfo!.buildNumber}\n";
+  }
+  if (iosDeviceInfo != null) {
+    info += "Device: ${iosDeviceInfo!.name}\n";
+    info += "Model: ${iosDeviceInfo!.model}\n";
+    info += "System name: ${iosDeviceInfo!.systemName}\n";
+    info += "System version: ${iosDeviceInfo!.systemVersion}\n";
+  }
+  if (androidDeviceInfo != null) {
+    info += "Device: ${androidDeviceInfo!.device}\n";
+    info += "Model: ${androidDeviceInfo!.model}\n";
+    info += "System name: ${androidDeviceInfo!.version.release}\n";
+    info += "System version: ${androidDeviceInfo!.version.sdkInt}\n";
+  }
+  return info;
+}
+
 class LegalInformationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -284,5 +318,42 @@ class LegalInformationPage extends StatelessWidget {
                     },
                   ),
                 ])));
+  }
+}
+
+class BuildInformationPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> children = [];
+    if (packageInfo != null) {
+      children.add(getText("App version: ${packageInfo!.version}"));
+      children.add(getText("Build number: ${packageInfo!.buildNumber}"));
+    }
+    if (iosDeviceInfo != null) {
+      children.add(getText("Device: ${iosDeviceInfo!.name}"));
+      children.add(getText("Model: ${iosDeviceInfo!.model}"));
+      children.add(getText("System name: ${iosDeviceInfo!.systemName}"));
+      children.add(getText("System version: ${iosDeviceInfo!.systemVersion}"));
+    }
+    if (androidDeviceInfo != null) {
+      children.add(getText("Device: ${androidDeviceInfo!.device}"));
+      children.add(getText("Model: ${androidDeviceInfo!.model}"));
+      children
+          .add(getText("System name: ${androidDeviceInfo!.version.release}"));
+      children
+          .add(getText("System version: ${androidDeviceInfo!.version.sdkInt}"));
+    }
+    return Scaffold(
+        appBar: AppBar(
+          title: Text(APP_NAME),
+        ),
+        body: Padding(
+            padding: EdgeInsets.only(bottom: 10, left: 20, right: 32, top: 20),
+            child: Center(
+                child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: children,
+            ))));
   }
 }
