@@ -191,7 +191,7 @@ class SettingsPageState extends State<SettingsPage> {
                     to: ['danielporteous1@gmail.com'],
                     subject: 'Issue with Auslan Dictionary',
                     body:
-                        'Please tell me what device you are using and describe the issue in detail.\n${getBugInfo()}\nThanks!');
+                        'Please tell me what device you are using and describe the issue in detail.\n\n${getBugInfo()}\nThanks!');
                 String url = "$mailto";
                 if (await canLaunch(url)) {
                   await launch(url);

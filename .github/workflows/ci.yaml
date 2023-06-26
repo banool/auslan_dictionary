@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build_android:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - run: echo "${{ secrets.UPLOAD_KEYSTORE }}" | base64 -d > android/upload_keystore.jks
+    - run: echo "${{ secrets.KEY_PROPERTIES }}" | base64 -d > android/key.properties
+
+    - uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - uses: subosito/flutter-action@v1
+      with:
+        flutter-version: '3.10.5'
+        channel: stable
+
+    # Initial build and test.
+    - run: flutter pub get
+
+    # Run tests.
+    - run: flutter test
+
+    # Build apk. This will be signed.
+    - run: flutter build apk
+
+    # Publish apk to Github Packages
+    - uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
+        prerelease: false
+        title: "latest apk build"
+        files: build/app/outputs/flutter-apk/app-release-signed.apk
+
+    # Build appbundle. This will be signed.
+    - run: flutter build appbundle
+
+    # Publish appbundle to the store.
+    - name: Publish Android build to internal track
+      uses: r0adkll/upload-google-play@v1.0.15
+      with:
+        serviceAccountJsonPlainText: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
+        packageName: com.banool.auslan_dictionary
+        releaseFile: build/app/outputs/bundle/release/app-release.aab
+        track: internal
