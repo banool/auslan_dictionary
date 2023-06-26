@@ -3,7 +3,7 @@ description: Free video dictionary of Auslan signs
 
 publish_to: 'none'
 
-version: 1.12.11+692
+version: 1.12.12+693
 
 environment:
   sdk: '>=2.18.0 <3.0.0'
@@ -14,6 +14,7 @@ dependencies:
   carousel_slider:
   collection:
   cupertino_icons:
+  device_info_plus:
   dolphinsr_dart:
     git:
       url: https://github.com/banool/dolphhinsr_dart.git
@@ -27,6 +28,7 @@ dependencies:
   launch_review:
   mailto:
   multi_select_flutter:
+  package_info_plus:
   path_provider:
   shared_preferences:
   settings_ui:
@@ -35,7 +37,6 @@ dependencies:
   video_player:
 
 dev_dependencies:
-  device_info_plus:
   flutter_driver:
     sdk: flutter
   flutter_launcher_icons: ^0.10.0

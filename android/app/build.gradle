@@ -57,8 +57,8 @@ android {
     defaultConfig {
         multiDexEnabled true
         applicationId "com.banool.auslan_dictionary"
-        minSdkVersion 16
-        targetSdkVersion 31
+        minSdkVersion 23
+        targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
