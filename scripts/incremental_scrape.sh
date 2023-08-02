@@ -6,7 +6,7 @@
 #   ./incremental_scrape.sh '[d-z]'
 # This allows you to scrape a few letters at a time without losing progress.
 
-if [ -z "$PIP_PYTHON_PATH" ]
+if [ -z "$PIPENV_ACTIVE" ]
 then
     echo "ERROR: Run this from within the pipenv."
     exit 1

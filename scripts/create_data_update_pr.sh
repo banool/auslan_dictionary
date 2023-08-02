@@ -13,7 +13,7 @@ onexit() {
     git branch -D update_data ||:
 }
 
-if [ -z "$PIP_PYTHON_PATH" ]
+if [ -z "$PIPENV_ACTIVE" ]
 then
     echo "ERROR: Run this from within the pipenv."
     exit 1
