@@ -20,7 +20,7 @@ jobs:
 
     - uses: subosito/flutter-action@v1
       with:
-        flutter-version: '3.10.5'
+        flutter-version: '3.10.6'
         channel: stable
 
     # Initial build and test.
@@ -33,13 +33,13 @@ jobs:
     - run: flutter build apk
 
     # Publish apk to Github Packages
-    - uses: "marvinpinto/action-automatic-releases@latest"
+    - uses: marvinpinto/action-automatic-releases@919008cf3f741b179569b7a6fb4d8860689ab7f0
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "latest"
         prerelease: false
-        title: "latest apk build"
-        files: build/app/outputs/flutter-apk/app-release-signed.apk
+        title: "Latest apk build"
+        files: build/app/outputs/flutter-apk/app-release.apk
 
     # Build appbundle. This will be signed.
     - run: flutter build appbundle
