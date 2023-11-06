@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -x
 set -e
 
 # Putting ||: at the end of a command means the script won't abort if that one
@@ -8,9 +9,6 @@ set -e
 onexit() {
     # Switch back to master.
     git checkout master
-
-    # Delete branch.
-    git branch -D update_data ||:
 }
 
 if [ -z "$PIPENV_ACTIVE" ]
@@ -46,7 +44,7 @@ git checkout -b update_data
 scripts/incremental_scrape.sh
 
 # Exit if nothing changed.
-if diff all_letters.json ../assets/data/words_latest.json > /dev/null; then
+if diff scripts/all_letters.json ../assets/data/words_latest.json > /dev/null; then
     echo "No new data, exiting..."
     onexit
     exit 1
