@@ -1,12 +1,14 @@
 import 'dart:io' show HttpClient, HttpOverrides, Platform, SecurityContext;
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:system_proxy/system_proxy.dart';
+import 'package:video_player_win/video_player_win_plugin.dart';
 
 import 'common.dart';
 import 'globals.dart';
@@ -81,6 +83,11 @@ Future<void> setup({Set<Word>? wordsGlobalReplacement}) async {
     settingsBackgroundColor = Color.fromRGBO(242, 242, 247, 1);
   } else {
     settingsBackgroundColor = Color.fromRGBO(240, 240, 240, 1);
+  }
+
+  // Set up the video player plugin for Windows.
+  if (!kIsWeb && Platform.isWindows) {
+    WindowsVideoPlayer.registerWith();
   }
 
   // Load device info once at startup.

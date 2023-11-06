@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' show PointerDeviceKind;
 
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/foundation.dart';
