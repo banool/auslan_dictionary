@@ -35,6 +35,7 @@ dependencies:
   system_proxy:
   url_launcher:
   video_player:
+  video_player_win:
 
 dev_dependencies:
   flutter_driver:
