@@ -69,6 +69,12 @@ class RootApp extends StatelessWidget {
           title: APP_NAME,
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
+              appBarTheme: AppBarTheme(
+                backgroundColor: MAIN_COLOR,
+                foregroundColor: Colors.white,
+                actionsIconTheme: IconThemeData(color: Colors.white),
+                iconTheme: IconThemeData(color: Colors.white),
+              ),
               primarySwatch: MAIN_COLOR as MaterialColor?,
               visualDensity: VisualDensity.adaptivePlatformDensity,
               // Make swiping to pop back the navigation work.
