@@ -86,8 +86,8 @@ SPEC CHECKSUMS:
   shared_preferences_foundation: 5b919d13b803cadd15ed2dc053125c68730e5126
   sqflite: 31f7eba61e3074736dff8807a9b41581e4f7f15a
   system_proxy: bec1a5c5af67dd3e3ebf43979400a8756c04cc44
-  url_launcher_ios: 68d46cc9766d0c41dbdc884310529557e3cd7a86
-  video_player_avfoundation: 8563f13d8fc8b2c29dc2d09e60b660e4e8128837
+  url_launcher_ios: bf5ce03e0e2088bad9cc378ea97fa0ed5b49673b
+  video_player_avfoundation: e9e6f9cae7d7a6d9b43519b0aab382bca60fcfd1
 
 PODFILE CHECKSUM: 55bdb20761627d51b614a13852a932abfa0949cd
 
