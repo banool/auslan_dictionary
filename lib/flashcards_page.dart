@@ -23,7 +23,7 @@ class FlashcardsPage extends StatefulWidget {
 
   final DolphinInformation di;
   final RevisionStrategy revisionStrategy;
-  final List<Review>? existingReviews;
+  final List<Review> existingReviews;
 
   @override
   FlashcardsPageState createState() => FlashcardsPageState();
@@ -62,7 +62,7 @@ class FlashcardsPageState extends State<FlashcardsPage> {
     if (!reviewsWritten) {
       switch (widget.revisionStrategy) {
         case RevisionStrategy.SpacedRepetition:
-          await writeReviews(widget.existingReviews!, answers.values.toList());
+          await writeReviews(widget.existingReviews, answers.values.toList());
           break;
         case RevisionStrategy.Random:
           await bumpRandomReviewCounter(answers.length);

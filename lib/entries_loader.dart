@@ -5,10 +5,6 @@ import 'package:http/http.dart' as http;
 
 import 'entries_types.dart';
 
-const String DATA_URL_PREFIX_DIRECT =
-    "https://storage.googleapis.com/slsl-media-bucket-d7f91f9";
-const String DATA_URL_PREFIX_CDN = "https://cdn.srilankansignlanguage.org";
-
 class MyEntryLoader extends EntryLoader {
   @override
   Future<NewData?> downloadNewData(int currentVersion) async {
