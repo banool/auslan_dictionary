@@ -24,10 +24,10 @@ flutter build ios --release --no-codesign
 
 If you run into problems with this, run some combination of these commands:
 ```
-brew reinstall fastlane
 rm Gemfile.lock
 sudo gem cleanup
 sudo gem update
+bundle install
 pod install
 ```
 
