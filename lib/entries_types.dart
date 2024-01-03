@@ -9,9 +9,7 @@ class MyEntry implements Entry {
 
   MyEntry({required this.word, required this.subEntries});
 
-  MyEntry.fromJson(String word, dynamic wordJson) {
-    this.word = word;
-
+  MyEntry.fromJson(this.word, dynamic wordJson) {
     List<MySubEntry> subEntries = [];
     // Necessary to know how to build the link to Auslan Signbank.
     int index = 0;
@@ -36,8 +34,6 @@ class MyEntry implements Entry {
   String toString() {
     return word;
   }
-
-  // Map<String, dynamic> toJson() => _$MyEntryToJson(this);
 
   @override
   String getKey() {
@@ -92,7 +88,7 @@ class MySubEntry implements SubEntry {
     return out;
   }
 
-  MySubEntry.fromJson(dynamic wordJson, int index) {
+  MySubEntry.fromJson(dynamic wordJson, this.index) {
     keywords = wordJson["keywords"].cast<String>();
 
     // In the past we made the assumption that all the videos came from the same
@@ -124,7 +120,6 @@ class MySubEntry implements SubEntry {
     }
 
     this.regions = regions;
-    this.index = index;
   }
 
   // This is for DolphinSR. The video attached to a subword is the best we have
@@ -181,7 +176,7 @@ class MySubEntry implements SubEntry {
 
   @override
   List<String> getRelatedWords() {
-    return [];
+    return keywords;
   }
 
   @override

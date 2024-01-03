@@ -19,5 +19,5 @@ START===
 DATE===2024-01-03
 ## Happy 2024!!
 
-Believe it or not but as of Jan 1st 2024 there are 158,000 of you who use this app! That's absolutely incredible, thank you so much for using the app and learning Auslan. Happy New Year!!
+Believe it or not but as of Jan 1st 2024 there are ~158,000 of you who use this app! That's absolutely incredible, thank you so much for using the app and learning Auslan. Happy New Year!!
 END===
