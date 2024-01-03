@@ -2,19 +2,20 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:dictionarylib/common.dart';
+import 'package:dictionarylib/entry_list.dart';
+import 'package:dictionarylib/entry_types.dart';
+import 'package:dictionarylib/flashcards_logic.dart';
+import 'package:dictionarylib/globals.dart';
+import 'package:dictionarylib/revision.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:integration_test/src/channel.dart';
 
-import 'package:auslan_dictionary/common.dart';
-import 'package:auslan_dictionary/flashcards_landing_page.dart';
-import 'package:auslan_dictionary/globals.dart';
 import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/root.dart';
-import 'package:auslan_dictionary/types.dart';
-import 'package:auslan_dictionary/word_list_logic.dart';
 
 // Note, sometimes the test will crash at the end, but the screenshots do
 // actually still get taken.
@@ -67,7 +68,7 @@ Future<void> takeScreenshot(
       "${screenshotNameInfo.getAndIncrementCounter().toString().padLeft(2, '0')}-"
       "$name";
   await tester.pumpAndSettle();
-  sleep(Duration(milliseconds: 250));
+  sleep(const Duration(milliseconds: 250));
   if (Platform.isAndroid) {
     await takeScreenshotForAndroid(binding, name);
   } else {
@@ -131,32 +132,35 @@ void main() async {
     await setup();
 
     String listName = "Animals";
-    String listKey = WordList.getKeyFromName(listName);
-    await wordListManager.createWordList(listKey);
-    await wordListManager.wordLists[listKey]!
-        .addWord(keyedWordsGlobal["kangaroo"]!);
-    await wordListManager.wordLists[listKey]!
-        .addWord(keyedWordsGlobal["platypus"]!);
-    await wordListManager.wordLists[listKey]!
-        .addWord(keyedWordsGlobal["echidna"]!);
-    await wordListManager.wordLists[listKey]!.addWord(keyedWordsGlobal["dog"]!);
-    await wordListManager.wordLists[listKey]!.addWord(keyedWordsGlobal["cat"]!);
-    await wordListManager.wordLists[listKey]!
-        .addWord(keyedWordsGlobal["bird"]!);
+    String listKey = EntryList.getKeyFromName(listName);
+    await entryListManager.createEntryList(listKey);
+    await entryListManager.entryLists[listKey]!
+        .addEntry(keyedByEnglishEntriesGlobal["kangaroo"]!);
+    await entryListManager.entryLists[listKey]!
+        .addEntry(keyedByEnglishEntriesGlobal["platypus"]!);
+    await entryListManager.entryLists[listKey]!
+        .addEntry(keyedByEnglishEntriesGlobal["echidna"]!);
+    await entryListManager.entryLists[listKey]!
+        .addEntry(keyedByEnglishEntriesGlobal["dog"]!);
+    await entryListManager.entryLists[listKey]!
+        .addEntry(keyedByEnglishEntriesGlobal["cat"]!);
+    await entryListManager.entryLists[listKey]!
+        .addEntry(keyedByEnglishEntriesGlobal["bird"]!);
 
     await sharedPreferences
-        .setStringList(KEY_LISTS_TO_REVIEW, [KEY_FAVOURITES_WORDS, listKey]);
+        .setStringList(KEY_LISTS_TO_REVIEW, [KEY_FAVOURITES_ENTRIES, listKey]);
 
     await sharedPreferences.setInt(
         KEY_REVISION_STRATEGY, RevisionStrategy.SpacedRepetition.index);
 
-    await tester.pumpWidget(RootApp());
-    await tester.pumpAndSettle(Duration(seconds: 10));
+    await tester.pumpWidget(RootApp(startingLocale: LOCALE_ENGLISH));
+    await tester.pumpAndSettle(const Duration(seconds: 10));
     var screenshotNameInfo = await ScreenshotNameInfo.buildScreenshotNameInfo();
 
     await takeScreenshot(tester, binding, screenshotNameInfo, "search");
 
-    final Finder searchField = find.byKey(ValueKey("searchPage.searchForm"));
+    final Finder searchField =
+        find.byKey(const ValueKey("searchPage.searchForm"));
     await tester.tap(searchField);
     await tester.pumpAndSettle();
     await tester.enterText(searchField, "hey");
@@ -172,10 +176,10 @@ void main() async {
     await tester.pumpAndSettle();
     await takeScreenshot(tester, binding, screenshotNameInfo, "insideList");
 
-    final Finder dogButton = find.byKey(ValueKey("dog"));
+    final Finder dogButton = find.byKey(const ValueKey("dog"));
     await tester.tap(dogButton);
     await tester.pumpAndSettle();
-    sleep(Duration(seconds: 2));
+    sleep(const Duration(seconds: 2));
     await takeScreenshot(tester, binding, screenshotNameInfo, "wordPage");
 
     await tester.pumpAndSettle();
@@ -200,18 +204,18 @@ void main() async {
     await tester.pageBack();
     await tester.pumpAndSettle();
 
-    final Finder startAppBarButton = find.byKey(ValueKey("startButton"));
+    final Finder startAppBarButton = find.byKey(const ValueKey("startButton"));
     await tester.tap(startAppBarButton);
     await tester.pumpAndSettle();
-    sleep(Duration(seconds: 4));
+    sleep(const Duration(seconds: 4));
     await takeScreenshot(tester, binding, screenshotNameInfo, "revisionPage");
 
-    sleep(Duration(milliseconds: 500));
+    sleep(const Duration(milliseconds: 500));
     await tester.pumpAndSettle();
-    final Finder revealTapArea = find.byKey(ValueKey("revealTapArea"));
+    final Finder revealTapArea = find.byKey(const ValueKey("revealTapArea"));
     await tester.tap(revealTapArea);
     await tester.pumpAndSettle();
-    sleep(Duration(seconds: 4));
+    sleep(const Duration(seconds: 4));
     await tester.pumpAndSettle();
     await takeScreenshot(
         tester, binding, screenshotNameInfo, "revisionPageRevealed");

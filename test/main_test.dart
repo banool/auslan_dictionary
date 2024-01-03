@@ -1,18 +1,18 @@
+import 'package:auslan_dictionary/entries_types.dart';
 import 'package:auslan_dictionary/root.dart';
-import 'package:auslan_dictionary/types.dart';
+import 'package:dictionarylib/dictionarylib.dart';
 import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:auslan_dictionary/common.dart';
 import 'package:auslan_dictionary/globals.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  wordsGlobal = {
-    Word(word: "friend", subWords: [
-      SubWord(definitions: [
+  entriesGlobal = {
+    MyEntry(word: "friend", subEntries: [
+      MySubEntry(index: 0, definitions: [
         Definition(
             heading: "As a Noun", subdefinitions: ["Someone you love :)"])
       ], videoLinksInner: [
@@ -33,7 +33,7 @@ void main() async {
 
   testWidgets('Pump app test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(RootApp());
+    await tester.pumpWidget(RootApp(startingLocale: LOCALE_ENGLISH));
     print("Pump successful!");
   });
 
@@ -41,12 +41,13 @@ void main() async {
     DolphinSR dolphin = DolphinSR();
 
     List<Master> masters = [];
-    for (Word w in wordsGlobal) {
-      for (SubWord sw in w.subWords) {
-        var m = Master(id: sw.getKey(w.word), fields: [
-          w.word,
+    for (Entry w in entriesGlobal) {
+      var ww = w as MyEntry;
+      for (MySubEntry sw in ww.subEntries) {
+        var m = Master(id: sw.getKey(ww), fields: [
+          ww.word,
           sw.videoLinks.join("=====")
-        ], combinations: [
+        ], combinations: const [
           Combination(front: [0], back: [1]),
           Combination(front: [1], back: [0]),
         ]);
@@ -59,9 +60,5 @@ void main() async {
     DRCard card = dolphin.nextCard()!;
 
     print(card);
-  });
-
-  test('json data valid', () async {
-    await loadWords();
   });
 }

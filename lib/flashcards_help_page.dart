@@ -1,16 +1,17 @@
+import 'package:dictionarylib/help_common.dart';
+import 'package:dictionarylib/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
-import 'help_page_common.dart';
 import 'flashcards_landing_page.dart';
 
-Widget getFlashcardsHelpPage() {
+Widget getFlashcardsHelpPage(BuildContext context) {
   return HelpPage(title: "Revision FAQ", items: {
-    "What do the flashcard types mean?": [
+    "What do the flashcard types mean?": const [
       "There are two types of flashcards you can choose to revise. You must select at least one.",
       "Sign -> Word: We show you someone performing a sign and you must recall what word that sign represents.",
       "Word -> Sign: We show you a word and you must recall a sign for that word."
     ],
-    "How do I navigate through each flashcard?": [
+    "How do I navigate through each flashcard?": const [
       "Once you have hit \"Start\" you'll be presented with a flashcard "
           "showing you a sign / word and a question like \"What sign "
           "is this?\". Take a moment to think about it and when you're ready, "
@@ -19,13 +20,13 @@ Widget getFlashcardsHelpPage() {
       "You can also just tap again anywhere if you got the answer right, as "
           "we select that option by default.",
     ],
-    "Where do the words for the flashcards come from?": [
+    "Where do the words for the flashcards come from?": const [
       "You may select one or more lists as the flashcard source. By default "
           "there is only one list, your favourites, but you may create additional "
           "lists and use words from many of them at once in a single revision session. ",
       "If two lists contain the same word, we will still only show the word once."
     ],
-    "What do all these sign selection options mean?": [
+    "What do all these sign selection options mean?": const [
       "Within a single dictionary entry in Auslan Dictionary there may be "
           "multiple \"sub-entries\", for example showing signs from different regions. "
           "By default we automatically opt you in to signs that are known to be "
@@ -36,7 +37,8 @@ Widget getFlashcardsHelpPage() {
           "generally recommend leaving this enabled, but we provide this option "
           "based on whatever works best for you."
     ],
-    "What does \"$ONLY_ONE_CARD_TEXT\" mean?": [
+    "What does \"${AppLocalizations.of(context)!.flashcardsOnlyOneCard}\" mean?":
+        const [
       "Based on the other filtering options you have set, there may be "
           "situations where there are multiple sub-entries for a single entry. "
           "In other words, for a single word you might have a sub-entry from "
@@ -44,18 +46,18 @@ Widget getFlashcardsHelpPage() {
       "You may not want this behaviour, instead preferring to see only one "
           "set of cards per word. If so, you should enable this option."
     ],
-    "What is a revision strategy?": [
+    "What is a revision strategy?": const [
       "A revision strategy determines how we decide what flashcards to show "
           "you and what information we store about your progress.",
     ],
-    "How does the random revision strategy work?": [
+    "How does the random revision strategy work?": const [
       "The random revision strategy is the simplest option. We simply take "
           "the cards you have selected, shuffle them up, and show them to you. "
           "The cards we show you are not influenced by any previous revision "
           "session, nor do we store any progress information as a result of the "
           "revision session. Think of it as bonus, untracked revision.",
     ],
-    "How does the spaced repetition revision strategy work?": [
+    "How does the spaced repetition revision strategy work?": const [
       "This strategy follows a Spaced Reptition Learning approach to revision. "
           "Imagine a set of buckets. When a card is first added, it is put in the "
           "first bucket. If you successfully recall what that card is, we move it "

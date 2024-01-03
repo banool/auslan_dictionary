@@ -1,57 +1,90 @@
+import 'package:dictionarylib/entry_types.dart';
+import 'package:flutter/material.dart';
+
 const String BASE_URL = "https://media.auslan.org.au";
 
-class Word implements Comparable<Word> {
-  Word({required this.word, required this.subWords});
-
+class MyEntry implements Entry {
   late String word;
-  late List<SubWord> subWords;
+  late List<MySubEntry> subEntries;
 
-  Word.fromJson(String word, dynamic wordJson) {
+  MyEntry({required this.word, required this.subEntries});
+
+  MyEntry.fromJson(String word, dynamic wordJson) {
     this.word = word;
 
-    List<SubWord> subWords = [];
+    List<MySubEntry> subEntries = [];
+    // Necessary to know how to build the link to Auslan Signbank.
+    int index = 0;
     wordJson.forEach((subJson) {
-      SubWord subWord = SubWord.fromJson(subJson);
-      if (subWord.videoLinks.length > 0) {
-        subWord.keywords.remove(word);
-        subWords.add(subWord);
+      MySubEntry subEntry = MySubEntry.fromJson(subJson, index);
+      if (subEntry.videoLinks.isNotEmpty) {
+        subEntry.keywords.remove(word);
+        subEntries.add(subEntry);
       }
+      index += 1;
     });
 
-    this.subWords = subWords;
+    this.subEntries = subEntries;
   }
 
   @override
-  int compareTo(Word other) {
-    return this.word.compareTo(other.word);
+  int compareTo(Entry other) {
+    return getKey().compareTo(other.getKey());
   }
 
   @override
   String toString() {
-    return this.word;
+    return word;
+  }
+
+  // Map<String, dynamic> toJson() => _$MyEntryToJson(this);
+
+  @override
+  String getKey() {
+    return word;
+  }
+
+  @override
+  String? getPhrase(Locale locale) {
+    return word;
+  }
+
+  @override
+  List<SubEntry> getSubEntries() {
+    return subEntries;
+  }
+
+  @override
+  EntryType getEntryType() {
+    return EntryType.WORD;
   }
 }
 
-class SubWord {
-  SubWord(
-      {required this.keywords,
-      required this.videoLinksInner,
-      required this.definitions,
-      required this.regions});
-
+class MySubEntry implements SubEntry {
   late List<String> keywords;
   late List<String> videoLinksInner;
   late List<Definition> definitions;
   late List<Region> regions;
+  // We need this to know how to build the link to Auslan Signbank.
+  late int index;
+
+  MySubEntry(
+      {required this.keywords,
+      required this.videoLinksInner,
+      required this.definitions,
+      required this.regions,
+      required this.index});
 
   List<String> get videoLinks {
     List<String> out = [];
     // See below for an explanation of why we do this.
     for (var link in videoLinksInner) {
-      var l;
+      String l;
       if (link.startsWith("http")) {
         l = link;
       } else {
+        // TODO: I don't think this branch is necessary anymore, all links in
+        // the JSON have a full URL now.
         l = "$BASE_URL/$link";
       }
       out.add(l);
@@ -59,8 +92,8 @@ class SubWord {
     return out;
   }
 
-  SubWord.fromJson(dynamic wordJson) {
-    this.keywords = wordJson["keywords"].cast<String>();
+  MySubEntry.fromJson(dynamic wordJson, int index) {
+    keywords = wordJson["keywords"].cast<String>();
 
     // In the past we made the assumption that all the videos came from the same
     // URL. Accordingly the scraper trimmed the host part of the URL and just
@@ -70,7 +103,7 @@ class SubWord {
     // If the scheme + host is missing though, we prepend it like we did before.
     // This might happen if the user has updated their app but is somehow still
     // sitting on old data. We can remove this behavior eventually.
-    this.videoLinksInner = wordJson["video_links"].cast<String>();
+    videoLinksInner = wordJson["video_links"].cast<String>();
 
     List<Definition> definitions = [];
     wordJson["definitions"].forEach((heading, value) {
@@ -91,24 +124,19 @@ class SubWord {
     }
 
     this.regions = regions;
-  }
-
-  String getRegionsString() {
-    if (this.regions.length == 0) {
-      return "Regional information unknown";
-    }
-    if (this.regions.contains(Region.EVERYWHERE)) {
-      return Region.EVERYWHERE.pretty;
-    }
-    return this.regions.map((r) => r.pretty).join(", ");
+    this.index = index;
   }
 
   // This is for DolphinSR. The video attached to a subword is the best we have
   // to globally identify it. If the video changes for a subword, the subword
   // itself has effectively changed for review purposes and it'd make sense to
-  // consider it a new master anyway.
-  String getKey(String word) {
-    var videoLinks = List.from(this.videoLinksInner);
+  // consider it a new master anyway. In addition to the video we accept the
+  // Entry that this SubEntry comes from; we need the key from _that_ to
+  // uniquely identify the subentry (some subentries from different entries
+  // might use the same video).
+  @override
+  String getKey(Entry parentEntry) {
+    var videoLinks = List.from(videoLinksInner);
     videoLinks.sort();
     String firstVideoLink;
     try {
@@ -120,12 +148,45 @@ class SubWord {
         firstVideoLink = videoLinks[0];
       }
     }
-    return "$word-$firstVideoLink";
+    return "${parentEntry.getKey()}-$firstVideoLink";
   }
 
   @override
   String toString() {
-    return "SubWord($videoLinks)";
+    return "SubWord($videoLinksInner)";
+  }
+
+  String getRegionsString() {
+    if (regions.isEmpty) {
+      return "Regional information unknown";
+    }
+    if (regions.contains(Region.EVERYWHERE)) {
+      return Region.EVERYWHERE.pretty;
+    }
+    return regions.map((r) => r.pretty).join(", ");
+  }
+
+  @override
+  List<String> getMedia() {
+    // The dump only contains the final filename + ext, we have to build the
+    // full URL. We do it here. buildUrl depends on the useCdnUrl knob having
+    // a value.
+    return videoLinks;
+  }
+
+  @override
+  List<Definition> getDefinitions(Locale locale) {
+    return definitions;
+  }
+
+  @override
+  List<String> getRelatedWords() {
+    return [];
+  }
+
+  @override
+  List<Region> getRegions() {
+    return regions;
   }
 }
 
@@ -210,21 +271,5 @@ Region regionFromLegacyString(String s) {
       return Region.TAS;
     default:
       throw "Unexpected legacy region string $s";
-  }
-}
-
-enum RevisionStrategy {
-  SpacedRepetition,
-  Random,
-}
-
-extension PrettyPrint on RevisionStrategy {
-  String get pretty {
-    switch (this) {
-      case RevisionStrategy.SpacedRepetition:
-        return "Spaced Repetition";
-      case RevisionStrategy.Random:
-        return "Random";
-    }
   }
 }
