@@ -1,18 +1,21 @@
 import 'dart:async';
 
+import 'package:dictionarylib/common.dart';
+import 'package:dictionarylib/entry_types.dart';
+import 'package:dictionarylib/flashcards_logic.dart';
+import 'package:dictionarylib/globals.dart';
+import 'package:dictionarylib/revision.dart';
 import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 import 'package:flutter/material.dart';
 
 import 'common.dart';
-import 'flashcards_logic.dart';
-import 'globals.dart';
-import 'types.dart';
+import 'entries_types.dart';
 import 'video_player_screen.dart';
 import 'word_page.dart';
 
 class FlashcardsPage extends StatefulWidget {
-  FlashcardsPage({
-    Key? key,
+  const FlashcardsPage({
+    super.key,
     required this.di,
     required this.revisionStrategy,
     required this.existingReviews,
@@ -23,18 +26,11 @@ class FlashcardsPage extends StatefulWidget {
   final List<Review>? existingReviews;
 
   @override
-  _FlashcardsPageState createState() => _FlashcardsPageState(
-      this.di, this.revisionStrategy, this.existingReviews);
+  FlashcardsPageState createState() => FlashcardsPageState();
 }
 
-class _FlashcardsPageState extends State<FlashcardsPage> {
-  _FlashcardsPageState(this.di, this.revisionStrategy, this.existingReviews);
-
-  DolphinInformation di;
-  final RevisionStrategy revisionStrategy;
-  final List<Review>? existingReviews;
-
-  Map<DRCard, Review> answers = Map();
+class FlashcardsPageState extends State<FlashcardsPage> {
+  Map<DRCard, Review> answers = {};
 
   late int numCardsToReview;
 
@@ -53,7 +49,8 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
   @override
   void initState() {
     super.initState();
-    numCardsToReview = getNumDueCards(di.dolphin, revisionStrategy);
+    numCardsToReview =
+        getNumDueCards(widget.di.dolphin, widget.revisionStrategy);
     nextCard();
   }
 
@@ -63,9 +60,9 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
   // gets called.
   Future<void> beforePop() async {
     if (!reviewsWritten) {
-      switch (revisionStrategy) {
+      switch (widget.revisionStrategy) {
         case RevisionStrategy.SpacedRepetition:
-          await writeReviews(existingReviews!, answers.values.toList());
+          await writeReviews(widget.existingReviews!, answers.values.toList());
           break;
         case RevisionStrategy.Random:
           await bumpRandomReviewCounter(answers.length);
@@ -88,7 +85,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         currentCard = null;
         beforePop();
       } else {
-        currentCard = di.dolphin.nextCard();
+        currentCard = widget.di.dolphin.nextCard();
       }
       currentCardRevealed = false;
       forgotRatingWidgetActive = false;
@@ -122,7 +119,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
     Rating? previousRating = answers[card]?.rating;
     bool shouldNavigate = answers.containsKey(card);
     setState(() {
-      di.dolphin.addReviews([review]);
+      widget.di.dolphin.addReviews([review]);
       answers[card] = review;
     });
     if (shouldNavigate) {
@@ -133,7 +130,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         // start a timer for nextCard, so they can see the feedback for hitting
         // forgot momentarily.
         setState(() {
-          nextCardTimer = Timer(Duration(milliseconds: 750), () {
+          nextCardTimer = Timer(const Duration(milliseconds: 750), () {
             setState(() {
               nextCard();
               nextCardTimer = null;
@@ -156,19 +153,19 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
     Color borderColor;
     if (rating == Rating.Easy && isNext) {
       textData = "Next";
-      overlayColor = Color.fromARGB(92, 30, 143, 250);
-      backgroundColor = Color.fromARGB(0, 255, 255, 255);
-      borderColor = Color.fromARGB(255, 116, 116, 116);
-      textColor = Color.fromARGB(204, 0, 0, 0);
+      overlayColor = const Color.fromARGB(92, 30, 143, 250);
+      backgroundColor = const Color.fromARGB(0, 255, 255, 255);
+      borderColor = const Color.fromARGB(255, 116, 116, 116);
+      textColor = const Color.fromARGB(204, 0, 0, 0);
     } else {
       switch (rating) {
         case Rating.Hard:
           textData = "Forgot";
-          overlayColor = Color.fromARGB(90, 211, 88, 79);
+          overlayColor = const Color.fromARGB(90, 211, 88, 79);
           break;
         case Rating.Good:
           textData = "Got it!";
-          overlayColor = Color.fromARGB(90, 72, 167, 77);
+          overlayColor = const Color.fromARGB(90, 72, 167, 77);
           break;
         default:
           throw "Rating $rating not supported yet";
@@ -176,30 +173,25 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
       if (active) {
         switch (rating) {
           case Rating.Hard:
-            backgroundColor = Color.fromARGB(118, 255, 104, 104);
-            borderColor = Color.fromARGB(255, 189, 40, 29);
-            textColor = Color.fromARGB(255, 179, 59, 50);
+            backgroundColor = const Color.fromARGB(118, 255, 104, 104);
+            borderColor = const Color.fromARGB(255, 189, 40, 29);
+            textColor = const Color.fromARGB(255, 179, 59, 50);
             break;
           case Rating.Good:
-            backgroundColor = Color.fromARGB(60, 88, 255, 124);
-            borderColor = Color.fromARGB(255, 33, 102, 37);
-            textColor = Color.fromARGB(255, 63, 156, 67);
+            backgroundColor = const Color.fromARGB(60, 88, 255, 124);
+            borderColor = const Color.fromARGB(255, 33, 102, 37);
+            textColor = const Color.fromARGB(255, 63, 156, 67);
             break;
           default:
             throw "Rating $rating not supported yet";
         }
       } else {
-        backgroundColor = Color.fromARGB(0, 255, 255, 255);
-        borderColor = Color.fromARGB(255, 116, 116, 116);
-        textColor = Color.fromARGB(204, 0, 0, 0);
+        backgroundColor = const Color.fromARGB(0, 255, 255, 255);
+        borderColor = const Color.fromARGB(255, 116, 116, 116);
+        textColor = const Color.fromARGB(204, 0, 0, 0);
       }
     }
     return TextButton(
-        child: Text(
-          textData,
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16, color: textColor),
-        ),
         onPressed: () {
           switch (rating) {
             case Rating.Hard:
@@ -220,21 +212,26 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         style: ButtonStyle(
             backgroundColor: MaterialStateProperty.all(backgroundColor),
             overlayColor: MaterialStateProperty.all(overlayColor),
-            padding: MaterialStateProperty.all(
-                EdgeInsets.only(top: 14, bottom: 14, left: 40, right: 40)),
+            padding: MaterialStateProperty.all(const EdgeInsets.only(
+                top: 14, bottom: 14, left: 40, right: 40)),
             side: MaterialStateProperty.all(
-                BorderSide(color: borderColor, width: 1.5))));
+                BorderSide(color: borderColor, width: 1.5))),
+        child: Text(
+          textData,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 16, color: textColor),
+        ));
   }
 
-  Widget buildFlashcardWidget(DRCard card, SubWord subWord, String word,
+  Widget buildFlashcardWidget(DRCard card, SubEntry subEntry, String word,
       bool wordToSign, bool revealed) {
     var shouldUseHorizontalDisplay = getShouldUseHorizontalLayout(context);
 
     // See here for an explanation of why I pass in a key here:
     // https://stackoverflow.com/questions/55237188/flutter-is-not-rebuilding-same-widget-with-different-parameters
     var videoPlayerScreen = VideoPlayerScreen(
-      videoLinks: subWord.videoLinks,
-      key: Key(subWord.videoLinks[0]),
+      videoLinks: subEntry.getMedia(),
+      key: Key(subEntry.getMedia()[0]),
     );
 
     Widget topWidget;
@@ -245,7 +242,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         double top = shouldUseHorizontalDisplay ? 100 : 120;
         topWidget = Container(
             padding: EdgeInsets.only(top: top, bottom: 70),
-            child: Text("What is the sign for this word?",
+            child: const Text("What is the sign for this word?",
                 textAlign: TextAlign.center, style: TextStyle(fontSize: 20)));
       }
     } else {
@@ -255,58 +252,54 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
     Widget bottomWidget;
     if (wordToSign) {
       bottomWidget = Text(word,
-          textAlign: TextAlign.center, style: TextStyle(fontSize: 20));
+          textAlign: TextAlign.center, style: const TextStyle(fontSize: 20));
     } else {
       if (!revealed) {
-        bottomWidget = Text("What does this sign mean?",
+        bottomWidget = const Text("What does this sign mean?",
             textAlign: TextAlign.center, style: TextStyle(fontSize: 20));
       } else {
         bottomWidget = Text(word,
-            textAlign: TextAlign.center, style: TextStyle(fontSize: 20));
+            textAlign: TextAlign.center, style: const TextStyle(fontSize: 20));
       }
     }
 
     Widget regionalInformationWidget = getRegionalInformationWidget(
-        subWord, shouldUseHorizontalDisplay,
+        subEntry as MySubEntry, shouldUseHorizontalDisplay,
         hide: !revealed);
 
     Widget? ratingButtonsRow;
     if (revealed) {
-      switch (revisionStrategy) {
+      switch (widget.revisionStrategy) {
         case RevisionStrategy.SpacedRepetition:
           ratingButtonsRow = Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               getRatingButton(Rating.Hard, forgotRatingWidgetActive),
-              Padding(
+              const Padding(
                 padding: EdgeInsets.only(left: 15, right: 15),
               ),
               getRatingButton(Rating.Good, rememberedRatingWidgetActive),
             ],
-            mainAxisAlignment: MainAxisAlignment.center,
           );
           break;
         case RevisionStrategy.Random:
           ratingButtonsRow = Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               getRatingButton(Rating.Easy, forgotRatingWidgetActive,
                   isNext: true),
             ],
-            mainAxisAlignment: MainAxisAlignment.center,
           );
           break;
       }
     }
 
     List<Widget> openDictionaryEntryWidgets = [
-      Padding(padding: EdgeInsets.only(top: 30)),
+      const Padding(padding: EdgeInsets.only(top: 30)),
       TextButton(
-          child: Text(
-            "Open dictionary entry",
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14),
-          ),
           style: ButtonStyle(
-            padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.all(10)),
+            padding:
+                MaterialStateProperty.all<EdgeInsets>(const EdgeInsets.all(10)),
             backgroundColor: MaterialStateProperty.resolveWith(
               (states) {
                 if (states.contains(MaterialState.disabled)) {
@@ -322,17 +315,22 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
             await Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => WordPage(
-                          word: keyedWordsGlobal[word]!,
+                    builder: (context) => EntryPage(
+                          entry: keyedByEnglishEntriesGlobal[word]!,
                           showFavouritesButton: false,
                         )));
-          })
+          },
+          child: const Text(
+            "Open dictionary entry",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14),
+          ))
     ];
 
     if (!shouldUseHorizontalDisplay) {
       List<Widget?> children = [];
       children.add(topWidget);
-      children.add(Divider(
+      children.add(const Divider(
         height: 80,
         thickness: 2,
         indent: 20,
@@ -347,12 +345,12 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
       children.add(Expanded(child: Container()));
 
       if (revealed) {
-        children.add(Padding(padding: EdgeInsets.only(bottom: 10)));
+        children.add(const Padding(padding: EdgeInsets.only(bottom: 10)));
         children.add(ratingButtonsRow);
         children.add(regionalInformationWidget);
       }
 
-      children.add(Padding(
+      children.add(const Padding(
         padding: EdgeInsets.only(bottom: 35),
       ));
 
@@ -374,8 +372,8 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
               completeCard(currentCard!, rating: Rating.Good);
             }),
             child: Container(
-              key: ValueKey("revealTapArea"),
-              constraints: BoxConstraints.expand(),
+              key: const ValueKey("revealTapArea"),
+              constraints: const BoxConstraints.expand(),
             ),
           ))
         ]),
@@ -394,7 +392,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         firstColumnMainAxisAlignment = MainAxisAlignment.center;
       }
       List<Widget> children = [
-        Padding(padding: EdgeInsets.only(top: 100)),
+        const Padding(padding: EdgeInsets.only(top: 100)),
         bottomWidget,
       ];
       if (revealed) {
@@ -406,7 +404,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
       if (revealed) {
         children.add(ratingButtonsRow!);
       }
-      children.add(Padding(padding: EdgeInsets.only(bottom: 80)));
+      children.add(const Padding(padding: EdgeInsets.only(bottom: 80)));
       var secondColumn = Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -420,8 +418,8 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
               completeCard(currentCard!, rating: Rating.Good);
             }),
             child: Container(
-              key: ValueKey("revealTapArea"),
-              constraints: BoxConstraints.expand(),
+              key: const ValueKey("revealTapArea"),
+              constraints: const BoxConstraints.expand(),
             ),
           ))
         ]),
@@ -431,8 +429,8 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
             Expanded(
                 flex: 1,
                 child: Column(
-                  children: [topWidget, regionalInformationWidget],
                   mainAxisAlignment: firstColumnMainAxisAlignment,
+                  children: [topWidget, regionalInformationWidget],
                 )),
             Expanded(flex: 1, child: secondColumn),
           ],
@@ -461,43 +459,43 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
         weight = FontWeight.w600;
       }
       return Padding(
+        padding: const EdgeInsets.only(top: 30),
         child: Text(s, style: TextStyle(fontSize: 16, fontWeight: weight)),
-        padding: EdgeInsets.only(top: 30),
       );
     }
 
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Row(children: [
-          Padding(
+        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          const Padding(
             padding: EdgeInsets.only(left: 60),
           ),
           Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               getText("Success Rate:", bold: true),
               getText("Total Cards:", bold: true),
               getText("Successful Cards:", bold: true),
               getText("Incorrect Cards:", bold: true)
             ],
-            crossAxisAlignment: CrossAxisAlignment.start,
           ),
-          Spacer(),
+          const Spacer(),
           Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               getText("${(rememberRate * 100).toStringAsFixed(1)}%"),
               getText("$totalAnswers"),
               getText("$numCardsRemembered"),
               getText("$numCardsForgotten"),
             ],
-            crossAxisAlignment: CrossAxisAlignment.end,
           ),
-          Padding(
+          const Padding(
             padding: EdgeInsets.only(left: 60),
           ),
-        ], mainAxisAlignment: MainAxisAlignment.center),
-        Padding(padding: EdgeInsets.only(bottom: 250))
+        ]),
+        const Padding(padding: EdgeInsets.only(bottom: 250))
       ],
-      mainAxisAlignment: MainAxisAlignment.center,
     );
   }
 
@@ -509,7 +507,8 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
     if (currentCard != null) {
       DRCard card = currentCard!;
 
-      SubWordWrapper subWordWrapper = di.keyToSubWordMap[card.master]!;
+      MySubEntry subEntry =
+          widget.di.keyToSubEntryMap[card.master]! as MySubEntry;
 
       String word;
       bool wordToSign = card.back![0] == VIDEO_LINKS_MARKER;
@@ -525,8 +524,8 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
       body = Center(
           child: InheritedPlaybackSpeed(
               playbackSpeed: playbackSpeed,
-              child: buildFlashcardWidget(card, subWordWrapper.subWord, word,
-                  wordToSign, currentCardRevealed)));
+              child: buildFlashcardWidget(
+                  card, subEntry, word, wordToSign, currentCardRevealed)));
       int progressString = getCardsReviewed() + 1;
       if (currentCardRevealed) {
         progressString -= 1;
@@ -535,7 +534,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
       actions.add(getAuslanSignbankLaunchAppBarActionWidget(
         context,
         word,
-        subWordWrapper.index,
+        subEntry.index,
         enabled: currentCardRevealed,
       ));
       actions.add(getPlaybackSpeedDropdownWidget((p) {
@@ -546,7 +545,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
             content: Text(
                 "Set playback speed to ${getPlaybackSpeedString(playbackSpeed)}"),
             backgroundColor: MAIN_COLOR,
-            duration: Duration(milliseconds: 1000)));
+            duration: const Duration(milliseconds: 1000)));
       }, enabled: videoIsShowing));
     } else {
       body = buildSummaryWidget();
@@ -565,7 +564,7 @@ class _FlashcardsPageState extends State<FlashcardsPage> {
               ),
               actions: buildActionButtons(actions),
               leading: IconButton(
-                  icon: Icon(Icons.close),
+                  icon: const Icon(Icons.close),
                   onPressed: () async {
                     await beforePop();
                     Navigator.of(context).pop();
