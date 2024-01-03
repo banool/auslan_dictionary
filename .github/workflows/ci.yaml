@@ -5,7 +5,28 @@ on:
     branches: [ master ]
 
 jobs:
+  # Check which files / paths have changed. We use this to inform whether we should run
+  # later jobs. Even though there is only a single job for now (build_android) we only
+  # want to run it if the app itself has changed, not the app data (since we don't
+  # bundle that in to the app anymore).
+  changes:
+    outputs:
+      android: ${{ steps.filter.outputs.android }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: '.github/filters.yml'
+    - name: Print changes
+      run: printf "Android files changed $ANDROID\n"
+      env:
+        ANDROID: ${{ steps.filter.outputs.android }}
+
   build_android:
+    needs: [changes]
+    if: needs.changes.outputs.android == 'true'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3

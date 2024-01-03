@@ -1,0 +1,15 @@
+# Taken from https://github.com/banool/aclip/blob/main/.github/filters.yml
+force: &force
+  - ".force"
+
+ci: &ci
+  - *force
+  - ".github/**/*"
+
+android:
+  - *force
+  - *ci
+  - 'lib/**'
+  - 'android/**'
+  - 'pubspec.yaml'
+  - 'pubspec.lock'
