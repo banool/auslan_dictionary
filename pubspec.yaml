@@ -3,7 +3,7 @@ description: Free video dictionary of Auslan signs
 
 publish_to: 'none'
 
-version: 1.14.9+738
+version: 1.14.10+739
 
 environment:
   sdk: '>=2.18.0 <3.0.0'
@@ -61,17 +61,5 @@ flutter_native_splash:
   color: "#FFFFFF"
   image: "assets/icon/01-okay.png"
 
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-
-# The following section is specific to Flutter.
 flutter:
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
-
-  # To add assets to your application, add an assets section, like this:
-  assets:
-    - assets/data/words_latest.json

@@ -53,9 +53,6 @@ fi
 # Move data into place.
 scripts/move_data.sh
 
-# Bump version number.
-./bump_version.sh
-
 # Create and push the commit.
 git add -A
 git commit -m "Update signbank data"
