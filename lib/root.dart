@@ -6,7 +6,7 @@ import 'package:dictionarylib/page_search.dart';
 import 'package:dictionarylib/page_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:dictionarylib/dictionarylib.dart' show AppLocalizations;
+import 'package:dictionarylib/dictionarylib.dart' show DictLibLocalizations;
 
 import 'common.dart';
 import 'flashcards_landing_page.dart';
@@ -131,8 +131,8 @@ class _RootAppState extends State<RootApp> {
         },
         child: MaterialApp.router(
           title: APP_NAME,
-          onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          onGenerateTitle: (context) => APP_NAME,
+          localizationsDelegates: DictLibLocalizations.localizationsDelegates,
           supportedLocales: LANGUAGE_CODE_TO_LOCALE.values,
           locale: locale,
           debugShowCheckedModeBanner: false,

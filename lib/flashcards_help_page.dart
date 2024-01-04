@@ -37,7 +37,7 @@ Widget getFlashcardsHelpPage(BuildContext context) {
           "generally recommend leaving this enabled, but we provide this option "
           "based on whatever works best for you."
     ],
-    "What does \"${AppLocalizations.of(context)!.flashcardsOnlyOneCard}\" mean?":
+    "What does \"${DictLibLocalizations.of(context)!.flashcardsOnlyOneCard}\" mean?":
         const [
       "Based on the other filtering options you have set, there may be "
           "situations where there are multiple sub-entries for a single entry. "

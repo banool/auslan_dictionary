@@ -198,10 +198,10 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: "3d1e7eb187d2b217a7259aee38a94460814847da"
+      resolved-ref: ee95a31c69612ca75f197212c6c5d9a44a6ce50e
       url: "https://github.com/banool/dictionarylib.git"
     source: git
-    version: "0.0.7"
+    version: "0.0.8"
   dolphinsr_dart:
     dependency: "direct main"
     description:
@@ -302,10 +302,10 @@ packages:
     dependency: transitive
     description:
       name: flutter_markdown
-      sha256: "35108526a233cc0755664d445f8a6b4b61e6f8fe993b3658b80b4a26827fc196"
+      sha256: "30088ce826b5b9cfbf9e8bece34c716c8a59fa54461dcae1e4ac01a94639e762"
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.18+2"
+    version: "0.6.18+3"
   flutter_native_splash:
     dependency: "direct main"
     description:
@@ -594,10 +594,10 @@ packages:
     dependency: transitive
     description:
       name: plugin_platform_interface
-      sha256: f4f88d4a900933e7267e2b353594774fc0d07fb072b47eedcd5b54e1ea3269f8
+      sha256: "4820fbfdb9478b1ebae27888254d445073732dae3d6ea81f0b7e06d5dedc3f02"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.7"
+    version: "2.1.8"
   pointycastle:
     dependency: transitive
     description:
@@ -847,18 +847,18 @@ packages:
     dependency: transitive
     description:
       name: url_launcher_android
-      sha256: "31222ffb0063171b526d3e569079cf1f8b294075ba323443fdc690842bfd4def"
+      sha256: c0766a55ab42cefaa728cabc951e82919ab41a3a4fee0aaa96176ca82da8cc51
       url: "https://pub.dev"
     source: hosted
-    version: "6.2.0"
+    version: "6.2.1"
   url_launcher_ios:
     dependency: transitive
     description:
       name: url_launcher_ios
-      sha256: bba3373219b7abb6b5e0d071b0fe66dfbe005d07517a68e38d4fc3638f35c6d3
+      sha256: "46b81e3109cbb2d6b81702ad3077540789a3e74e22795eb9f0b7d494dbaa72ea"
       url: "https://pub.dev"
     source: hosted
-    version: "6.2.1"
+    version: "6.2.2"
   url_launcher_linux:
     dependency: transitive
     description:
@@ -879,18 +879,18 @@ packages:
     dependency: transitive
     description:
       name: url_launcher_platform_interface
-      sha256: "980e8d9af422f477be6948bdfb68df8433be71f5743a188968b0c1b887807e50"
+      sha256: f099b552bd331eacd69affed7ff2f23bfa6b0cb825b629edf3d844375a7501ad
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.0"
+    version: "2.2.1"
   url_launcher_web:
     dependency: transitive
     description:
       name: url_launcher_web
-      sha256: "7286aec002c8feecc338cc33269e96b73955ab227456e9fb2a91f7fab8a358e9"
+      sha256: fff0932192afeedf63cdd50ecbb1bc825d31aed259f02bb8dba0f3b729a5e88b
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.2"
+    version: "2.2.3"
   url_launcher_windows:
     dependency: transitive
     description:
@@ -919,26 +919,26 @@ packages:
     dependency: "direct main"
     description:
       name: video_player
-      sha256: e16f0a83601a78d165dabc17e4dac50997604eb9e4cc76e10fa219046b70cef3
+      sha256: fbf28ce8bcfe709ad91b5789166c832cb7a684d14f571a81891858fefb5bb1c2
       url: "https://pub.dev"
     source: hosted
-    version: "2.8.1"
+    version: "2.8.2"
   video_player_android:
     dependency: transitive
     description:
       name: video_player_android
-      sha256: "3fe89ab07fdbce786e7eb25b58532d6eaf189ceddc091cb66cba712f8d9e8e55"
+      sha256: "7f8f25d7ad56819a82b2948357f3c3af071f6a678db33833b26ec36bbc221316"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.10"
+    version: "2.4.11"
   video_player_avfoundation:
     dependency: transitive
     description:
       name: video_player_avfoundation
-      sha256: "01a57940e1dabc8769ccd457c4ae9ea50274e7d5a7617f7820dae5fe1d8436ae"
+      sha256: "08da93071ef322603839aa42e90e23d4820b03cf2db7eb6a45de5d41fe85c2aa"
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.3"
+    version: "2.5.4"
   video_player_platform_interface:
     dependency: transitive
     description:
@@ -951,10 +951,10 @@ packages:
     dependency: transitive
     description:
       name: video_player_web
-      sha256: ab7a462b07d9ca80bed579e30fb3bce372468f1b78642e0911b10600f2c5cb5b
+      sha256: "34beb3a07d4331a24f7e7b2f75b8e2b103289038e07e65529699a671b6a6e2cb"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.2"
+    version: "2.1.3"
   video_player_win:
     dependency: "direct main"
     description:
@@ -999,10 +999,10 @@ packages:
     dependency: transitive
     description:
       name: win32
-      sha256: b0f37db61ba2f2e9b7a78a1caece0052564d1bc70668156cf3a29d676fe4e574
+      sha256: "464f5674532865248444b4c3daca12bd9bf2d7c47f759ce2617986e7229494a8"
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.1"
+    version: "5.2.0"
   win32_registry:
     dependency: transitive
     description:
@@ -1015,10 +1015,10 @@ packages:
     dependency: transitive
     description:
       name: xdg_directories
-      sha256: "589ada45ba9e39405c198fe34eb0f607cddb2108527e658136120892beac46d2"
+      sha256: faea9dee56b520b55a566385b84f2e8de55e7496104adada9962e0bd11bcff1d
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.3"
+    version: "1.0.4"
   xml:
     dependency: transitive
     description:

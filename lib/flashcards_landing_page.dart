@@ -8,7 +8,7 @@ import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:settings_ui/settings_ui.dart';
-import 'package:dictionarylib/dictionarylib.dart' show AppLocalizations;
+import 'package:dictionarylib/dictionarylib.dart' show DictLibLocalizations;
 
 import 'entries_types.dart';
 import 'flashcards_help_page.dart';
@@ -116,7 +116,8 @@ class MyFlashcardsLandingPageController
             builder: (ctx) {
               return MultiSelectDialog(
                 listType: MultiSelectListType.CHIP,
-                title: Text(AppLocalizations.of(context)!.flashcardsRegions),
+                title:
+                    Text(DictLibLocalizations.of(context)!.flashcardsRegions),
                 items: regionsWithoutEverywhere
                     .map((e) => MultiSelectItem(e.index, e.pretty))
                     .toList(),
