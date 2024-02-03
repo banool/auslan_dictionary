@@ -86,7 +86,8 @@ class _RootAppState extends State<RootApp> {
                   buildEntryListWidgetCallback: (entryList) => EntryListPage(
                       entryList: entryList,
                       mainColor: MAIN_COLOR,
-                      appBarDisabledColor: APP_BAR_DISABLED_COLOR),
+                      appBarDisabledColor: APP_BAR_DISABLED_COLOR,
+                      navigateToEntryPage: navigateToEntryPage),
                 ),
               );
             }),
