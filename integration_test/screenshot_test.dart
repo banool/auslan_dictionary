@@ -133,18 +133,24 @@ void main() async {
 
     String listName = "Animals";
     String listKey = EntryList.getKeyFromName(listName);
-    await entryListManager.createEntryList(listKey);
-    await entryListManager.entryLists[listKey]!
+    await userEntryListManager.createEntryList(listKey);
+    await userEntryListManager
+        .getEntryLists()[listKey]!
         .addEntry(keyedByEnglishEntriesGlobal["kangaroo"]!);
-    await entryListManager.entryLists[listKey]!
+    await userEntryListManager
+        .getEntryLists()[listKey]!
         .addEntry(keyedByEnglishEntriesGlobal["platypus"]!);
-    await entryListManager.entryLists[listKey]!
+    await userEntryListManager
+        .getEntryLists()[listKey]!
         .addEntry(keyedByEnglishEntriesGlobal["echidna"]!);
-    await entryListManager.entryLists[listKey]!
+    await userEntryListManager
+        .getEntryLists()[listKey]!
         .addEntry(keyedByEnglishEntriesGlobal["dog"]!);
-    await entryListManager.entryLists[listKey]!
+    await userEntryListManager
+        .getEntryLists()[listKey]!
         .addEntry(keyedByEnglishEntriesGlobal["cat"]!);
-    await entryListManager.entryLists[listKey]!
+    await userEntryListManager
+        .getEntryLists()[listKey]!
         .addEntry(keyedByEnglishEntriesGlobal["bird"]!);
 
     await sharedPreferences

@@ -62,16 +62,21 @@ class _EntryPageState extends State<EntryPage> {
   }
 
   bool wordIsFavourited(Entry entry) {
-    return entryListManager.entryLists[KEY_FAVOURITES_ENTRIES]!.entries
+    return userEntryListManager
+        .getEntryLists()[KEY_FAVOURITES_ENTRIES]!
+        .entries
         .contains(entry);
   }
 
   Future<void> addEntryToFavourites(Entry entry) async {
-    await entryListManager.entryLists[KEY_FAVOURITES_ENTRIES]!.addEntry(entry);
+    await userEntryListManager
+        .getEntryLists()[KEY_FAVOURITES_ENTRIES]!
+        .addEntry(entry);
   }
 
   Future<void> removeEntryFromFavourites(Entry entry) async {
-    await entryListManager.entryLists[KEY_FAVOURITES_ENTRIES]!
+    await userEntryListManager
+        .getEntryLists()[KEY_FAVOURITES_ENTRIES]!
         .removeEntry(entry);
   }
 

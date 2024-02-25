@@ -84,10 +84,11 @@ class _RootAppState extends State<RootApp> {
                   mainColor: MAIN_COLOR,
                   appBarDisabledColor: APP_BAR_DISABLED_COLOR,
                   buildEntryListWidgetCallback: (entryList) => EntryListPage(
-                      entryList: entryList,
-                      mainColor: MAIN_COLOR,
-                      appBarDisabledColor: APP_BAR_DISABLED_COLOR,
-                      navigateToEntryPage: navigateToEntryPage),
+                    entryList: entryList,
+                    mainColor: MAIN_COLOR,
+                    appBarDisabledColor: APP_BAR_DISABLED_COLOR,
+                    navigateToEntryPage: navigateToEntryPage,
+                  ),
                 ),
               );
             }),
@@ -107,18 +108,17 @@ class _RootAppState extends State<RootApp> {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return const NoTransitionPage(
                   child: SettingsPage(
-                      appName: APP_NAME,
-                      mainColor: MAIN_COLOR,
-                      appBarDisabledColor: APP_BAR_DISABLED_COLOR,
-                      additionalTopWidgets: [],
-                      buildLegalInformationChildren:
-                          buildLegalInformationChildren,
-                      reportDataProblemUrl:
-                          'https://www.auslan.org.au/feedback/',
-                      reportAppProblemUrl:
-                          'https://github.com/banool/auslan_dictionary/issues',
-                      iOSAppId: "1531368368",
-                      androidAppId: "com.banool.auslan_dictionary"));
+                appName: APP_NAME,
+                mainColor: MAIN_COLOR,
+                appBarDisabledColor: APP_BAR_DISABLED_COLOR,
+                additionalTopWidgets: [],
+                buildLegalInformationChildren: buildLegalInformationChildren,
+                reportDataProblemUrl: 'https://www.auslan.org.au/feedback/',
+                reportAppProblemUrl:
+                    'https://github.com/banool/auslan_dictionary/issues',
+                iOSAppId: "1531368368",
+                androidAppId: "com.banool.auslan_dictionary",
+              ));
             }),
       ]);
 
