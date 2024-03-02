@@ -11,16 +11,20 @@ void main() async {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   entriesGlobal = {
-    MyEntry(word: "friend", subEntries: [
-      MySubEntry(index: 0, definitions: [
-        Definition(
-            heading: "As a Noun", subdefinitions: ["Someone you love :)"])
-      ], videoLinksInner: [
-        "auslan/46/46930.mp4"
-      ], regions: [
-        Region.EVERYWHERE
-      ], keywords: [])
-    ])
+    MyEntry(
+        entryInEnglish: "friend",
+        subEntries: [
+          MySubEntry(index: 0, definitions: [
+            Definition(
+                heading: "As a Noun", subdefinitions: ["Someone you love :)"])
+          ], videoLinksInner: [
+            "auslan/46/46930.mp4"
+          ], regions: [
+            Region.EVERYWHERE
+          ], keywords: [])
+        ],
+        categories: [],
+        entryType: EntryType.WORD)
   };
 
   SharedPreferences.setMockInitialValues({});
@@ -45,7 +49,7 @@ void main() async {
       var ww = w as MyEntry;
       for (MySubEntry sw in ww.subEntries) {
         var m = Master(id: sw.getKey(ww), fields: [
-          ww.word,
+          ww.entryInEnglish,
           sw.videoLinks.join("=====")
         ], combinations: const [
           Combination(front: [0], back: [1]),
