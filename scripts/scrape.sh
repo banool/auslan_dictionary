@@ -11,7 +11,7 @@ fi
 cd "$(dirname "$0")"
 
 # Scrape categories
-python scrape_signbank.py -d --output-file ../assets/data/categories.json
+python scrape_categories.py -d --output-file ../assets/data/categories.json
 
 sleep 10
 
