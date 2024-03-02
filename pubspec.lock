@@ -181,10 +181,10 @@ packages:
     dependency: transitive
     description:
       name: dart_style
-      sha256: "40ae61a5d43feea6d24bd22c0537a6629db858963b99b4bc1c3db80676f32368"
+      sha256: "99e066ce75c89d6b29903d788a7bb9369cf754f7b24bf70bf4b6d6d6b26853b9"
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.4"
+    version: "2.3.6"
   device_info_plus:
     dependency: "direct main"
     description:
@@ -206,10 +206,10 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: "702361e9d316a0909d59c1ef09c9f588cf79f25c"
+      resolved-ref: "45dd1c64a2b7b5e5a3951ce5e62390b1ecdde2e0"
       url: "https://github.com/banool/dictionarylib.git"
     source: git
-    version: "0.1.6"
+    version: "0.1.11"
   dolphinsr_dart:
     dependency: "direct main"
     description:
@@ -895,10 +895,10 @@ packages:
     dependency: transitive
     description:
       name: url_launcher_ios
-      sha256: "75bb6fe3f60070407704282a2d295630cab232991eb52542b18347a8a941df03"
+      sha256: "9149d493b075ed740901f3ee844a38a00b33116c7c5c10d7fb27df8987fb51d5"
       url: "https://pub.dev"
     source: hosted
-    version: "6.2.4"
+    version: "6.2.5"
   url_launcher_linux:
     dependency: transitive
     description:

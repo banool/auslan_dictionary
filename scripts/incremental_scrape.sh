@@ -29,7 +29,7 @@ for l in {a..z}
 do
     if [[ -z $REGEX || $l =~ $REGEX ]]; then
         echo "Getting words for letter $l"
-        python scrape_signbank.py -d --output-file next.json --existing-file previous.json --letter $l
+        python scrape_signbank.py -d --output-file next.json --existing-file previous.json --letter $l --categories-file ../assets/data/categories.json
         echo "Successfully got words for letter $l"
         mv next.json previous.json
         echo $l >> letters_retrieved.txt

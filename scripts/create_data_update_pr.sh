@@ -30,7 +30,7 @@ git checkout master
 # Delete PR if it already exists.
 existingpr=`gh pr list --label data_update --json number | jq -r .[0].number`
 if [ "$existingpr" != "null" ]; then
-    gh pr close $existingpr -d 
+    gh pr close $existingpr -d
 fi
 
 # Delete branch if it already exists.
@@ -41,10 +41,10 @@ git branch -D update_data ||:
 git checkout -b update_data
 
 # Scrape for new data.
-scripts/incremental_scrape.sh
+scripts/scrape.sh
 
 # Exit if nothing changed.
-if diff scripts/all_letters.json assets/data/words_latest.json > /dev/null; then
+if diff scripts/all_letters.json assets/data/data.json > /dev/null; then
     echo "No new data, exiting..."
     onexit
     exit 1

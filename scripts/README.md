@@ -1,5 +1,18 @@
 # Scripts
 
+## Automation
+For automated scraping, just run something like this:
+```
+cd /var/www/auslan/scripts
+/usr/bin/pipenv run bash create_data_update_pr.sh
+```
+
+## Scraping manually
+First, enter the venv:
+```
+pipenv shell
+```
+
 To scrape Auslan Signbank, do this:
 
 ```
@@ -18,6 +31,17 @@ Once you've got the data downloaded, move it in to place with this:
 ```
 
 This moves the data and updates `latest_version`, which the app uses to see if there is new data to download. Before committing, make sure the changes look good with `git diff`.
+
+This script assumes that the categories data is present at `../assets/data/categories.json` from a previous step. If it's not, you can get it like this:
+```
+python scrape_categories.py --output-file ../assets/data/categories.json
+```
+
+You can update the categories data without scraping for new words like this (we have to pass at least one URL to look at):
+```
+python scrape_signbank.py -d --existing-file ../assets/data/words_latest.json --categories-file ../assets/data/categories.json --urls 'https://auslan.org.au/dictionary/words/age-1.html' --output-file /tmp/data.json
+cp /tmp/data.json ../assets/data/words_latest.json
+```
 
 ## Old non incremental way
 To run the scraper non-incrementally, do this:
