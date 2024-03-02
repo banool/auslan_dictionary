@@ -20,6 +20,9 @@ class MyEntryLoader extends EntryLoader {
       print(
           "Current version ($currentVersion) is >= latest version ($latestVersion), not downloading new data");
       return null;
+    } else {
+      print(
+          "Current version ($currentVersion) is < latest version ($latestVersion), downloading new data");
     }
 
     // At this point, we know we need to download the new data. Let's do that.
