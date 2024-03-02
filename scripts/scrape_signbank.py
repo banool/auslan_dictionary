@@ -32,23 +32,15 @@ videos, their own defitions, and so on.
 import argparse
 import asyncio
 import json
-import logging
 import string
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from enum import IntEnum
 from typing import Dict, List, Tuple
 
-import requests
 from bs4 import BeautifulSoup
-from retry import retry
 
-LOG = logging.getLogger(__name__)
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-ch = logging.StreamHandler()
-ch.setFormatter(formatter)
-LOG.addHandler(ch)
-
+from common import LOG, get_pages_html
 
 SITE_ROOT = "http://www.auslan.org.au"
 LETTER_PAGE_TEMPLATE = SITE_ROOT + "/dictionary/search/?query={letter}&page={page}"
@@ -88,7 +80,7 @@ class Region(IntEnum):
                 cls.NORTHERN,
                 cls.QLD,
                 cls.NSW,
-                cls.ACT
+                cls.ACT,
             ],
             "/img/maps/Auslan/WesternAustralia-traditional": [cls.WA],
             "/img/maps/Auslan/NorthernTerritory-traditional": [cls.NT],
@@ -134,15 +126,6 @@ class SubWord:
             "definitions": self.definitions,
             "regions": self.regions,
         }
-
-
-@retry(RuntimeError, delay=1, backoff=3, tries=5)
-def load_url(url, timeout=180):
-    # LOG.debug(f"Getting HTML for URL: {url}")
-    response = requests.get(url, timeout=timeout)
-    if response.status_code != 200:
-        raise RuntimeError(f"Got status code {response.status_code} for {url}")
-    return response
 
 
 async def get_word_page_urls(executor, letters=None) -> List[str]:
@@ -207,30 +190,6 @@ async def get_word_page_urls(executor, letters=None) -> List[str]:
         word_page_urls += full_urls
 
     return word_page_urls
-
-
-async def get_pages_html(executor, urls: List[str]) -> List[str]:
-    """
-    Get the HTML of a list of URLs. If getting the HTML of any URL fails,
-    this function will throw an exception.
-    """
-    LOG.debug(f"Getting HTML for these URLs: {urls}")
-    loop = asyncio.get_running_loop()
-    futures = [loop.run_in_executor(executor, load_url, url) for url in urls]
-    html_or_exceptions = await asyncio.gather(*futures, return_exceptions=True)
-    htmls = []
-    failed = []
-    for result in html_or_exceptions:
-        if isinstance(result, Exception):
-            LOG.warning(f"Failed to get a page: {result}")
-            failed.append(result)
-            continue
-        htmls.append(result)
-    if failed:
-        LOG.debug("Pages we failed to get")
-        for fa in failed:
-            LOG.debug(f"Failed to get: {fa}")
-    return htmls
 
 
 def parse_definition(definition_div_html) -> Dict[str, List[str]]:
@@ -309,7 +268,9 @@ def parse_subpage(html, word_str) -> SubWord:
     regions_img_tags = soup.find_all("img", {"alt": "Region"})
 
     try:
-        regions_img_link = [t["src"] for t in regions_img_tags if "Auslan/" in t["src"]][0]
+        regions_img_link = [
+            t["src"] for t in regions_img_tags if "Auslan/" in t["src"]
+        ][0]
         try:
             # Derive the regions based on the image.
             regions = Region.regions_from_link(regions_img_link)
@@ -348,6 +309,8 @@ def parse_args():
         "--urls-file", help="File containing specific URLs to look at"
     )
     parser.add_argument("--letters", nargs="*", help="Fetch only these letters")
+    # This should come from running scrape_categories.py
+    parser.add_argument("--categories-file", required=True)
     output_args = parser.add_mutually_exclusive_group(required=True)
     output_args.add_argument("--output-file")
     output_args.add_argument("--stdout", action="store_true")
@@ -362,6 +325,15 @@ async def main():
         LOG.setLevel("DEBUG")
     else:
         LOG.setLevel("INFO")
+
+    # Load up category data.
+    category_data = get_existing_data(args.categories_file)
+    word_to_categories = {}
+    for category, words in category_data.items():
+        for word in words:
+            if word not in word_to_categories:
+                word_to_categories[word] = []
+            word_to_categories[word].append(category)
 
     # Load up data from the existing file if given.
     if args.existing_file:
@@ -383,9 +355,6 @@ async def main():
     else:
         urls = await get_word_page_urls(executor, letters=args.letters)
 
-    # todo remove
-    # urls = urls[0:5]
-
     # Get the HTML for each of the word pages.
     word_pages_html = await get_pages_html(executor, urls)
 
@@ -395,10 +364,22 @@ async def main():
         word_dict = word.get_dict()
         word_to_info.update(word_dict)
 
-    # LOG.debug(word_to_info)
+    # Structure the data better, attach category data.
+    data = {}
+    for word, info in word_to_info.items():
+        categories = word_to_categories.get(word, [])
+        data[word] = {
+            "entry_in_english": word,
+            "sub_entries": info,
+            "entry_type": "WORD",
+            "categories": categories,
+        }
+
+    # Flatten the data.
+    out = {"data": list(data.values())}
 
     # Build and output the JSON.
-    json_output = json.dumps(word_to_info, indent=4)
+    json_output = json.dumps(out)
     if args.stdout:
         print(json_output)
     else:

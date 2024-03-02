@@ -4,25 +4,42 @@ import 'package:flutter/material.dart';
 const String BASE_URL = "https://media.auslan.org.au";
 
 class MyEntry implements Entry {
-  late String word;
-  late List<MySubEntry> subEntries;
+  String entryInEnglish;
+  List<MySubEntry> subEntries;
+  List<String> categories;
+  EntryType entryType;
 
-  MyEntry({required this.word, required this.subEntries});
+  MyEntry(
+      {required this.entryInEnglish,
+      required this.subEntries,
+      required this.categories,
+      required this.entryType});
 
-  MyEntry.fromJson(this.word, dynamic wordJson) {
-    List<MySubEntry> subEntries = [];
+  // This should be an entry in the list under "data".
+  static MyEntry fromJson(dynamic data) {
+    if (data["entry_type"] != "WORD") {
+      throw "Unexpected entry type ${data["entry_type"]}";
+    }
+
+    var entryInEnglish = data["entry_in_english"];
+
+    List<MySubEntry> subEntriesList = [];
     // Necessary to know how to build the link to Auslan Signbank.
     int index = 0;
-    wordJson.forEach((subJson) {
+    (data["sub_entries"] ?? []).forEach((subJson) {
       MySubEntry subEntry = MySubEntry.fromJson(subJson, index);
       if (subEntry.videoLinks.isNotEmpty) {
-        subEntry.keywords.remove(word);
-        subEntries.add(subEntry);
+        subEntry.keywords.remove(entryInEnglish);
+        subEntriesList.add(subEntry);
       }
       index += 1;
     });
 
-    this.subEntries = subEntries;
+    return MyEntry(
+        entryInEnglish: entryInEnglish,
+        subEntries: subEntriesList,
+        categories: data["categories"].cast<String>(),
+        entryType: EntryType.WORD);
   }
 
   @override
@@ -32,17 +49,17 @@ class MyEntry implements Entry {
 
   @override
   String toString() {
-    return word;
+    return entryInEnglish;
   }
 
   @override
   String getKey() {
-    return word;
+    return entryInEnglish;
   }
 
   @override
   String? getPhrase(Locale locale) {
-    return word;
+    return entryInEnglish;
   }
 
   @override
@@ -53,6 +70,11 @@ class MyEntry implements Entry {
   @override
   EntryType getEntryType() {
     return EntryType.WORD;
+  }
+
+  @override
+  List<String> getCategories() {
+    return categories;
   }
 }
 
