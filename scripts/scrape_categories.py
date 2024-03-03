@@ -27,6 +27,7 @@ RENAMED_CATEGORY_NAMES = {
     "animal": "Animals",
     "body part": "Body Parts",
     "utensil": "Utensils",
+    "number": "Numbers",
 }
 
 
