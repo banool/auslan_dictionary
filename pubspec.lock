@@ -206,10 +206,10 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: "587befa6d3a5b5e22d5e63bedb337010c2495f72"
+      resolved-ref: d8e90030bb17d8760ea793b230942e8b18307d59
       url: "https://github.com/banool/dictionarylib.git"
     source: git
-    version: "0.1.17"
+    version: "0.1.18"
   dolphinsr_dart:
     dependency: "direct main"
     description:

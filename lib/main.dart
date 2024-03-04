@@ -23,17 +23,11 @@ Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
   await setupPhaseOne(Uri.parse(
       "https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/advisories.md"));
 
-  await Future.wait<void>([
-    // Get knob values.
-    (() async => downloadWordsDataKnob =
-        await readKnob(KNOBS_URL_BASE, "download_words_data", false))(),
-  ]);
-
   MyEntryLoader myEntryLoader = MyEntryLoader();
 
   await setupPhaseTwo(
       paramEntryLoader: myEntryLoader,
-      downloadWordsData: downloadWordsDataKnob,
+      downloadWordsData: true,
       knobUrlBase: KNOBS_URL_BASE,
       entriesGlobalReplacement: entriesGlobalReplacement);
 
