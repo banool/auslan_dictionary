@@ -8,7 +8,6 @@ import 'package:video_player_win/video_player_win_plugin.dart';
 
 import 'common.dart';
 import 'entries_loader.dart';
-import 'globals.dart';
 import 'root.dart';
 
 const String KNOBS_URL_BASE =
@@ -40,11 +39,11 @@ Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
   FlutterNativeSplash.remove();
 
   // Finally run the app.
-  print("Setup complete, running app");
+  printAndLog("Setup complete, running app");
 }
 
 Future<void> main() async {
-  print("Start of main");
+  printAndLog("Start of main");
   try {
     await setup();
     runApp(RootApp(startingLocale: LOCALE_ENGLISH));

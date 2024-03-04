@@ -40,7 +40,7 @@ class MyEntryLoader extends EntryLoader {
     for (var entry in raw["data"]) {
       entries.add(MyEntry.fromJson(entry));
     }
-    print("Loaded ${entries.length} words");
+    printAndLog("Loaded ${entries.length} words");
     return entries;
   }
 

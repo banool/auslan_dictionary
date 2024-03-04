@@ -46,7 +46,7 @@ class MyEntryListManager {
   // reorder the lists and persist that. Deny reordering the favourites.
   void reorder(int prev, int updated) {
     if (prev == 0 || updated == 0) {
-      print("Refusing to reorder with favourites list: $prev and $updated");
+      printAndLog("Refusing to reorder with favourites list: $prev and $updated");
       return;
     }
     print("Moving item from $prev to $updated");

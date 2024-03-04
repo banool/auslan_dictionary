@@ -17,7 +17,6 @@ Widget getAuslanSignbankLaunchAppBarActionWidget(
     context,
     const Icon(Icons.public, semanticLabel: "Link to sign in Auslan Signbank"),
     () async {
-      print('sdfdsf');
       var url =
           'http://www.auslan.org.au/dictionary/words/$word-${currentPage + 1}.html';
       await launch(url, forceSafariVC: false);
