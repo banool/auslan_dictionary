@@ -13,6 +13,7 @@ jobs:
   changes:
     outputs:
       android: ${{ steps.filter.outputs.android }}
+      data: ${{ steps.filter.outputs.data }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
