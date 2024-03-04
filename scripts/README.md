@@ -39,9 +39,12 @@ python scrape_categories.py --output-file ../assets/data/categories.json
 
 You can update the categories data without scraping for new words like this (we have to pass at least one URL to look at):
 ```
-python scrape_signbank.py -d --existing-file ../assets/data/words_latest.json --categories-file ../assets/data/categories.json --urls 'https://auslan.org.au/dictionary/words/age-1.html' --output-file /tmp/data.json
-cp /tmp/data.json ../assets/data/words_latest.json
+python scrape_signbank.py -d --existing-file ../assets/data/data.json --categories-file ../assets/data/categories.json --urls 'https://auslan.org.au/dictionary/words/age-1.html' --output-file /tmp/data.json
+cp /tmp/data.json ../assets/data/data.json
 ```
+
+---
+Out of date, likely doesn't work:
 
 ## Old non incremental way
 To run the scraper non-incrementally, do this:

@@ -24,9 +24,9 @@ with this format:
     },
 }
 
-Note: For a single word, there can be multiple entries. This means
-the word will have multiple "subwords" that each might have multiple
-videos, their own defitions, and so on.
+Note: For a single entry, there can be multiple sub entries. This means
+the entry will have multiple sub entries that each might have multiple
+videos, their own definitions, and so on.
 """
 
 import argparse
@@ -102,20 +102,31 @@ class Region(IntEnum):
 
 
 @dataclass
-class Word:
-    word: str
-    subwords: List["SubWord"]
+class Entry:
+    entry_in_english: str
+    sub_entries: List["SubEntry"]
+    categories: List[str]
+    entry_type: str = "WORD"  # They're all words for now.
 
+    # We return the dict inside another dict keyed by entry_in_english. Later on we'll
+    # collapse this into a list of dicts but for now this helps when we're starting
+    # with existing data.
     def get_dict(self):
+        sub_entries = [sw.get_dict() for sw in self.sub_entries]
         return {
-            self.word: [sw.get_dict() for sw in self.subwords],
+            self.entry_in_english: {
+                "entry_in_english": self.entry_in_english,
+                "sub_entries": sub_entries,
+                "categories": self.categories,
+                "entry_type": self.entry_type,
+            },
         }
 
 
 @dataclass
-class SubWord:
-    keywords: List[str]
+class SubEntry:
     video_links: List[str]
+    keywords: List[str]
     definitions: Dict[str, List[str]]
     regions: List[str]
 
@@ -171,9 +182,6 @@ async def get_word_page_urls(executor, letters=None) -> List[str]:
             url = LETTER_PAGE_TEMPLATE.format(letter=letter, page=page)
             other_letter_pages_urls.append(url)
 
-    # todo remove
-    # other_letter_pages_urls = other_letter_pages_urls[0:2]
-
     # Get the HTML for all of the letter pages.
     letter_pages_html = first_letter_pages_html
     other_letter_pages_html = await get_pages_html(executor, other_letter_pages_urls)
@@ -209,10 +217,7 @@ def parse_definition(definition_div_html) -> Dict[str, List[str]]:
     return {heading: definitions}
 
 
-async def parse_information(executor, html) -> Word:
-    """
-    Returns a tuple of the word and the info for the word.
-    """
+async def parse_information(executor, html) -> Entry:
     soup = BeautifulSoup(html.text, "html.parser")
 
     # Get the word
@@ -220,32 +225,31 @@ async def parse_information(executor, html) -> Word:
 
     # Get the SubWord for this first page
     first_subword = parse_subpage(html, word)
-    subwords = [first_subword]
+    sub_entries = [first_subword]
 
     # Get links to the subpages
     subpages_tags = soup.find_all("a", {"class": "btn btn-default navbar-btn"})
     subpages_urls = [WORDS_PAGE_BASE + t["href"] for t in subpages_tags]
-    # TODO: REMOVE
-    # subpages_urls = subpages_urls[:2]
 
     # Fetch their HTML
     # TODO: This part is synchronous and slow, surface this and gather it later.
     if subpages_urls:
-        subwords_html = await get_pages_html(executor, subpages_urls)
+        sub_entries_html = await get_pages_html(executor, subpages_urls)
     else:
-        subwords_html = []
+        sub_entries_html = []
 
     # Pull subwords information from them
-    additional_subwords = [parse_subpage(html, word) for html in subwords_html]
-    subwords += additional_subwords
+    additional_subwords = [parse_subpage(html, word) for html in sub_entries_html]
+    sub_entries += additional_subwords
 
-    return Word(
-        word=word,
-        subwords=subwords,
+    return Entry(
+        entry_in_english=word,
+        sub_entries=sub_entries,
+        categories=[],  # We fill this in later.
     )
 
 
-def parse_subpage(html, word_str) -> SubWord:
+def parse_subpage(html, word_str) -> SubEntry:
     soup = BeautifulSoup(html.text, "html.parser")
 
     # Get the keywords
@@ -285,9 +289,9 @@ def parse_subpage(html, word_str) -> SubWord:
         LOG.debug(f"Failed to get regions information for {html.url}")
         regions = []
 
-    return SubWord(
-        keywords=keywords,
+    return SubEntry(
         video_links=video_links,
+        keywords=keywords,
         definitions=definitions,
         regions=regions,
     )
@@ -296,7 +300,6 @@ def parse_subpage(html, word_str) -> SubWord:
 def get_existing_data(filename):
     with open(filename, "r") as f:
         existing_data = json.loads(f.read())
-    # LOG.debug(f"Loaded existing data: {existing_data}")
     return existing_data
 
 
@@ -335,9 +338,11 @@ async def main():
                 word_to_categories[word] = []
             word_to_categories[word].append(category)
 
-    # Load up data from the existing file if given.
+    # Load up data from the existing file if given. We turn the data inside "data" into
+    # a dict where the key is entry_in_english.
     if args.existing_file:
-        word_to_info = get_existing_data(args.existing_file)
+        existing_data = get_existing_data(args.existing_file)
+        word_to_info = {d["entry_in_english"]: d for d in existing_data["data"]}
     else:
         word_to_info = {}
 
@@ -364,19 +369,13 @@ async def main():
         word_dict = word.get_dict()
         word_to_info.update(word_dict)
 
-    # Structure the data better, attach category data.
-    data = {}
+    # Attach category data.
     for word, info in word_to_info.items():
         categories = word_to_categories.get(word, [])
-        data[word] = {
-            "entry_in_english": word,
-            "sub_entries": info,
-            "entry_type": "WORD",
-            "categories": categories,
-        }
+        info["categories"] = categories
 
-    # Flatten the data.
-    out = {"data": list(data.values())}
+    # Flatten the data, structure inside "data".
+    out = {"data": list(word_to_info.values())}
 
     # Build and output the JSON.
     json_output = json.dumps(out)
