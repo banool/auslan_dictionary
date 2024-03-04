@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [ master ]
+  pull_request:
 
 jobs:
   # Check which files / paths have changed. We use this to inform whether we should run
@@ -52,9 +53,11 @@ jobs:
 
     # Build apk. This will be signed.
     - run: flutter build apk
+      if: github.event_name == 'push'
 
     # Publish apk to Github Packages
     - uses: marvinpinto/action-automatic-releases@919008cf3f741b179569b7a6fb4d8860689ab7f0
+      if: github.event_name == 'push'
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "latest"
@@ -64,10 +67,12 @@ jobs:
 
     # Build appbundle. This will be signed.
     - run: flutter build appbundle
+      if: github.event_name == 'push'
 
     # Publish appbundle to the store.
     - name: Publish Android build to internal track
       uses: r0adkll/upload-google-play@v1.0.15
+      if: github.event_name == 'push'
       with:
         serviceAccountJsonPlainText: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
         packageName: com.banool.auslan_dictionary
