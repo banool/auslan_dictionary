@@ -18,7 +18,7 @@ cd "$(dirname "$0")"
 
 if [[ -z $REGEX ]]; then
     echo "No regex was passed, copying in current data"
-    cp ../assets/data/words_latest.json previous.json
+    cp ../assets/data/data.json previous.json
 else
     echo "Regex was passed, using current previous.json"
 fi

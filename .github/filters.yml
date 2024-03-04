@@ -13,3 +13,8 @@ android:
   - 'android/**'
   - 'pubspec.yaml'
   - 'pubspec.lock'
+
+data:
+  - *force
+  - *ci
+  - 'assets/**'

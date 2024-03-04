@@ -21,13 +21,14 @@ jobs:
       with:
         filters: '.github/filters.yml'
     - name: Print changes
-      run: printf "Android files changed $ANDROID\n"
+      run: printf "Android files changed $ANDROID\Data files changed $DATA\n"
       env:
         ANDROID: ${{ steps.filter.outputs.android }}
+        DATA: ${{ steps.filter.outputs.data }}
 
   build_android:
     needs: [changes]
-    if: needs.changes.outputs.android == 'true'
+    if: needs.changes.outputs.android == 'true' || needs.changes.outputs.data == 'true'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -53,11 +54,11 @@ jobs:
 
     # Build apk. This will be signed.
     - run: flutter build apk
-      if: github.event_name == 'push'
+      if: needs.changes.outputs.android == 'true' && github.event_name == 'push'
 
     # Publish apk to Github Packages
     - uses: marvinpinto/action-automatic-releases@919008cf3f741b179569b7a6fb4d8860689ab7f0
-      if: github.event_name == 'push'
+      if: needs.changes.outputs.android == 'true' && github.event_name == 'push'
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "latest"
@@ -67,12 +68,12 @@ jobs:
 
     # Build appbundle. This will be signed.
     - run: flutter build appbundle
-      if: github.event_name == 'push'
+      if: needs.changes.outputs.android == 'true' && github.event_name == 'push'
 
     # Publish appbundle to the store.
     - name: Publish Android build to internal track
       uses: r0adkll/upload-google-play@v1.0.15
-      if: github.event_name == 'push'
+      if: needs.changes.outputs.android == 'true' && github.event_name == 'push'
       with:
         serviceAccountJsonPlainText: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
         packageName: com.banool.auslan_dictionary
