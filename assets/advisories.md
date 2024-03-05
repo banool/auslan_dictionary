@@ -23,7 +23,9 @@ Believe it or not but as of Jan 1st 2024 there are ~158,000 of you who use this 
 END===
 START===
 DATE===2024-03-04
-## Please update!
+## Community Lists!
 
-You might be reading this because the app failed to start. If so, you are on an old version of the app. Please head to the App Store or Play Store and update to fix this issue. Apologies!
+You'll notice on the lists page there are now two tabs, one for your own lists and a new tab for community lists. These predefined lists are defined based on the categories defined on the Auslan Signbank website. This was a much requested feature, enjoy!!
+
+P.S. You might be reading this because the app failed to start. If not, please ignore, but if so, you are on an old version of the app. Please head to the App Store or Play Store and update the app to fix this issue. Apologies, this one slipped through my testing!
 END===
