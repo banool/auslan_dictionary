@@ -21,3 +21,9 @@ DATE===2024-01-03
 
 Believe it or not but as of Jan 1st 2024 there are ~158,000 of you who use this app! That's absolutely incredible, thank you so much for using the app and learning Auslan. Happy New Year!!
 END===
+START===
+DATE===2024-03-04
+## Please update!
+
+You might be reading this because the app failed to start. If so, you are on an old version of the app. Please head to the App Store or Play Store and update to fix this issue. Apologies!
+END===
