@@ -206,7 +206,7 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: "820b48beece04644b959480456d2aad167336c96"
+      resolved-ref: fd750b708defacc8cc57f6d88d959e8667772b41
       url: "https://github.com/banool/dictionarylib.git"
     source: git
     version: "0.1.20"

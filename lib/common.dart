@@ -24,6 +24,11 @@ Future<void> navigateToEntryPage(
   );
 }
 
+// We set a short timeout because if we fail to get the yanked versions and it
+// turns out they're running a yanked version, the worst case is just that
+// they'll go to the error fallback page instead, which is just more confusing.
+// Given most people will not be on yanked versions we don't want to make this
+// add too much startup latency.
 class MyYankedVersionChecker extends YankedVersionChecker {
   @override
   Future<List<String>> getYankedVersions() async {
@@ -31,7 +36,7 @@ class MyYankedVersionChecker extends YankedVersionChecker {
       var response = await http
           .get(Uri.parse(
               'https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/yanked_versions'))
-          .timeout(const Duration(milliseconds: 2500));
+          .timeout(const Duration(milliseconds: 2250));
       if (response.statusCode != 200) {
         throw "HTTP response for getting yanked versions was non 200: ${response.statusCode}";
       }

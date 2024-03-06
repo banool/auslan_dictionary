@@ -20,18 +20,26 @@ Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
   // Preserve the splash screen while the app initializes.
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  await setupPhaseOne(Uri.parse(
-      "https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/advisories.md"));
+  await setupPhaseOne();
 
-  // If the user needs to upgrade, this will run an app telling them to do so
-  // and just block forever. It is bad to do this in setup, but it is simpler,
-  // so let's just do it this way for now.
-  showUpgradePageIfApplicable(
-      MyYankedVersionChecker(), IOS_APP_ID, ANDROID_APP_ID);
+  // It is okay to check for yanked versions and do phase two setup at the same
+  // time because phase two setup never throws. We want to do them together
+  // because they both make network calls, so we can do them concurrently.
+  await Future.wait<void>([
+    (() async {
+      await setupPhaseTwo(Uri.parse(
+          "https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/advisories.md"));
+    })(),
+    (() async {
+      // If the user needs to upgrade, this will throw a specific error that main()
+      // can catch to show the ForceUpgradePage.
+      await MyYankedVersionChecker().throwIfShouldUpgrade();
+    })(),
+  ]);
 
   MyEntryLoader myEntryLoader = MyEntryLoader();
 
-  await setupPhaseTwo(
+  await setupPhaseThree(
       paramEntryLoader: myEntryLoader,
       knobUrlBase: KNOBS_URL_BASE,
       entriesGlobalReplacement: entriesGlobalReplacement);
@@ -53,6 +61,9 @@ Future<void> main() async {
   try {
     await setup();
     runApp(RootApp(startingLocale: LOCALE_ENGLISH));
+  } on YankedVersionError catch (e) {
+    runApp(ForceUpgradePage(
+        error: e, iOSAppId: IOS_APP_ID, androidAppId: ANDROID_APP_ID));
   } catch (error, stackTrace) {
     runApp(ErrorFallback(
       appName: APP_NAME,
