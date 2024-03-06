@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 
 import 'package:dictionarylib/dictionarylib.dart';
+import 'package:dictionarylib/force_upgrade_page.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -22,11 +23,16 @@ Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
   await setupPhaseOne(Uri.parse(
       "https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/advisories.md"));
 
+  // If the user needs to upgrade, this will run an app telling them to do so
+  // and just block forever. It is bad to do this in setup, but it is simpler,
+  // so let's just do it this way for now.
+  showUpgradePageIfApplicable(
+      MyYankedVersionChecker(), IOS_APP_ID, ANDROID_APP_ID);
+
   MyEntryLoader myEntryLoader = MyEntryLoader();
 
   await setupPhaseTwo(
       paramEntryLoader: myEntryLoader,
-      downloadWordsData: true,
       knobUrlBase: KNOBS_URL_BASE,
       entriesGlobalReplacement: entriesGlobalReplacement);
 

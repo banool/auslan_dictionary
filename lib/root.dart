@@ -116,8 +116,8 @@ class _RootAppState extends State<RootApp> {
                 reportDataProblemUrl: 'https://www.auslan.org.au/feedback/',
                 reportAppProblemUrl:
                     'https://github.com/banool/auslan_dictionary/issues',
-                iOSAppId: "1531368368",
-                androidAppId: "com.banool.auslan_dictionary",
+                iOSAppId: IOS_APP_ID,
+                androidAppId: ANDROID_APP_ID,
               ));
             }),
       ]);
