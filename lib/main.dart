@@ -1,7 +1,7 @@
 import 'dart:io' show Platform;
 
 import 'package:dictionarylib/dictionarylib.dart';
-import 'package:dictionarylib/force_upgrade_page.dart';
+import 'package:dictionarylib/page_force_upgrade.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -33,7 +33,9 @@ Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
     (() async {
       // If the user needs to upgrade, this will throw a specific error that main()
       // can catch to show the ForceUpgradePage.
-      await MyYankedVersionChecker().throwIfShouldUpgrade();
+      await GitHubYankedVersionChecker(
+              "https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/yanked_versions")
+          .throwIfShouldUpgrade();
     })(),
   ]);
 
