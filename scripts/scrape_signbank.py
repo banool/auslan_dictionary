@@ -378,7 +378,7 @@ async def main():
     out = {"data": list(word_to_info.values())}
 
     # Build and output the JSON.
-    json_output = json.dumps(out)
+    json_output = json.dumps(out, indent=2)
     if args.stdout:
         print(json_output)
     else:
