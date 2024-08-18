@@ -47,7 +47,7 @@ scripts/scrape.sh
 if diff scripts/all_letters.json assets/data/data.json > /dev/null; then
     echo "No new data, exiting..."
     onexit
-    exit 1
+    exit 0
 fi
 
 # Move data into place.
