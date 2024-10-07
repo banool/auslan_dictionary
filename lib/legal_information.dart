@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-List<Widget> buildLegalInformationChildren(Color mainColor) {
+List<Widget> buildLegalInformationChildren() {
   return [
     const Text(
         "The Auslan information (including videos) displayed in this app is taken from Auslan Signbank (Johnston, T., & Cassidy, S. (2008). Auslan Signbank (auslan.org.au) Sydney: Macquarie University & Trevor Johnston).\n",
@@ -16,7 +16,7 @@ List<Widget> buildLegalInformationChildren(Color mainColor) {
       child: Text(
           "This content is licensed under\nCreative Commons BY-NC-ND 4.0.",
           textAlign: TextAlign.center,
-          style: TextStyle(color: mainColor)),
+          style: TextStyle()),
       onPressed: () async {
         const url = 'https://creativecommons.org/licenses/by-nc-nd/4.0/';
         await launch(url, forceSafariVC: false);

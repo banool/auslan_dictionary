@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:carousel_slider/carousel_slider.dart';
+import 'package:carousel_slider/carousel_slider.dart' as Carousel;
 import 'package:dictionarylib/common.dart';
 import 'package:dictionarylib/globals.dart';
 import 'package:flutter/foundation.dart';
@@ -50,17 +50,13 @@ double getDoubleFromPlaybackSpeed(PlaybackSpeed playbackSpeed) {
 
 Widget getPlaybackSpeedDropdownWidget(void Function(PlaybackSpeed?) onChanged,
     {bool enabled = true}) {
-  Color? color;
-  if (!enabled) {
-    color = APP_BAR_DISABLED_COLOR;
-  }
   return Container(
       child: Align(
           alignment: Alignment.center,
           child: PopupMenuButton<PlaybackSpeed>(
             icon: Icon(
               Icons.slow_motion_video,
-              color: color,
+              //color: color,
             ),
             enabled: enabled,
             itemBuilder: (BuildContext context) {
@@ -114,7 +110,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   List<Future<void>> initializeVideoPlayerFutures = [];
 
-  CarouselController? carouselController;
+  Carousel.CarouselSliderController? carouselController;
 
   int currentPage = 0;
 
@@ -127,7 +123,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       idx += 1;
     }
     // Make carousel slider controller.
-    carouselController = CarouselController();
+    carouselController = Carousel.CarouselSliderController();
     super.initState();
   }
 
@@ -335,10 +331,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     } else {
       aspectRatio = 16 / 9;
     }
-    var slider = CarouselSlider(
+    var slider = Carousel.CarouselSlider(
       carouselController: carouselController,
       items: items,
-      options: CarouselOptions(
+      options: Carousel.CarouselOptions(
         aspectRatio: aspectRatio,
         autoPlay: false,
         viewportFraction: 0.8,

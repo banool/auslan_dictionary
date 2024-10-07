@@ -13,6 +13,7 @@ import 'video_player_screen.dart';
 Widget getAuslanSignbankLaunchAppBarActionWidget(
     BuildContext context, String word, int currentPage,
     {bool enabled = true}) {
+  ColorScheme currentTheme = Theme.of(context).colorScheme;
   return buildActionButton(
     context,
     const Icon(Icons.public, semanticLabel: "Link to sign in Auslan Signbank"),
@@ -21,7 +22,7 @@ Widget getAuslanSignbankLaunchAppBarActionWidget(
           'http://www.auslan.org.au/dictionary/words/$word-${currentPage + 1}.html';
       await launch(url, forceSafariVC: false);
     },
-    APP_BAR_DISABLED_COLOR,
+    currentTheme.error,
     enabled: enabled,
   );
 }
@@ -88,6 +89,7 @@ class _EntryPageState extends State<EntryPage> {
 
   @override
   Widget build(BuildContext context) {
+    ColorScheme currentTheme = Theme.of(context).colorScheme;
     List<Widget> pages = [];
     List<MySubEntry> subEntries = entry.getSubEntries() as List<MySubEntry>;
     for (int i = 0; i < subEntries.length; i++) {
@@ -122,7 +124,7 @@ class _EntryPageState extends State<EntryPage> {
             await removeEntryFromFavourites(entry);
           }
         },
-        APP_BAR_DISABLED_COLOR,
+        currentTheme.error,
       ));
     }
 
@@ -138,7 +140,7 @@ class _EntryPageState extends State<EntryPage> {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content:
                   Text("Set playback speed to ${getPlaybackSpeedString(p!)}"),
-              backgroundColor: MAIN_COLOR,
+              //backgroundColor: cur,
               duration: const Duration(milliseconds: 1000)));
         },
       )
@@ -154,9 +156,9 @@ class _EntryPageState extends State<EntryPage> {
             child: DotsIndicator(
               dotsCount: entry.getSubEntries().length,
               position: currentPage,
-              decorator: const DotsDecorator(
-                color: Colors.black, // Inactive color
-                activeColor: MAIN_COLOR,
+              decorator: DotsDecorator(
+                color: currentTheme.error, // Inactive color
+                activeColor: currentTheme.primary,
               ),
             ),
           ),
@@ -174,6 +176,7 @@ class _EntryPageState extends State<EntryPage> {
 
 Widget? getRelatedEntriesWidget(BuildContext context, MySubEntry subEntry,
     bool shouldUseHorizontalDisplay) {
+  ColorScheme currentTheme = Theme.of(context).colorScheme;
   int numKeywords = subEntry.keywords.length;
   if (numKeywords == 0) {
     return null;
@@ -183,16 +186,13 @@ Widget? getRelatedEntriesWidget(BuildContext context, MySubEntry subEntry,
 
   int idx = 0;
   for (String keyword in subEntry.keywords) {
-    Color color;
     void Function()? navFunction;
     Entry? relatedEntry;
     if (keyedByEnglishEntriesGlobal.containsKey(keyword)) {
       relatedEntry = keyedByEnglishEntriesGlobal[keyword];
-      color = MAIN_COLOR;
       navFunction = () => navigateToEntryPage(context, relatedEntry!, true);
     } else {
       relatedEntry = null;
-      color = Colors.black;
       navFunction = null;
     }
     String suffix;
@@ -203,7 +203,7 @@ Widget? getRelatedEntriesWidget(BuildContext context, MySubEntry subEntry,
     }
     textSpans.add(TextSpan(
       text: "$keyword$suffix",
-      style: TextStyle(color: color),
+      style: TextStyle(),
       recognizer: TapGestureRecognizer()..onTap = navFunction,
     ));
     idx += 1;
@@ -211,7 +211,7 @@ Widget? getRelatedEntriesWidget(BuildContext context, MySubEntry subEntry,
 
   var initial = const TextSpan(
       text: "Related words: ",
-      style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold));
+      style: TextStyle(fontWeight: FontWeight.bold));
   textSpans = [initial] + textSpans;
   var richText = RichText(
     text: TextSpan(children: textSpans),
