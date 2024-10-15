@@ -43,12 +43,21 @@ class RootApp extends StatefulWidget {
       state.locale = systemLocale;
     });
   }
+
+  static void applyThemeOverride(BuildContext context, ThemeMode themeMode) {
+    _RootAppState state = context.findAncestorStateOfType<_RootAppState>()!;
+
+    state.setState(() {
+      state.themeMode = themeMode;
+    });
+  }
 }
 
 class _RootAppState extends State<RootApp> {
   _RootAppState({required this.locale});
 
   Locale locale;
+  ThemeMode themeMode = ThemeMode.system;
 
   final GoRouter router = GoRouter(
       navigatorKey: rootNavigatorKey,
@@ -68,8 +77,6 @@ class _RootAppState extends State<RootApp> {
                   // https://stackoverflow.com/a/73458529/3846032
                   key: UniqueKey(),
                   child: SearchPage(
-                    mainColor: MAIN_COLOR,
-                    appBarDisabledColor: APP_BAR_DISABLED_COLOR,
                     navigateToEntryPage: navigateToEntryPage,
                     initialQuery: initialQuery,
                     navigateToFirstMatch: navigateToFirstMatch,
@@ -81,12 +88,8 @@ class _RootAppState extends State<RootApp> {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return NoTransitionPage(
                 child: EntryListsOverviewPage(
-                  mainColor: MAIN_COLOR,
-                  appBarDisabledColor: APP_BAR_DISABLED_COLOR,
                   buildEntryListWidgetCallback: (entryList) => EntryListPage(
                     entryList: entryList,
-                    mainColor: MAIN_COLOR,
-                    appBarDisabledColor: APP_BAR_DISABLED_COLOR,
                     navigateToEntryPage: navigateToEntryPage,
                   ),
                 ),
@@ -99,8 +102,6 @@ class _RootAppState extends State<RootApp> {
               return NoTransitionPage(
                   child: FlashcardsLandingPage(
                 controller: controller,
-                mainColor: MAIN_COLOR,
-                appBarDisabledColor: APP_BAR_DISABLED_COLOR,
               ));
             }),
         GoRoute(
@@ -109,8 +110,6 @@ class _RootAppState extends State<RootApp> {
               return const NoTransitionPage(
                   child: SettingsPage(
                 appName: APP_NAME,
-                mainColor: MAIN_COLOR,
-                appBarDisabledColor: APP_BAR_DISABLED_COLOR,
                 additionalTopWidgets: [],
                 buildLegalInformationChildren: buildLegalInformationChildren,
                 reportDataProblemUrl: 'https://www.auslan.org.au/feedback/',
@@ -139,19 +138,22 @@ class _RootAppState extends State<RootApp> {
           supportedLocales: LANGUAGE_CODE_TO_LOCALE.values,
           locale: locale,
           debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-              appBarTheme: const AppBarTheme(
-                backgroundColor: MAIN_COLOR,
-                foregroundColor: Colors.white,
-                actionsIconTheme: IconThemeData(color: Colors.white),
-                iconTheme: IconThemeData(color: Colors.white),
-              ),
-              visualDensity: VisualDensity.adaptivePlatformDensity,
-              // Make swiping to pop back the navigation work.
-              pageTransitionsTheme: const PageTransitionsTheme(builders: {
-                TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-                TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-              })),
+          theme: ThemeData(),
+          darkTheme: ThemeData.dark(),
+          themeMode: themeMode,
+        //   theme: ThemeData(
+        //       appBarTheme: const AppBarTheme(
+        //         backgroundColor: MAIN_COLOR,
+        //         foregroundColor: Colors.white,
+        //         actionsIconTheme: IconThemeData(color: Colors.white),
+        //         iconTheme: IconThemeData(color: Colors.white),
+        //       ),
+        //       visualDensity: VisualDensity.adaptivePlatformDensity,
+        //       // Make swiping to pop back the navigation work.
+        //       pageTransitionsTheme: const PageTransitionsTheme(builders: {
+        //         TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+        //         TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        //       })),
           routerConfig: router,
         ));
   }

@@ -210,11 +210,11 @@ class FlashcardsPageState extends State<FlashcardsPage> {
           completeCard(currentCard!, rating: rating, forceUseTimer: isNext);
         },
         style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all(backgroundColor),
-            overlayColor: MaterialStateProperty.all(overlayColor),
-            padding: MaterialStateProperty.all(const EdgeInsets.only(
+            backgroundColor: WidgetStateProperty.all(backgroundColor),
+            overlayColor: WidgetStateProperty.all(overlayColor),
+            padding: WidgetStateProperty.all(const EdgeInsets.only(
                 top: 14, bottom: 14, left: 40, right: 40)),
-            side: MaterialStateProperty.all(
+            side: WidgetStateProperty.all(
                 BorderSide(color: borderColor, width: 1.5))),
         child: Text(
           textData,
@@ -225,6 +225,7 @@ class FlashcardsPageState extends State<FlashcardsPage> {
 
   Widget buildFlashcardWidget(DRCard card, SubEntry subEntry, String word,
       bool wordToSign, bool revealed) {
+    ColorScheme currentTheme = Theme.of(context).colorScheme;
     var shouldUseHorizontalDisplay = getShouldUseHorizontalLayout(context);
 
     // See here for an explanation of why I pass in a key here:
@@ -299,17 +300,17 @@ class FlashcardsPageState extends State<FlashcardsPage> {
       TextButton(
           style: ButtonStyle(
             padding:
-                MaterialStateProperty.all<EdgeInsets>(const EdgeInsets.all(10)),
-            backgroundColor: MaterialStateProperty.resolveWith(
+                WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.all(10)),
+            backgroundColor: WidgetStateProperty.resolveWith(
               (states) {
-                if (states.contains(MaterialState.disabled)) {
+                if (states.contains(WidgetState.disabled)) {
                   return Colors.grey;
                 } else {
-                  return MAIN_COLOR;
+                  return currentTheme.primary;
                 }
               },
             ),
-            foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+            foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
           ),
           onPressed: () async {
             await Navigator.push(
@@ -501,6 +502,8 @@ class FlashcardsPageState extends State<FlashcardsPage> {
 
   @override
   Widget build(BuildContext context) {
+    ColorScheme currentTheme = Theme.of(context).colorScheme;
+
     Widget body;
     String appBarTitle;
     List<Widget> actions = [];
@@ -544,7 +547,7 @@ class FlashcardsPageState extends State<FlashcardsPage> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(
                 "Set playback speed to ${getPlaybackSpeedString(playbackSpeed)}"),
-            backgroundColor: MAIN_COLOR,
+            backgroundColor: currentTheme.primary,
             duration: const Duration(milliseconds: 1000)));
       }, enabled: videoIsShowing));
     } else {
@@ -553,8 +556,7 @@ class FlashcardsPageState extends State<FlashcardsPage> {
     }
 
     // Disable swipe back with WillPopScope.
-    return WillPopScope(
-        onWillPop: () async => false,
+    return PopScope(
         child: Scaffold(
           appBar: AppBar(
               centerTitle: true,
