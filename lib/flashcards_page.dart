@@ -8,7 +8,6 @@ import 'package:dictionarylib/revision.dart';
 import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 import 'package:flutter/material.dart';
 
-import 'common.dart';
 import 'entries_types.dart';
 import 'video_player_screen.dart';
 import 'word_page.dart';
@@ -149,14 +148,13 @@ class FlashcardsPageState extends State<FlashcardsPage> {
     String textData;
     Color backgroundColor;
     Color overlayColor; // For tap animation, should be translucent.
-    Color textColor;
+    Color? textColor;
     Color borderColor;
     if (rating == Rating.Easy && isNext) {
       textData = "Next";
       overlayColor = const Color.fromARGB(92, 30, 143, 250);
       backgroundColor = const Color.fromARGB(0, 255, 255, 255);
       borderColor = const Color.fromARGB(255, 116, 116, 116);
-      textColor = const Color.fromARGB(204, 0, 0, 0);
     } else {
       switch (rating) {
         case Rating.Hard:
@@ -175,12 +173,10 @@ class FlashcardsPageState extends State<FlashcardsPage> {
           case Rating.Hard:
             backgroundColor = const Color.fromARGB(118, 255, 104, 104);
             borderColor = const Color.fromARGB(255, 189, 40, 29);
-            textColor = const Color.fromARGB(255, 179, 59, 50);
             break;
           case Rating.Good:
             backgroundColor = const Color.fromARGB(60, 88, 255, 124);
             borderColor = const Color.fromARGB(255, 33, 102, 37);
-            textColor = const Color.fromARGB(255, 63, 156, 67);
             break;
           default:
             throw "Rating $rating not supported yet";
@@ -188,7 +184,6 @@ class FlashcardsPageState extends State<FlashcardsPage> {
       } else {
         backgroundColor = const Color.fromARGB(0, 255, 255, 255);
         borderColor = const Color.fromARGB(255, 116, 116, 116);
-        textColor = const Color.fromARGB(204, 0, 0, 0);
       }
     }
     return TextButton(
@@ -558,20 +553,20 @@ class FlashcardsPageState extends State<FlashcardsPage> {
     // Disable swipe back with WillPopScope.
     return PopScope(
         child: Scaffold(
-          appBar: AppBar(
-              centerTitle: true,
-              title: Text(
-                appBarTitle,
-                textAlign: TextAlign.center,
-              ),
-              actions: buildActionButtons(actions),
-              leading: IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () async {
-                    await beforePop();
-                    Navigator.of(context).pop();
-                  })),
-          body: body,
-        ));
+      appBar: AppBar(
+          centerTitle: true,
+          title: Text(
+            appBarTitle,
+            textAlign: TextAlign.center,
+          ),
+          actions: buildActionButtons(actions),
+          leading: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () async {
+                await beforePop();
+                Navigator.of(context).pop();
+              })),
+      body: body,
+    ));
   }
 }
