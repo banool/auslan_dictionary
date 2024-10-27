@@ -22,7 +22,7 @@ Widget getAuslanSignbankLaunchAppBarActionWidget(
           'http://www.auslan.org.au/dictionary/words/$word-${currentPage + 1}.html';
       await launch(url, forceSafariVC: false);
     },
-    currentTheme.error,
+    currentTheme.scrim,
     enabled: enabled,
   );
 }
@@ -210,8 +210,7 @@ Widget? getRelatedEntriesWidget(BuildContext context, MySubEntry subEntry,
   }
 
   var initial = const TextSpan(
-      text: "Related words: ",
-      style: TextStyle(fontWeight: FontWeight.bold));
+      text: "Related words: ", style: TextStyle(fontWeight: FontWeight.bold));
   textSpans = [initial] + textSpans;
   var richText = RichText(
     text: TextSpan(children: textSpans),

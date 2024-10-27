@@ -8,8 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 
-import 'common.dart';
-
 enum PlaybackSpeed {
   PointFiveZero,
   PointSevenFive,
@@ -319,8 +317,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             }
 
             var player = VideoPlayer(controller);
-            var videoContainer =
-                Container(padding: const EdgeInsets.only(top: 15), child: player);
+            var videoContainer = Container(
+                padding: const EdgeInsets.only(top: 15), child: player);
             return videoContainer;
           });
       items.add(futureBuilder);
