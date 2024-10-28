@@ -28,7 +28,7 @@ Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
   await Future.wait<void>([
     (() async {
       await setupPhaseTwo(Uri.parse(
-          "https://raw.githubusercontent.com/banool/auslan_dictionary/8a2e20acfb7ca49b1bcd459d4eb45862281610cb/assets/advisories.md"));
+          "https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/advisories.md"));
     })(),
     (() async {
       // If the user needs to upgrade, this will throw a specific error that main()
