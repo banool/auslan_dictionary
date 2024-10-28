@@ -13,7 +13,6 @@ import 'video_player_screen.dart';
 Widget getAuslanSignbankLaunchAppBarActionWidget(
     BuildContext context, String word, int currentPage,
     {bool enabled = true}) {
-  ColorScheme currentTheme = Theme.of(context).colorScheme;
   return buildActionButton(
     context,
     const Icon(Icons.public, semanticLabel: "Link to sign in Auslan Signbank"),
@@ -22,7 +21,6 @@ Widget getAuslanSignbankLaunchAppBarActionWidget(
           'http://www.auslan.org.au/dictionary/words/$word-${currentPage + 1}.html';
       await launch(url, forceSafariVC: false);
     },
-    currentTheme.scrim,
     enabled: enabled,
   );
 }
@@ -124,7 +122,6 @@ class _EntryPageState extends State<EntryPage> {
             await removeEntryFromFavourites(entry);
           }
         },
-        currentTheme.error,
       ));
     }
 
@@ -176,7 +173,6 @@ class _EntryPageState extends State<EntryPage> {
 
 Widget? getRelatedEntriesWidget(BuildContext context, MySubEntry subEntry,
     bool shouldUseHorizontalDisplay) {
-  ColorScheme currentTheme = Theme.of(context).colorScheme;
   int numKeywords = subEntry.keywords.length;
   if (numKeywords == 0) {
     return null;

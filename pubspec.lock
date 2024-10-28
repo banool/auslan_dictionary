@@ -211,10 +211,10 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: "667373a52b71a5fd2e3dbb3e62e41675a3249734"
+      resolved-ref: "5ce15cd83af0a403f327898239dea97aa5ebe65d"
       url: "https://github.com/banool/dictionarylib.git"
     source: git
-    version: "0.2.2"
+    version: "0.2.6"
   dolphinsr_dart:
     dependency: "direct main"
     description:
@@ -323,18 +323,18 @@ packages:
     dependency: transitive
     description:
       name: flutter_markdown
-      sha256: "04c4722cc36ec5af38acc38ece70d22d3c2123c61305d555750a091517bbe504"
+      sha256: f0e599ba89c9946c8e051780f0ec99aba4ba15895e0380a7ab68f420046fc44e
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.23"
+    version: "0.7.4+1"
   flutter_native_splash:
     dependency: "direct main"
     description:
       name: flutter_native_splash
-      sha256: "558f10070f03ee71f850a78f7136ab239a67636a294a44a06b6b7345178edb1e"
+      sha256: ee5c9bd2b74ea8676442fd4ab876b5d41681df49276488854d6c81a5377c0ef1
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.10"
+    version: "2.4.2"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -362,10 +362,10 @@ packages:
     dependency: "direct main"
     description:
       name: go_router
-      sha256: bd7e671d26fd39c78cba82070fa34ef1f830b0e7ed1aeebccabc6561302a7ee5
+      sha256: "6f1b756f6e863259a99135ff3c95026c3cdca17d10ebef2bba2261a25ddc8bbc"
       url: "https://pub.dev"
     source: hosted
-    version: "6.5.9"
+    version: "14.3.0"
   html:
     dependency: transitive
     description:
@@ -390,6 +390,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.2"
+  http_proxy:
+    dependency: transitive
+    description:
+      path: "."
+      ref: master
+      resolved-ref: "570a47c44dce031d3d57bd68e709ad7b0c11b5aa"
+      url: "https://github.com/emiliodallatorre/http_proxy"
+    source: git
+    version: "1.2.2"
   image:
     dependency: transitive
     description:
@@ -411,14 +420,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.19.0"
-  js:
-    dependency: transitive
-    description:
-      name: js
-      sha256: f2c445dce49627136094980615a031419f7f3eb393237e4ecd97ac15dea343f3
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.6.7"
   json_annotation:
     dependency: transitive
     description:
@@ -864,14 +865,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.3.0+3"
-  system_proxy:
-    dependency: "direct main"
-    description:
-      name: system_proxy
-      sha256: bbdfc9736a963409941fb0e7c494606c1f13c2be34de15833ee385da83cf7ab0
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.0"
   term_glyph:
     dependency: transitive
     description:

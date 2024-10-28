@@ -31,6 +31,8 @@ bundle install
 pod install
 ```
 
+Try installing cocoapods with brew instead of gem: https://github.com/flutter/flutter/issues/157694.
+
 If you have issues with the cert stuff, try this:
 ```
 . publish.env && yes | fastlane match nuke distribution && yes | fastlane match nuke development
@@ -63,7 +65,7 @@ The Apple App Store will expect that you also upload a build for this app versio
 
 For Android, you need to just go to the Google Play Console and do it manually right now.
 
-See my [Stack OVverflow question](https://stackoverflow.com/questions/71699078/how-to-locate-elements-in-ios-ui-test-for-flutter-fastlane-screnshots/71801310#71801310) for more information about this whole setup.
+See my [Stack Overflow question](https://stackoverflow.com/questions/71699078/how-to-locate-elements-in-ios-ui-test-for-flutter-fastlane-screnshots/71801310#71801310) for more information about this whole setup.
 
 ## General dev guide
 When first pulling this repo, add this to `.git/hooks/pre-commit`:
