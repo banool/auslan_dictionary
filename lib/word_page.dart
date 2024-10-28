@@ -3,7 +3,6 @@ import 'package:dictionarylib/common.dart';
 import 'package:dictionarylib/entry_types.dart';
 import 'package:dictionarylib/globals.dart';
 import 'package:dots_indicator/dots_indicator.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -87,7 +86,6 @@ class _EntryPageState extends State<EntryPage> {
 
   @override
   Widget build(BuildContext context) {
-    ColorScheme currentTheme = Theme.of(context).colorScheme;
     List<Widget> pages = [];
     List<MySubEntry> subEntries = entry.getSubEntries() as List<MySubEntry>;
     for (int i = 0; i < subEntries.length; i++) {
@@ -154,8 +152,7 @@ class _EntryPageState extends State<EntryPage> {
               dotsCount: entry.getSubEntries().length,
               position: currentPage,
               decorator: DotsDecorator(
-                color: currentTheme.error, // Inactive color
-                activeColor: currentTheme.primary,
+                activeColor: MAIN_COLOR,
               ),
             ),
           ),
@@ -183,62 +180,6 @@ Widget? getRelatedEntriesWidget(BuildContext context, MySubEntry subEntry,
               : null,
       navigateToEntryPage: (context, entry, showFavouritesButton) =>
           navigateToEntryPage(context, entry, showFavouritesButton));
-
-  ColorScheme colorScheme = Theme.of(context).colorScheme;
-
-  int numKeywords = subEntry.keywords.length;
-  if (numKeywords == 0) {
-    return null;
-  }
-
-  List<TextSpan> textSpans = [];
-
-  int idx = 0;
-  for (String keyword in subEntry.keywords) {
-    void Function()? navFunction;
-    Entry? relatedEntry;
-    if (keyedByEnglishEntriesGlobal.containsKey(keyword)) {
-      relatedEntry = keyedByEnglishEntriesGlobal[keyword];
-      navFunction = () => navigateToEntryPage(context, relatedEntry!, true);
-    } else {
-      relatedEntry = null;
-      navFunction = null;
-    }
-    String suffix;
-    if (idx < numKeywords - 1) {
-      suffix = ", ";
-    } else {
-      suffix = "";
-    }
-    textSpans.add(TextSpan(
-      text: "$keyword$suffix",
-      style: TextStyle(
-        color: colorScheme.onSurface,
-      ),
-      recognizer: TapGestureRecognizer()..onTap = navFunction,
-    ));
-    idx += 1;
-  }
-
-  var initial = TextSpan(
-      text: "Related words: ",
-      style:
-          TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold));
-  textSpans = [initial] + textSpans;
-  var richText = RichText(
-    text: TextSpan(children: textSpans),
-    textAlign: TextAlign.center,
-  );
-
-  if (shouldUseHorizontalDisplay) {
-    return Padding(
-        padding: const EdgeInsets.only(left: 10.0, right: 20.0, top: 5.0),
-        child: richText);
-  } else {
-    return Padding(
-        padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 15.0),
-        child: richText);
-  }
 }
 
 Widget getRegionalInformationWidget(
