@@ -70,18 +70,19 @@ class _RootAppState extends State<RootApp> {
         GoRoute(
             path: SEARCH_ROUTE,
             pageBuilder: (BuildContext context, GoRouterState state) {
-              String? initialQuery = state.queryParams["query"];
+              String? initialQuery = state.uri.queryParameters["query"];
               bool navigateToFirstMatch =
-                  state.queryParams["navigate_to_first_match"] == "true";
+                  state.uri.queryParameters["navigate_to_first_match"] ==
+                      "true";
               return NoTransitionPage(
-                  // https://stackoverflow.com/a/73458529/3846032
-                  key: UniqueKey(),
-                  child: SearchPage(
-                    navigateToEntryPage: navigateToEntryPage,
-                    initialQuery: initialQuery,
-                    navigateToFirstMatch: navigateToFirstMatch,
-                    includeEntryTypeButton: false,
-                  ));
+                key: UniqueKey(),
+                child: SearchPage(
+                  navigateToEntryPage: navigateToEntryPage,
+                  initialQuery: initialQuery,
+                  navigateToFirstMatch: navigateToFirstMatch,
+                  includeEntryTypeButton: false,
+                ),
+              );
             }),
         GoRoute(
             path: LISTS_ROUTE,
@@ -168,10 +169,19 @@ class _RootAppState extends State<RootApp> {
                 typography: Typography.material2021(
                     colorScheme: ColorScheme.fromSeed(
                         seedColor: Colors.blue, brightness: Brightness.light)),
-                // Update TextButton theme
                 textButtonTheme: TextButtonThemeData(
                   style: ButtonStyle(
                     foregroundColor: WidgetStatePropertyAll(Colors.black),
+                  ),
+                ),
+                iconButtonTheme: IconButtonThemeData(
+                  style: ButtonStyle(
+                    foregroundColor: WidgetStateProperty.resolveWith<Color>(
+                      (Set<WidgetState> states) =>
+                          states.contains(WidgetState.disabled)
+                              ? Colors.black38
+                              : Colors.white,
+                    ),
                   ),
                 ),
                 // Update InputDecoration theme for search field underline and placeholder
@@ -241,6 +251,16 @@ class _RootAppState extends State<RootApp> {
                 textButtonTheme: TextButtonThemeData(
                   style: ButtonStyle(
                     foregroundColor: WidgetStatePropertyAll(Colors.white),
+                  ),
+                ),
+                iconButtonTheme: IconButtonThemeData(
+                  style: ButtonStyle(
+                    foregroundColor: WidgetStateProperty.resolveWith<Color>(
+                      (Set<WidgetState> states) =>
+                          states.contains(WidgetState.disabled)
+                              ? Colors.white24
+                              : Colors.white,
+                    ),
                   ),
                 ),
                 // Update InputDecoration theme for search field underline and placeholder

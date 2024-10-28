@@ -148,7 +148,6 @@ class FlashcardsPageState extends State<FlashcardsPage> {
     String textData;
     Color backgroundColor;
     Color overlayColor; // For tap animation, should be translucent.
-    Color? textColor;
     Color borderColor;
     if (rating == Rating.Easy && isNext) {
       textData = "Next";
@@ -214,7 +213,7 @@ class FlashcardsPageState extends State<FlashcardsPage> {
         child: Text(
           textData,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16, color: textColor),
+          style: TextStyle(fontSize: 16),
         ));
   }
 
@@ -497,8 +496,6 @@ class FlashcardsPageState extends State<FlashcardsPage> {
 
   @override
   Widget build(BuildContext context) {
-    ColorScheme currentTheme = Theme.of(context).colorScheme;
-
     Widget body;
     String appBarTitle;
     List<Widget> actions = [];
@@ -542,7 +539,6 @@ class FlashcardsPageState extends State<FlashcardsPage> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(
                 "Set playback speed to ${getPlaybackSpeedString(playbackSpeed)}"),
-            backgroundColor: currentTheme.primary,
             duration: const Duration(milliseconds: 1000)));
       }, enabled: videoIsShowing));
     } else {

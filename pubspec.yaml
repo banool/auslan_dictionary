@@ -3,7 +3,7 @@ description: Free video dictionary of Auslan signs
 
 publish_to: 'none'
 
-version: 1.16.12+782
+version: 1.17.1+785
 
 environment:
   sdk: '>=2.18.0 <3.0.0'
@@ -14,7 +14,7 @@ dependencies:
   carousel_slider:
   collection:
   cupertino_icons:
-  device_info_plus:
+  device_info_plus: 11.1.0
   dictionarylib:
     # path: ../dictionarylib
     git:
@@ -28,7 +28,7 @@ dependencies:
   edit_distance: ^0.5.0-nullsafety.0
   flutter_cache_manager:
   flutter_native_splash:
-  go_router: 6.5.9
+  go_router:
   http:
   launch_review:
   mailto:
@@ -37,7 +37,6 @@ dependencies:
   path_provider:
   shared_preferences:
   settings_ui:
-  system_proxy:
   url_launcher:
   video_player:
   video_player_win:
