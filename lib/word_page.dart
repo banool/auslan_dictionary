@@ -173,6 +173,19 @@ class _EntryPageState extends State<EntryPage> {
 
 Widget? getRelatedEntriesWidget(BuildContext context, MySubEntry subEntry,
     bool shouldUseHorizontalDisplay) {
+  return getInnerRelatedEntriesWidget(
+      context: context,
+      subEntry: subEntry,
+      shouldUseHorizontalDisplay: shouldUseHorizontalDisplay,
+      getRelatedEntry: (keyword) =>
+          keyedByEnglishEntriesGlobal.containsKey(keyword)
+              ? keyedByEnglishEntriesGlobal[keyword]
+              : null,
+      navigateToEntryPage: (context, entry, showFavouritesButton) =>
+          navigateToEntryPage(context, entry, showFavouritesButton));
+
+  ColorScheme colorScheme = Theme.of(context).colorScheme;
+
   int numKeywords = subEntry.keywords.length;
   if (numKeywords == 0) {
     return null;
@@ -199,14 +212,18 @@ Widget? getRelatedEntriesWidget(BuildContext context, MySubEntry subEntry,
     }
     textSpans.add(TextSpan(
       text: "$keyword$suffix",
-      style: TextStyle(),
+      style: TextStyle(
+        color: colorScheme.onSurface,
+      ),
       recognizer: TapGestureRecognizer()..onTap = navFunction,
     ));
     idx += 1;
   }
 
-  var initial = const TextSpan(
-      text: "Related words: ", style: TextStyle(fontWeight: FontWeight.bold));
+  var initial = TextSpan(
+      text: "Related words: ",
+      style:
+          TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold));
   textSpans = [initial] + textSpans;
   var richText = RichText(
     text: TextSpan(children: textSpans),

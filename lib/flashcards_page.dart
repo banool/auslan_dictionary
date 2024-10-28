@@ -219,7 +219,7 @@ class FlashcardsPageState extends State<FlashcardsPage> {
 
   Widget buildFlashcardWidget(DRCard card, SubEntry subEntry, String word,
       bool wordToSign, bool revealed) {
-    ColorScheme currentTheme = Theme.of(context).colorScheme;
+    ColorScheme colorScheme = Theme.of(context).colorScheme;
     var shouldUseHorizontalDisplay = getShouldUseHorizontalLayout(context);
 
     // See here for an explanation of why I pass in a key here:
@@ -300,11 +300,10 @@ class FlashcardsPageState extends State<FlashcardsPage> {
                 if (states.contains(WidgetState.disabled)) {
                   return Colors.grey;
                 } else {
-                  return currentTheme.primary;
+                  return colorScheme.primaryContainer;
                 }
               },
             ),
-            foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
           ),
           onPressed: () async {
             await Navigator.push(

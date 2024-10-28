@@ -211,10 +211,10 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: "5ce15cd83af0a403f327898239dea97aa5ebe65d"
+      resolved-ref: d8a3f16cd7ee913642e43fb683f47d1031458f3b
       url: "https://github.com/banool/dictionarylib.git"
     source: git
-    version: "0.2.6"
+    version: "0.2.8"
   dolphinsr_dart:
     dependency: "direct main"
     description:
@@ -533,12 +533,13 @@ packages:
     source: hosted
     version: "1.15.0"
   multi_select_flutter:
-    dependency: "direct main"
+    dependency: transitive
     description:
-      name: multi_select_flutter
-      sha256: "503857b415d390d29159df8a9d92d83c6aac17aaf1c307fb7bcfc77d097d20ed"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: master
+      resolved-ref: "6581736ca3db116b90a7750c51c2c01187179cdb"
+      url: "https://github.com/erickgon92/multi_select_flutter"
+    source: git
     version: "4.1.3"
   octo_image:
     dependency: transitive

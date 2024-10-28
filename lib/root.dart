@@ -145,16 +145,12 @@ class _RootAppState extends State<RootApp> {
               debugShowCheckedModeBanner: false,
               themeMode: themeMode,
               theme: ThemeData(
-                brightness: Brightness.light,
-                primarySwatch: Colors.blue,
-                // Use ColorScheme to define primary and secondary colors
-                colorScheme: ColorScheme.fromSwatch(
-                  primarySwatch: Colors.blue,
-                ).copyWith(
-                  secondary: Colors.blue,
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: MAIN_COLOR,
+                  brightness: Brightness.light,
                 ),
                 appBarTheme: const AppBarTheme(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: MAIN_COLOR,
                   foregroundColor: Colors.white,
                   elevation: 0,
                 ),
@@ -168,7 +164,7 @@ class _RootAppState extends State<RootApp> {
                 ),
                 typography: Typography.material2021(
                     colorScheme: ColorScheme.fromSeed(
-                        seedColor: Colors.blue, brightness: Brightness.light)),
+                        seedColor: MAIN_COLOR, brightness: Brightness.light)),
                 textButtonTheme: TextButtonThemeData(
                   style: ButtonStyle(
                     foregroundColor: WidgetStatePropertyAll(Colors.black),
@@ -180,17 +176,17 @@ class _RootAppState extends State<RootApp> {
                       (Set<WidgetState> states) =>
                           states.contains(WidgetState.disabled)
                               ? Colors.black38
-                              : Colors.white,
+                              : Colors.black,
                     ),
                   ),
                 ),
                 // Update InputDecoration theme for search field underline and placeholder
                 inputDecorationTheme: const InputDecorationTheme(
                   focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue),
+                    borderSide: BorderSide(color: MAIN_COLOR),
                   ),
                   enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue),
+                    borderSide: BorderSide(color: MAIN_COLOR),
                   ),
                   hintStyle: TextStyle(color: Colors.black54),
                 ),
@@ -207,13 +203,14 @@ class _RootAppState extends State<RootApp> {
                   ),
                 ),
                 snackBarTheme: SnackBarThemeData(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: MAIN_COLOR,
                   contentTextStyle: TextStyle(color: Colors.white),
                 ),
                 // Update BottomNavigationBar theme
                 bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-                  selectedItemColor: Colors.blue,
+                  selectedItemColor: MAIN_COLOR,
                   unselectedItemColor: Colors.grey,
+                  backgroundColor: Colors.white,
                 ),
                 visualDensity: VisualDensity.adaptivePlatformDensity,
                 pageTransitionsTheme: const PageTransitionsTheme(builders: {
@@ -222,14 +219,9 @@ class _RootAppState extends State<RootApp> {
                 }),
               ),
               darkTheme: ThemeData(
-                brightness: Brightness.dark,
-                primarySwatch: Colors.blue,
-                // Use ColorScheme to define primary and secondary colors
-                colorScheme: ColorScheme.fromSwatch(
-                  primarySwatch: Colors.blue,
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: MAIN_COLOR,
                   brightness: Brightness.dark,
-                ).copyWith(
-                  secondary: Colors.blue,
                 ),
                 appBarTheme: const AppBarTheme(
                   backgroundColor: Color(0xFF1F1F1F),
@@ -246,7 +238,7 @@ class _RootAppState extends State<RootApp> {
                 ),
                 typography: Typography.material2021(
                     colorScheme: ColorScheme.fromSeed(
-                        seedColor: Colors.blue, brightness: Brightness.dark)),
+                        seedColor: MAIN_COLOR, brightness: Brightness.dark)),
                 // Update TextButton theme
                 textButtonTheme: TextButtonThemeData(
                   style: ButtonStyle(
@@ -266,10 +258,10 @@ class _RootAppState extends State<RootApp> {
                 // Update InputDecoration theme for search field underline and placeholder
                 inputDecorationTheme: const InputDecorationTheme(
                   focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue),
+                    borderSide: BorderSide(color: MAIN_COLOR),
                   ),
                   enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue),
+                    borderSide: BorderSide(color: MAIN_COLOR),
                   ),
                   hintStyle: TextStyle(color: Colors.white60),
                 ),
@@ -286,13 +278,14 @@ class _RootAppState extends State<RootApp> {
                   ),
                 ),
                 snackBarTheme: SnackBarThemeData(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: MAIN_COLOR,
                   contentTextStyle: TextStyle(color: Colors.black),
                 ),
                 // Update BottomNavigationBar theme
                 bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-                  selectedItemColor: Colors.blue,
+                  selectedItemColor: MAIN_COLOR,
                   unselectedItemColor: Colors.grey,
+                  backgroundColor: Color(0xFF121212),
                 ),
                 visualDensity: VisualDensity.adaptivePlatformDensity,
                 pageTransitionsTheme: const PageTransitionsTheme(builders: {

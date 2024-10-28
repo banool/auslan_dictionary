@@ -114,22 +114,20 @@ class MyFlashcardsLandingPageController
           await showDialog(
             context: context,
             builder: (ctx) {
-              return MultiSelectDialog(
-                listType: MultiSelectListType.CHIP,
-                title:
-                    Text(DictLibLocalizations.of(context)!.flashcardsRegions),
-                items: regionsWithoutEverywhere
-                    .map((e) => MultiSelectItem(e.index, e.pretty))
-                    .toList(),
-                initialValue: additionalRegionsValues,
-                onConfirm: (values) {
-                  setState(() {
-                    sharedPreferences.setStringList(KEY_FLASHCARD_REGIONS,
-                        values.map((e) => e.toString()).toList());
-                    updateRevisionSettings();
+              return buildMultiSelectDialog(
+                  context: context,
+                  title: DictLibLocalizations.of(context)!.flashcardsRegions,
+                  items: regionsWithoutEverywhere
+                      .map((e) => MultiSelectItem(e.index, e.pretty))
+                      .toList(),
+                  initialValue: additionalRegionsValues,
+                  onConfirm: (values) {
+                    setState(() {
+                      sharedPreferences.setStringList(KEY_FLASHCARD_REGIONS,
+                          values.map((e) => e.toString()).toList());
+                      updateRevisionSettings();
+                    });
                   });
-                },
-              );
             },
           );
         },

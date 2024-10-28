@@ -3,7 +3,7 @@ description: Free video dictionary of Auslan signs
 
 publish_to: 'none'
 
-version: 1.17.3+787
+version: 1.17.5+789
 
 environment:
   sdk: '>=2.18.0 <3.0.0'
@@ -32,7 +32,6 @@ dependencies:
   http:
   launch_review:
   mailto:
-  multi_select_flutter:
   package_info_plus:
   path_provider:
   shared_preferences:
