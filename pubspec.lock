@@ -211,10 +211,10 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: d8a3f16cd7ee913642e43fb683f47d1031458f3b
+      resolved-ref: b5151d5f6ef3cd6ad02a34110a90c8bfb1f71183
       url: "https://github.com/banool/dictionarylib.git"
     source: git
-    version: "0.2.8"
+    version: "0.2.9"
   dolphinsr_dart:
     dependency: "direct main"
     description:
@@ -1062,10 +1062,10 @@ packages:
     dependency: transitive
     description:
       name: win32
-      sha256: e1d0cc62e65dc2561f5071fcbccecf58ff20c344f8f3dc7d4922df372a11df1f
+      sha256: "10169d3934549017f0ae278ccb07f828f9d6ea21573bab0fb77b0e1ef0fce454"
       url: "https://pub.dev"
     source: hosted
-    version: "5.7.1"
+    version: "5.7.2"
   win32_registry:
     dependency: transitive
     description:
