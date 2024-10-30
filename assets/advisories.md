@@ -29,3 +29,16 @@ You'll notice on the lists page there are now two tabs, one for your own lists a
 
 P.S. You might be reading this because the app failed to start. If not, please ignore, but if so, you are on an old version of the app. Please head to the App Store or Play Store and update the app to fix this issue. Apologies, this one slipped through my testing!
 END===
+START===
+DATE===2024-10-28
+## Dark mode!
+
+Hey all, long time no see!
+
+We just added support for dark mode to the app! To smooth the transition, all apps default to light mode still, but you can set your preferred colour mode in the settings. If you run into any issues with this, please let me know! Go to `Settings -> Report issue with app (Email)`.
+
+If you like the app, please consider leaving a review! Go to `Settings -> Give feedback on App / Play Store`. I work on this for free (forever) in my spare time. Reminder that I don't control the data the app uses! For issues with that, please use `Settings -> Report issue with dictionary data`.
+
+Cheers,
+Daniel
+END===
