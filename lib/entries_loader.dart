@@ -10,33 +10,52 @@ import 'package:http/http.dart' as http;
 import 'entries_types.dart';
 
 class MyEntryLoader extends EntryLoader {
+  static const List<String> baseUrls = [
+    'https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/data',
+    'https://storage.googleapis.com/auslan-media-bucket/sync',
+  ];
+
   @override
   Future<NewData?> downloadNewData(
       int currentVersion, bool forceDownload) async {
     print("Fetching latest version of data");
-    int latestVersion = int.parse((await http.get(Uri.parse(
-            'https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/data/latest_version')))
-        .body);
-    print("Fetched latest version of data: $latestVersion");
 
-    if (forceDownload) {
-      print(
-          "Forcing download of new data, even if the latest version is no newer than the current version. Current version: $currentVersion. Latest version: $latestVersion");
-    } else if (latestVersion <= currentVersion) {
-      print(
-          "Current version ($currentVersion) is >= latest version ($latestVersion), not downloading new data");
-      return null;
-    } else {
-      print(
-          "Current version ($currentVersion) is < latest version ($latestVersion), downloading new data");
+    // Try each base URL until one works
+    for (var baseUrl in baseUrls) {
+      printAndLog("Trying base URL $baseUrl");
+      try {
+        int latestVersion = int.parse(
+            (await http.get(Uri.parse('$baseUrl/latest_version'))).body);
+        printAndLog("Fetched latest version of data: $latestVersion");
+
+        if (!forceDownload && latestVersion <= currentVersion) {
+          printAndLog(
+              "Current version ($currentVersion) is >= latest version ($latestVersion), not downloading new data");
+          return null;
+        }
+
+        if (forceDownload) {
+          printAndLog(
+              "Forcing download of new data, even if the latest version is no newer than the current version. Current version: $currentVersion. Latest version: $latestVersion");
+        } else {
+          printAndLog(
+              "Current version ($currentVersion) is < latest version ($latestVersion), downloading new data");
+        }
+
+        // Download the new data
+        String newData = (await http.get(Uri.parse('$baseUrl/data.json'))).body;
+
+        printAndLog("Successfully downloaded new data from $baseUrl");
+
+        // If we get here, both requests succeeded
+        return NewData(newData, currentVersion, latestVersion);
+      } catch (e) {
+        printAndLog("Failed to fetch from $baseUrl: $e");
+      }
     }
 
-    // At this point, we know we need to download the new data. Let's do that.
-    String newData = (await http.get(Uri.parse(
-            'https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/data/data.json')))
-        .body;
-
-    return NewData(newData, currentVersion, latestVersion);
+    printAndLog("Failed to fetch data from all base URLs");
+    throw Exception("Failed to fetch data from all base URLs");
   }
 
   @override
