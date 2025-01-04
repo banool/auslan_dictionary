@@ -16,7 +16,7 @@ jobs:
       data: ${{ steps.filter.outputs.data }}
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: dorny/paths-filter@v2
       id: filter
       with:
@@ -32,7 +32,7 @@ jobs:
     if: needs.changes.outputs.android == 'true' || needs.changes.outputs.data == 'true'
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - run: echo "${{ secrets.UPLOAD_KEYSTORE }}" | base64 -d > android/upload_keystore.jks
     - run: echo "${{ secrets.KEY_PROPERTIES }}" | base64 -d > android/key.properties
@@ -80,3 +80,29 @@ jobs:
         packageName: com.banool.auslan_dictionary
         releaseFile: build/app/outputs/bundle/release/app-release.aab
         track: internal
+
+  upload-to-gcs:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    needs: [changes]
+    if: needs.changes.outputs.data == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Copy the target files elsewhere.
+      - run: mkdir -p tmp
+      - run: cp assets/data/data.json assets/data/latest_version tmp
+
+      - uses: 'google-github-actions/auth@v2'
+        with:
+          project_id: 'auslan-dictionary'
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+
+      - uses: 'google-github-actions/upload-cloud-storage@v2'
+        with:
+          path: tmp
+          destination: 'auslan-media-bucket/sync'
+          parent: false
+
