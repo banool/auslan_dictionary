@@ -118,6 +118,7 @@ class _RootAppState extends State<RootApp> {
                     'https://github.com/banool/auslan_dictionary/issues',
                 iOSAppId: IOS_APP_ID,
                 androidAppId: ANDROID_APP_ID,
+                showPrivacyPolicy: false,
               ));
             }),
       ]);
