@@ -368,8 +368,13 @@ async def main():
         try:
             word = await parse_information(executor, html)
         except:
-            LOG.error(f"Failed to parse information for {html.url}")
-            raise
+            # Some of the URLs we get are not valid (e.g. end with .html/) and lead to
+            # a 404 page (which annoyingly actually returns a 200). Just ignoring this
+            # case is simplest for now. Unfortunately it seems like their index pages
+            # are not generated atomically based on the actual data. Ideally one day
+            # they just give us a dump.
+            LOG.warning(f"Failed to parse information for {html.url}")
+            continue
         word_dict = word.get_dict()
         word_to_info.update(word_dict)
 
