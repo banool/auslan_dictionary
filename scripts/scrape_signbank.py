@@ -365,7 +365,11 @@ async def main():
 
     # Parse the information in each of the pages.
     for html in word_pages_html:
-        word = await parse_information(executor, html)
+        try:
+            word = await parse_information(executor, html)
+        except:
+            LOG.error(f"Failed to parse information for {html.url}")
+            raise
         word_dict = word.get_dict()
         word_to_info.update(word_dict)
 

@@ -12,6 +12,8 @@ then
     exit 1
 fi
 
+set -e
+
 REGEX=$1
 
 cd "$(dirname "$0")"
@@ -29,8 +31,12 @@ for l in {a..z}
 do
     if [[ -z $REGEX || $l =~ $REGEX ]]; then
         echo "Getting words for letter $l"
-        python scrape_signbank.py -d --output-file next.json --existing-file previous.json --letter $l --categories-file ../assets/data/categories.json
-        echo "Successfully got words for letter $l"
+        if python scrape_signbank.py -d --output-file next.json --existing-file previous.json --letter $l --categories-file ../assets/data/categories.json ; then
+            echo "Successfully got words for letter $l"
+        else
+            echo "Failed on letter $l"
+            exit 1
+        fi
         mv next.json previous.json
         echo $l >> letters_retrieved.txt
     fi
