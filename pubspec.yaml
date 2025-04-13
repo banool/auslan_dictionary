@@ -3,7 +3,7 @@ description: Free video dictionary of Auslan signs
 
 publish_to: 'none'
 
-version: 1.18.10+807
+version: 1.18.11+808
 
 environment:
   sdk: '>=2.18.0 <3.0.0'
