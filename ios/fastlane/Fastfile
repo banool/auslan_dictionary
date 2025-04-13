@@ -53,6 +53,10 @@ platform :ios do
       scheme: "Runner",
       export_method: "app-store"
     )
+    # https://github.com/flutter/flutter/issues/166367
+    ipa_location = lane_context[SharedValues::IPA_OUTPUT_PATH]
+    sh("unzip -l #{ipa_location} | grep ._Symbols || true")
+    sh("zip -d #{ipa_location} ._Symbols/ || true")
     upload_to_testflight
   end
 end
