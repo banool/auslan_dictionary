@@ -5,11 +5,11 @@ import 'package:dictionarylib/entry_types.dart';
 import 'package:dictionarylib/flashcards_logic.dart';
 import 'package:dictionarylib/globals.dart';
 import 'package:dictionarylib/revision.dart';
+import 'package:dictionarylib/video_player_screen.dart';
 import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 import 'package:flutter/material.dart';
 
 import 'entries_types.dart';
-import 'video_player_screen.dart';
 import 'word_page.dart';
 
 class FlashcardsPage extends StatefulWidget {
@@ -225,7 +225,8 @@ class FlashcardsPageState extends State<FlashcardsPage> {
     // See here for an explanation of why I pass in a key here:
     // https://stackoverflow.com/questions/55237188/flutter-is-not-rebuilding-same-widget-with-different-parameters
     var videoPlayerScreen = VideoPlayerScreen(
-      videoLinks: subEntry.getMedia(),
+      mediaLinks: subEntry.getMedia(),
+      fallbackAspectRatio: 16 / 9,
       key: Key(subEntry.getMedia()[0]),
     );
 

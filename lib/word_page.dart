@@ -2,12 +2,12 @@ import 'package:auslan_dictionary/entries_types.dart';
 import 'package:dictionarylib/common.dart';
 import 'package:dictionarylib/entry_types.dart';
 import 'package:dictionarylib/globals.dart';
+import 'package:dictionarylib/video_player_screen.dart';
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'common.dart';
-import 'video_player_screen.dart';
 
 Widget getAuslanSignbankLaunchAppBarActionWidget(
     BuildContext context, String word, int currentPage,
@@ -140,30 +140,35 @@ class _EntryPageState extends State<EntryPage> {
         },
       )
     ];
-
     return InheritedPlaybackSpeed(
         playbackSpeed: playbackSpeed,
         child: Scaffold(
           appBar:
               AppBar(title: Text(word), actions: buildActionButtons(actions)),
-          bottomNavigationBar: Padding(
-            padding: const EdgeInsets.only(top: 5, bottom: 10),
-            child: DotsIndicator(
-              dotsCount: entry.getSubEntries().length,
-              position: currentPage.toDouble(),
-              decorator: DotsDecorator(
-                activeColor: MAIN_COLOR,
-              ),
-            ),
-          ),
-          body: Center(
-              child: PageView.builder(
+          body: Column(
+            children: [
+              Expanded(
+                child: PageView.builder(
                   itemCount: subEntries.length,
                   itemBuilder: (context, index) => SubEntryPage(
-                        word: entry,
-                        subEntry: subEntries[index],
-                      ),
-                  onPageChanged: onPageChanged)),
+                    word: entry,
+                    subEntry: subEntries[index],
+                  ),
+                  onPageChanged: onPageChanged,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 5, bottom: 15),
+                child: DotsIndicator(
+                  dotsCount: entry.getSubEntries().length,
+                  position: currentPage.toDouble(),
+                  decorator: DotsDecorator(
+                    activeColor: MAIN_COLOR,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ));
   }
 }
@@ -226,7 +231,8 @@ class SubEntryPageState extends State<SubEntryPage> {
   @override
   Widget build(BuildContext context) {
     var videoPlayerScreen = VideoPlayerScreen(
-      videoLinks: widget.subEntry.videoLinks,
+      mediaLinks: widget.subEntry.videoLinks,
+      fallbackAspectRatio: 16 / 9,
     );
     // If the display is wide enough, show the video beside the words instead
     // of above the words (as well as other layout changes).
