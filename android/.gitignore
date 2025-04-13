@@ -11,3 +11,5 @@ gradle-wrapper.jar
 /local.properties
 GeneratedPluginRegistrant.java
 
+/app/.cxx
+

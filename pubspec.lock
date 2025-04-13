@@ -206,10 +206,10 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: "9a2523d9a87d46ce49444f685d6e8605abceb9cb"
+      resolved-ref: "74a054b7441035d010afc85135c99b15a5ad074e"
       url: "https://github.com/banool/dictionarylib.git"
     source: git
-    version: "0.2.12"
+    version: "0.2.14"
   dolphinsr_dart:
     dependency: "direct main"
     description:
@@ -390,8 +390,8 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "570a47c44dce031d3d57bd68e709ad7b0c11b5aa"
-      url: "https://github.com/emiliodallatorre/http_proxy"
+      resolved-ref: "38469da840a9cb3a1cd3465976ec1e4a8f6d5dae"
+      url: "https://github.com/banool/http_proxy"
     source: git
     version: "1.2.2"
   image:
@@ -431,14 +431,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.9.4"
-  launch_review:
-    dependency: "direct main"
-    description:
-      name: launch_review
-      sha256: "04cdaf752033cefd53bc0fa9c22105801ef53791a93d8b6cdd00fcb3c1c1604b"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.1"
   leak_tracker:
     dependency: transitive
     description:
@@ -829,6 +821,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.12.1"
+  store_redirect:
+    dependency: transitive
+    description:
+      name: store_redirect
+      sha256: ec635bc2f89c1f19b2f384784ddbfc8eb46b27d28224db32cadfe3820eeea6ca
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.4"
   stream_channel:
     dependency: transitive
     description:
