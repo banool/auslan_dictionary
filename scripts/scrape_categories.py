@@ -155,7 +155,7 @@ async def main():
     if args.categories:
         # We assume the category name and query are the same if --categories is given.
         # This is a bad assumption for some categories, so only use this for testing.
-        categories = {c: c for c in categories}
+        categories = {c: c for c in args.categories}
     else:
         categories = await get_categories(executor)
 

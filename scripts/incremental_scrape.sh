@@ -6,9 +6,9 @@
 #   ./incremental_scrape.sh '[d-z]'
 # This allows you to scrape a few letters at a time without losing progress.
 
-if [ -z "$PIPENV_ACTIVE" ]
+if [ -z "$UV" ]
 then
-    echo "ERROR: Run this from within the pipenv."
+    echo "ERROR: Run this with uv."
     exit 1
 fi
 

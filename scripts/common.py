@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Dict, List, Tuple
+from typing import List
 
 import requests
 from retry import retry
@@ -12,7 +12,7 @@ ch.setFormatter(formatter)
 LOG.addHandler(ch)
 
 
-@retry(RuntimeError, delay=2, backoff=4, tries=5)
+@retry(delay=2, backoff=3, tries=4)
 def load_url(url, timeout=180):
     LOG.debug(f"Getting HTML for URL: {url}")
     response = requests.get(url, timeout=timeout)

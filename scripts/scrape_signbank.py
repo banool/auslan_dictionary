@@ -36,7 +36,7 @@ import string
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from bs4 import BeautifulSoup
 
@@ -254,8 +254,8 @@ def parse_subpage(html, word_str) -> SubEntry:
 
     # Get the keywords
     keywords_div = soup.find("div", {"id": "keywords"})
-    keywords_lines = [l.lstrip() for l in keywords_div.text.split("\n")]
-    keywords = [k.rstrip(",") for k in keywords_lines if k]
+    keywords_lines = [line.lstrip() for line in keywords_div.text.split("\n")]
+    keywords = [keyword.rstrip(",") for keyword in keywords_lines if keyword]
     keywords.remove("Keywords:")
     keywords.remove(word_str)
 
@@ -318,6 +318,7 @@ def parse_args():
     output_args.add_argument("--output-file")
     output_args.add_argument("--stdout", action="store_true")
     parser.add_argument("--existing-file", help="Start with this file as the base")
+    parser.add_argument("--num-workers", type=int, default=8)
     return parser.parse_args()
 
 
@@ -339,7 +340,9 @@ async def main():
             word_to_categories[word].append(category)
 
     # Load up data from the existing file if given. We turn the data inside "data" into
-    # a dict where the key is entry_in_english.
+    # a dict where the key is entry_in_english. The upside of this approach is we fail
+    # to fetch some data it's okay, we're just building on top of the existing data. The
+    # downside is we might not remove something from the data that no longer exists.
     if args.existing_file:
         existing_data = get_existing_data(args.existing_file)
         word_to_info = {d["entry_in_english"]: d for d in existing_data["data"]}
@@ -349,7 +352,7 @@ async def main():
     if args.existing_file == args.output_file and args.existing_file is not None:
         raise RuntimeError("--existing-file and --output-file cannot be the same file")
 
-    executor = ThreadPoolExecutor(max_workers=4)
+    executor = ThreadPoolExecutor(max_workers=args.num_workers)
 
     # Get the URLs for all the word pages.
     if args.urls:
@@ -367,13 +370,13 @@ async def main():
     for html in word_pages_html:
         try:
             word = await parse_information(executor, html)
-        except:
+        except Exception as e:
             # Some of the URLs we get are not valid (e.g. end with .html/) and lead to
             # a 404 page (which annoyingly actually returns a 200). Just ignoring this
             # case is simplest for now. Unfortunately it seems like their index pages
             # are not generated atomically based on the actual data. Ideally one day
             # they just give us a dump.
-            LOG.warning(f"Failed to parse information for {html.url}")
+            LOG.warning(f"Failed to parse information for {html.url}: {e}")
             continue
         word_dict = word.get_dict()
         word_to_info.update(word_dict)

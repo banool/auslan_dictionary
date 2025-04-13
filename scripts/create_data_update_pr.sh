@@ -11,9 +11,9 @@ onexit() {
     git checkout master
 }
 
-if [ -z "$PIPENV_ACTIVE" ]
+if [ -z "$UV" ]
 then
-    echo "ERROR: Run this from within the pipenv."
+    echo "ERROR: Run this with uv."
     exit 1
 fi
 
