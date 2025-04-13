@@ -44,7 +44,7 @@ jobs:
 
     - uses: subosito/flutter-action@v1
       with:
-        flutter-version: '3.27.1'
+        flutter-version: '3.29.2'
         channel: stable
 
     # Initial build and test.

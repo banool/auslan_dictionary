@@ -150,7 +150,7 @@ class _EntryPageState extends State<EntryPage> {
             padding: const EdgeInsets.only(top: 5, bottom: 10),
             child: DotsIndicator(
               dotsCount: entry.getSubEntries().length,
-              position: currentPage,
+              position: currentPage.toDouble(),
               decorator: DotsDecorator(
                 activeColor: MAIN_COLOR,
               ),
