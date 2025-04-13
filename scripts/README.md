@@ -46,7 +46,7 @@ Out of date, likely doesn't work:
 ## Old non incremental way
 To run the scraper non-incrementally, do this:
 ```
-uv run scrape_signbank.py -d --output-file data.json --existing-file ../assets/data/words_latest.json
+uv run scrape_signbank.py -d --categories-file ../assets/data/categories.json --existing-file ../assets/data/words_latest.json --output-file data.json
 ```
 
 This will read in the existing file and apply the changes over the top. If you want to start fresh, remove the `--existing-file` part.
