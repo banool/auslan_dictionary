@@ -17,8 +17,8 @@ subprojects {
         }
         // Derived from https://stackoverflow.com/a/78865504/3846032.
         project.android {
-            compileSdkVersion 34
-            buildToolsVersion "34.0.0"
+            compileSdkVersion 35
+            buildToolsVersion "35.0.0"
         }
     }
 }

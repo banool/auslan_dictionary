@@ -156,7 +156,7 @@ class _RootAppState extends State<RootApp> {
                   elevation: 0,
                 ),
                 scaffoldBackgroundColor: Colors.white,
-                cardTheme: CardTheme(
+                cardTheme: CardThemeData(
                   color: Colors.white,
                   elevation: 2,
                   shape: RoundedRectangleBorder(
@@ -192,7 +192,7 @@ class _RootAppState extends State<RootApp> {
                   hintStyle: TextStyle(color: Colors.black54),
                 ),
                 // Update TabBar theme
-                tabBarTheme: TabBarTheme(
+                tabBarTheme: TabBarThemeData(
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.white,
                   labelStyle: TextStyle(
@@ -230,7 +230,7 @@ class _RootAppState extends State<RootApp> {
                   elevation: 0,
                 ),
                 scaffoldBackgroundColor: const Color(0xFF121212),
-                cardTheme: CardTheme(
+                cardTheme: CardThemeData(
                   color: const Color(0xFF2C2C2C),
                   elevation: 2,
                   shape: RoundedRectangleBorder(
@@ -267,7 +267,7 @@ class _RootAppState extends State<RootApp> {
                   hintStyle: TextStyle(color: Colors.white60),
                 ),
                 // Update TabBar theme
-                tabBarTheme: TabBarTheme(
+                tabBarTheme: TabBarThemeData(
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.white,
                   labelStyle: TextStyle(
