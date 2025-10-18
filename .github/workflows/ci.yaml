@@ -40,11 +40,11 @@ jobs:
     - uses: actions/setup-java@v3
       with:
         distribution: 'temurin'
-        java-version: '17'
+        java-version: '21'
 
     - uses: subosito/flutter-action@v1
       with:
-        flutter-version: '3.35.3'
+        flutter-version: '3.35.6'
         channel: stable
 
     # Initial build and test.

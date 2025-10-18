@@ -2,6 +2,7 @@
 # See https://flutter.dev/docs/deployment/android#reference-the-keystore-from-the-app
 key.properties
 *.jks
+.kotlin
 
 gradle-wrapper.jar
 /.gradle
