@@ -30,7 +30,7 @@ For running locally with manual PR creation:
 cd scripts
 
 # Step 1: Run the full scrape
-uv run ./scrape.sh --validate
+uv run ./scrape.sh --validate |& tee ~/run-out.log
 
 # Step 2: Review the output
 # Check all_letters.json looks correct

@@ -40,34 +40,37 @@ def _rate_limit():
 )
 def _check_video_url_request(url: str, timeout: int) -> int:
     """
-    Make an OPTIONS request to check if a video URL exists.
+    Make a GET request with Range header to check if a video URL exists.
+    Only requests the first byte to minimize bandwidth.
     Returns the status code. Retries on network errors and unexpected status codes.
-    Only 200 and 404 are considered final responses; other codes trigger a retry.
+    200/206 = exists, 404 = doesn't exist. Other codes trigger a retry.
     """
-    LOG.debug(f"Checking video URL with OPTIONS: {url}")
+    LOG.debug(f"Checking video URL with Range GET: {url}")
     _rate_limit()
-    response = requests.options(url, timeout=timeout)
+    headers = {"Range": "bytes=0-0"}
+    response = requests.get(url, headers=headers, timeout=timeout)
     status_code = response.status_code
-    # 200 = exists, 404 = doesn't exist. Both are valid final states.
+    # 200/206 = exists (206 is partial content for range request).
+    # 404 = doesn't exist. Both are valid final states.
     # Any other status code should trigger a retry.
-    if status_code not in (200, 404):
+    if status_code not in (200, 206, 404):
         raise RuntimeError(f"Got unexpected status code {status_code} for {url}")
     return status_code
 
 
 def check_video_url_exists(url: str, timeout: int = 30) -> bool:
     """
-    Check if a video URL is valid by making an OPTIONS request.
-    Returns True if the URL returns 200, False if 404.
+    Check if a video URL is valid by making a GET request with Range header.
+    Returns True if the URL returns 200/206, False if 404.
     Retries with exponential backoff on network errors or unexpected status codes.
     Raises an exception if retries are exhausted for non-404 errors.
     """
     status_code = _check_video_url_request(url, timeout)
-    if status_code == 200:
+    if status_code in (200, 206):
         return True
     else:
-        # Must be 404 since _check_video_url_request only returns 200 or 404.
-        LOG.info(f"Video URL returned 404, skipping: {url}")
+        # Must be 404 since _check_video_url_request only returns 200, 206, or 404.
+        LOG.warning(f"Video URL returned 404, skipping: {url}")
         return False
 
 
