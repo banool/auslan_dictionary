@@ -40,7 +40,7 @@ from typing import Dict, List
 
 from bs4 import BeautifulSoup
 
-from common import LOG, get_pages_html
+from common import LOG, get_pages_html, validate_video_urls
 
 SITE_ROOT = "http://www.auslan.org.au"
 LETTER_PAGE_TEMPLATE = SITE_ROOT + "/dictionary/search/?query={letter}&page={page}"
@@ -319,6 +319,11 @@ def parse_args():
     output_args.add_argument("--stdout", action="store_true")
     parser.add_argument("--existing-file", help="Start with this file as the base")
     parser.add_argument("--num-workers", type=int, default=8)
+    parser.add_argument(
+        "--validate-video-urls",
+        action="store_true",
+        help="Check each video URL with an OPTIONS request and skip videos that don't return 200",
+    )
     return parser.parse_args()
 
 
@@ -385,6 +390,62 @@ async def main():
     for word, info in word_to_info.items():
         categories = word_to_categories.get(word, [])
         info["categories"] = categories
+
+    # Validate video URLs if requested.
+    if args.validate_video_urls:
+        LOG.info("Validating video URLs with OPTIONS requests...")
+        # Collect all video URLs.
+        all_video_urls = set()
+        for info in word_to_info.values():
+            for sub_entry in info["sub_entries"]:
+                all_video_urls.update(sub_entry["video_links"])
+
+        LOG.info(f"Found {len(all_video_urls)} unique video URLs to validate")
+
+        # Validate them in batch.
+        valid_urls = set(await validate_video_urls(executor, list(all_video_urls)))
+        invalid_count = len(all_video_urls) - len(valid_urls)
+        LOG.info(f"Validated video URLs: {len(valid_urls)} valid, {invalid_count} invalid")
+
+        # Filter out invalid URLs from all sub_entries.
+        for info in word_to_info.values():
+            for sub_entry in info["sub_entries"]:
+                original_count = len(sub_entry["video_links"])
+                sub_entry["video_links"] = [
+                    url for url in sub_entry["video_links"] if url in valid_urls
+                ]
+                if len(sub_entry["video_links"]) < original_count:
+                    LOG.debug(
+                        f"Removed {original_count - len(sub_entry['video_links'])} "
+                        f"invalid video URLs from entry"
+                    )
+
+        # Remove sub_entries with no valid video links.
+        removed_sub_entries = 0
+        for word, info in word_to_info.items():
+            original_count = len(info["sub_entries"])
+            info["sub_entries"] = [
+                se for se in info["sub_entries"] if se["video_links"]
+            ]
+            removed = original_count - len(info["sub_entries"])
+            if removed > 0:
+                LOG.warning(
+                    f"Removed {removed} sub_entries with no valid videos from '{word}'"
+                )
+                removed_sub_entries += removed
+
+        # Remove entries with no valid sub_entries.
+        entries_to_remove = [
+            word for word, info in word_to_info.items() if not info["sub_entries"]
+        ]
+        for word in entries_to_remove:
+            LOG.warning(f"Removing entry '{word}' - no valid sub_entries remaining")
+            del word_to_info[word]
+
+        LOG.info(
+            f"Validation complete: removed {removed_sub_entries} sub_entries and "
+            f"{len(entries_to_remove)} entries with no valid videos"
+        )
 
     # Flatten the data, structure inside "data".
     out = {"data": list(word_to_info.values())}

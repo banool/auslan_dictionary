@@ -1,63 +1,194 @@
 # Scripts
 
-## Automation
-For automated scraping, just run something like this:
-```
+Scripts for scraping data from Auslan Signbank.
+
+## Prerequisites
+
+Install [uv](https://github.com/astral-sh/uv) for Python dependency management.
+
+## Quick Start
+
+### Automated Scraping (Server)
+
+For automated scraping on a server that creates a PR automatically:
+
+```bash
 cd /var/www/auslan/scripts
 uv run bash create_data_update_pr.sh
 ```
 
-## Scraping manually
-First, install `uv`.
+This will:
+1. Create a new branch with a timestamp (e.g., `update_data_20240115_143022`)
+2. Scrape all data
+3. Create a PR if there are changes
 
-To scrape Auslan Signbank, do this:
+### Local Scraping (Manual)
 
+For running locally with manual PR creation:
+
+```bash
+cd scripts
+
+# Step 1: Run the full scrape
+uv run ./scrape.sh --validate
+
+# Step 2: Review the output
+# Check all_letters.json looks correct
+# Optionally diff against current data:
+diff all_letters.json ../assets/data/data.json | head -100
+
+# Step 3: Move data into place (updates latest_version)
+./move_data.sh
+
+# Step 4: Review and commit
+git diff
+git add -A
+git commit -m "Update signbank data"
+
+# Step 5: Create PR
+git checkout -b banool/update-data-$(date +%Y%m%d)
+git push -u origin HEAD
+gh pr create --fill
 ```
+
+## Scraping Options
+
+### Full Scrape
+
+```bash
+uv run ./scrape.sh
+```
+
+This scrapes categories first, then entries letter by letter.
+
+### Scrape with Video URL Validation
+
+Validates each video URL with an OPTIONS request and removes entries with invalid videos:
+
+```bash
+uv run ./scrape.sh --validate
+```
+
+### Resume an Interrupted Scrape
+
+The scraper automatically saves progress after each letter. If interrupted, just run it again:
+
+```bash
 uv run ./incremental_scrape.sh
 ```
 
-This starts with the existing data as the base. This will scrape one letter at a time. If the script crashes or you must stop it for some reason, you can resume from a particular letter by invoking it like this:
+It will skip already-completed letters and resume from where it left off.
 
-```
-uv run ./incremental_scrape.sh '[d-z]'
+### Force a Fresh Start
+
+To ignore existing progress and start fresh:
+
+```bash
+uv run ./incremental_scrape.sh --fresh
 ```
 
-Once you've got the data downloaded, move it in to place with this:
+### Start from a Specific Letter
+
+To start (or resume) from a specific letter:
+
+```bash
+uv run ./incremental_scrape.sh --from d
 ```
+
+## Individual Scripts
+
+### scrape_categories.py
+
+Scrapes category data from the site:
+
+```bash
+uv run python scrape_categories.py -d --output-file ../assets/data/categories.json
+```
+
+### scrape_signbank.py
+
+Scrapes entry data. Usually called via `incremental_scrape.sh`, but can be run directly:
+
+```bash
+# Scrape specific letters
+uv run python scrape_signbank.py -d \
+    --letters a b c \
+    --categories-file ../assets/data/categories.json \
+    --existing-file ../assets/data/data.json \
+    --output-file output.json
+
+# Scrape specific URLs
+uv run python scrape_signbank.py -d \
+    --urls 'https://auslan.org.au/dictionary/words/hello-1.html' \
+    --categories-file ../assets/data/categories.json \
+    --output-file output.json
+
+# With video URL validation
+uv run python scrape_signbank.py -d \
+    --letters a \
+    --categories-file ../assets/data/categories.json \
+    --output-file output.json \
+    --validate-video-urls
+```
+
+### move_data.sh
+
+Moves scraped data into place and updates `latest_version`:
+
+```bash
 ./move_data.sh
 ```
 
-This moves the data and updates `latest_version`, which the app uses to see if there is new data to download. Before committing, make sure the changes look good with `git diff`.
+## Progress Files
 
-This script assumes that the categories data is present at `../assets/data/categories.json` from a previous step. If it's not, you can get it like this:
-```
-uv run scrape_categories.py --output-file ../assets/data/categories.json
+The scraper creates several files to track progress:
+
+- `scrape_state.txt` - List of completed letters
+- `scrape_progress.json` - Current accumulated data
+- `all_letters.json` - Final output (copy of progress when complete)
+
+These can be safely deleted to start fresh, or will be automatically managed by `--fresh`.
+
+## Troubleshooting
+
+### Scrape keeps failing on a specific letter
+
+Try running just that letter with more debug output:
+
+```bash
+uv run python scrape_signbank.py -d \
+    --letters x \
+    --categories-file ../assets/data/categories.json \
+    --existing-file scrape_progress.json \
+    --output-file test.json
 ```
 
-You can update the categories data without scraping for new words like this (we have to pass at least one URL to look at):
+### Video URLs are returning errors
+
+Some video URLs on the site may be broken. Use `--validate` to filter these out:
+
+```bash
+uv run ./scrape.sh --validate
 ```
-uv run scrape_signbank.py -d --existing-file ../assets/data/data.json --categories-file ../assets/data/categories.json --urls 'https://auslan.org.au/dictionary/words/age-1.html' --output-file /tmp/data.json
+
+### Rate limiting
+
+The scraper includes basic rate limiting. If you're getting many failures, try reducing concurrency by editing `--num-workers` in the Python scripts (default is 8).
+
+## Updating Just Categories
+
+To update category data without re-scraping all entries:
+
+```bash
+# Scrape fresh categories
+uv run python scrape_categories.py -d --output-file ../assets/data/categories.json
+
+# Re-apply categories to existing data (pass a dummy URL)
+uv run python scrape_signbank.py -d \
+    --existing-file ../assets/data/data.json \
+    --categories-file ../assets/data/categories.json \
+    --urls 'https://auslan.org.au/dictionary/words/age-1.html' \
+    --output-file /tmp/data.json
+
 cp /tmp/data.json ../assets/data/data.json
-```
-
----
-Out of date, likely doesn't work:
-
-## Old non incremental way
-To run the scraper non-incrementally, do this:
-```
-uv run scrape_signbank.py -d --categories-file ../assets/data/categories.json --existing-file ../assets/data/words_latest.json --output-file data.json
-```
-
-This will read in the existing file and apply the changes over the top. If you want to start fresh, remove the `--existing-file` part.
-
-If this looks good, move it into the place of the existing file:
-```
-mv data.json ../assets/data/words_latest.json
-```
-
-Note, often we fail to load some words or even pages for letters or even worse the entire letter, in which case you should probably do something like this:
-
-```
-uv run scrape_signbank.py -d --output-file data.json --existing-file ../assets/data/words_latest.json --letters c g
 ```

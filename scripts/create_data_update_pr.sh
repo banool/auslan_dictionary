@@ -6,6 +6,10 @@ set -e
 # Putting ||: at the end of a command means the script won't abort if that one
 # command fails.
 
+# Generate a unique branch name with timestamp.
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+BRANCH_NAME="update_data_${TIMESTAMP}"
+
 onexit() {
     # Switch back to master.
     git checkout master
@@ -27,18 +31,8 @@ git fetch
 git reset --hard origin/master
 git checkout master
 
-# Delete PR if it already exists.
-existingpr=`gh pr list --label data_update --json number | jq -r .[0].number`
-if [ "$existingpr" != "null" ]; then
-    gh pr close $existingpr -d
-fi
-
-# Delete branch if it already exists.
-git push -d origin update_data ||:
-git branch -D update_data ||:
-
-# Switch to a new branch.
-git checkout -b update_data
+# Switch to a new branch with timestamp.
+git checkout -b "$BRANCH_NAME"
 
 # Scrape for new data.
 scripts/scrape.sh
@@ -55,8 +49,8 @@ scripts/move_data.sh
 
 # Create and push the commit.
 git add -A
-git commit -m "Update signbank data"
-git push --set-upstream origin update_data
+git commit -m "Update signbank data (${TIMESTAMP})"
+git push --set-upstream origin "$BRANCH_NAME"
 
 # Make a PR with the commit.
 gh pr create --fill --label data_update

@@ -165,6 +165,9 @@ async def main():
     for category_name, category_query in categories.items():
         words = await get_words_in_category(executor, category_name, category_query)
         category_name = RENAMED_CATEGORY_NAMES.get(category_name.lower(), category_name)
+        if not words:
+            LOG.info(f"Skipping empty category {category_name}")
+            continue
         data[category_name] = words
         LOG.info(f"Found {len(words)} words in category {category_name}")
 

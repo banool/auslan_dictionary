@@ -2,5 +2,8 @@ scrapeout
 letters_retrieved.txt
 previous.json
 next.json
+next_*.json
 all_letters.json
+scrape_state.txt
+scrape_progress.json
 .venv
