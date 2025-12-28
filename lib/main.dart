@@ -1,11 +1,8 @@
-import 'dart:io' show Platform;
-
 import 'package:dictionarylib/dictionarylib.dart';
 import 'package:dictionarylib/page_force_upgrade.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:video_player_win/video_player_win_plugin.dart';
+import 'package:media_kit/media_kit.dart';
 
 import 'common.dart';
 import 'entries_loader.dart';
@@ -16,6 +13,9 @@ const String KNOBS_URL_BASE =
 
 Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
   var widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize media_kit for video playback.
+  MediaKit.ensureInitialized();
 
   // Preserve the splash screen while the app initializes.
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
@@ -45,11 +45,6 @@ Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
       paramEntryLoader: myEntryLoader,
       knobUrlBase: KNOBS_URL_BASE,
       entriesGlobalReplacement: entriesGlobalReplacement);
-
-  // Set up the video player plugin for Windows.
-  if (!kIsWeb && Platform.isWindows) {
-    WindowsVideoPlayer.registerWith();
-  }
 
   // Remove the splash screen.
   FlutterNativeSplash.remove();
