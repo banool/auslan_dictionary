@@ -30,28 +30,44 @@ def _rate_limit():
     _last_request_time = time.time()
 
 
+@retry(
+    exceptions=(requests.exceptions.RequestException, RuntimeError),
+    delay=1,
+    backoff=2,
+    max_delay=120,
+    tries=10,
+    logger=LOG,
+)
+def _check_video_url_request(url: str, timeout: int) -> int:
+    """
+    Make an OPTIONS request to check if a video URL exists.
+    Returns the status code. Retries on network errors and unexpected status codes.
+    Only 200 and 404 are considered final responses; other codes trigger a retry.
+    """
+    LOG.debug(f"Checking video URL with OPTIONS: {url}")
+    _rate_limit()
+    response = requests.options(url, timeout=timeout)
+    status_code = response.status_code
+    # 200 = exists, 404 = doesn't exist. Both are valid final states.
+    # Any other status code should trigger a retry.
+    if status_code not in (200, 404):
+        raise RuntimeError(f"Got unexpected status code {status_code} for {url}")
+    return status_code
+
+
 def check_video_url_exists(url: str, timeout: int = 30) -> bool:
     """
     Check if a video URL is valid by making an OPTIONS request.
-    Returns True if the URL returns 200, False otherwise.
+    Returns True if the URL returns 200, False if 404.
+    Retries with exponential backoff on network errors or unexpected status codes.
+    Raises an exception if retries are exhausted for non-404 errors.
     """
-    try:
-        LOG.debug(f"Checking video URL with OPTIONS: {url}")
-        _rate_limit()
-        response = requests.options(url, timeout=timeout)
-        if response.status_code == 200:
-            return True
-        else:
-            LOG.warning(f"Video URL returned {response.status_code}, skipping: {url}")
-            return False
-    except requests.exceptions.Timeout:
-        LOG.warning(f"Timeout validating video URL, skipping: {url}")
-        return False
-    except requests.exceptions.ConnectionError as e:
-        LOG.warning(f"Connection error validating video URL, skipping: {url} - {e}")
-        return False
-    except Exception as e:
-        LOG.warning(f"Unexpected error validating video URL, skipping: {url} - {e}")
+    status_code = _check_video_url_request(url, timeout)
+    if status_code == 200:
+        return True
+    else:
+        # Must be 404 since _check_video_url_request only returns 200 or 404.
+        LOG.info(f"Video URL returned 404, skipping: {url}")
         return False
 
 
@@ -59,6 +75,8 @@ async def validate_video_urls(executor, urls: List[str]) -> List[str]:
     """
     Validate a list of video URLs using OPTIONS requests.
     Returns only the URLs that return 200.
+    URLs that return 404 are considered invalid and skipped.
+    Other errors will raise an exception after retries are exhausted.
     """
     if not urls:
         return []
@@ -70,8 +88,7 @@ async def validate_video_urls(executor, urls: List[str]) -> List[str]:
     valid_urls = []
     for url, result in zip(urls, results):
         if isinstance(result, Exception):
-            LOG.warning(f"Exception validating video URL, skipping: {url} - {result}")
-            continue
+            raise RuntimeError(f"Failed to validate video URL {url} after retries: {result}") from result
         if result:
             valid_urls.append(url)
 
@@ -80,15 +97,17 @@ async def validate_video_urls(executor, urls: List[str]) -> List[str]:
 
 @retry(
     exceptions=(requests.exceptions.RequestException, RuntimeError),
-    delay=2,
+    delay=1,
     backoff=2,
-    tries=4,
+    max_delay=120,
+    tries=10,
     logger=LOG,
 )
 def load_url(url: str, timeout: int = DEFAULT_TIMEOUT) -> requests.Response:
     """
     Load a URL with retry logic.
     Raises RuntimeError on non-200 status codes after retries are exhausted.
+    Retries with exponential backoff: 1s, 2s, 4s, 8s, 16s, 32s, 64s, 120s, 120s...
     """
     LOG.debug(f"Getting HTML for URL: {url}")
     _rate_limit()
@@ -113,7 +132,7 @@ def load_url_safe(url: str, timeout: int = DEFAULT_TIMEOUT) -> Optional[requests
 async def get_pages_html(
     executor,
     urls: List[str],
-    continue_on_error: bool = True,
+    continue_on_error: bool = False,
 ) -> List[requests.Response]:
     """
     Get the HTML of a list of URLs concurrently.
@@ -122,13 +141,17 @@ async def get_pages_html(
         executor: ThreadPoolExecutor for running requests.
         urls: List of URLs to fetch.
         continue_on_error: If True, continue processing even if some URLs fail.
-                          If False, raise on first failure.
+                          If False (default), raise on first failure after retries exhausted.
 
     Returns:
-        List of successful responses. Failed URLs are logged as warnings.
+        List of successful responses.
+
+    Raises:
+        Exception: If continue_on_error is False and any URL fails after retries.
     """
     loop = asyncio.get_running_loop()
-    futures = [loop.run_in_executor(executor, load_url_safe if continue_on_error else load_url, url) for url in urls]
+    loader = load_url_safe if continue_on_error else load_url
+    futures = [loop.run_in_executor(executor, loader, url) for url in urls]
     results = await asyncio.gather(*futures, return_exceptions=True)
 
     htmls = []
@@ -136,8 +159,11 @@ async def get_pages_html(
 
     for url, result in zip(urls, results):
         if isinstance(result, Exception):
-            LOG.warning(f"Failed to get page {url}: {result}")
-            failed.append(url)
+            if continue_on_error:
+                LOG.warning(f"Failed to get page {url}: {result}")
+                failed.append(url)
+            else:
+                raise RuntimeError(f"Failed to fetch {url} after retries: {result}") from result
         elif result is None:
             # load_url_safe returned None.
             failed.append(url)
@@ -157,22 +183,36 @@ async def get_pages_html(
 async def get_pages_html_with_urls(
     executor,
     urls: List[str],
+    continue_on_error: bool = False,
 ) -> List[tuple]:
     """
     Get the HTML of a list of URLs, returning tuples of (url, response).
     This is useful when you need to know which URL each response came from.
 
+    Args:
+        executor: ThreadPoolExecutor for running requests.
+        urls: List of URLs to fetch.
+        continue_on_error: If True, continue processing even if some URLs fail.
+                          If False (default), raise on first failure after retries exhausted.
+
     Returns:
         List of (url, response) tuples for successful fetches.
+
+    Raises:
+        Exception: If continue_on_error is False and any URL fails after retries.
     """
     loop = asyncio.get_running_loop()
-    futures = [loop.run_in_executor(executor, load_url_safe, url) for url in urls]
+    loader = load_url_safe if continue_on_error else load_url
+    futures = [loop.run_in_executor(executor, loader, url) for url in urls]
     results = await asyncio.gather(*futures, return_exceptions=True)
 
     successful = []
     for url, result in zip(urls, results):
         if isinstance(result, Exception):
-            LOG.warning(f"Failed to get page {url}: {result}")
+            if continue_on_error:
+                LOG.warning(f"Failed to get page {url}: {result}")
+            else:
+                raise RuntimeError(f"Failed to fetch {url} after retries: {result}") from result
         elif result is None:
             LOG.warning(f"Failed to get page {url}")
         else:
