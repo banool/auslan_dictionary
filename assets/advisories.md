@@ -42,3 +42,13 @@ If you like the app, please consider leaving a review! Go to `Settings -> Give f
 Cheers,
 Daniel
 END===
+START===
+DATE===2026-01-01
+## Happy 2026!!
+
+The Auslan Dictionary app is over 5 years old now, thanks for coming along for the ride!! There are now ~372,000 of you who have downloaded this app! 
+
+This update brings a new framework to help a few folks on Android who couldn't load videos, please reach out if you have issues. You can use the "Report issue with app (Email)" option in the settings page.
+
+Thanks all!
+END===
