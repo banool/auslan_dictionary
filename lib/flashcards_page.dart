@@ -53,6 +53,12 @@ class FlashcardsPageState extends State<FlashcardsPage> {
     nextCard();
   }
 
+  @override
+  void dispose() {
+    nextCardTimer?.cancel();
+    super.dispose();
+  }
+
   // The actual dispose function cannot await async functions. Instead, we
   // ban users from swiping back to ensure that if they want to exit revision,
   // they do it by pressing one of our buttons, which ensures this function
@@ -130,10 +136,12 @@ class FlashcardsPageState extends State<FlashcardsPage> {
         // forgot momentarily.
         setState(() {
           nextCardTimer = Timer(const Duration(milliseconds: 750), () {
-            setState(() {
-              nextCard();
-              nextCardTimer = null;
-            });
+            if (mounted) {
+              setState(() {
+                nextCard();
+                nextCardTimer = null;
+              });
+            }
           });
         });
       } else {
@@ -213,7 +221,7 @@ class FlashcardsPageState extends State<FlashcardsPage> {
         child: Text(
           textData,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16),
+          style: const TextStyle(fontSize: 16),
         ));
   }
 
