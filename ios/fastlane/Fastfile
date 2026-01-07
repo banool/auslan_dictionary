@@ -52,10 +52,23 @@ platform :ios do
       keychain_password: ENV["MATCH_KEYCHAIN_PASSWORD"],
       api_key: api_key
     )
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "Runner.xcodeproj",
+      team_id: "9N3SNHTGL7",
+      profile_name: "match AppStore com.banool.auslanDictionary",
+      code_sign_identity: "iPhone Distribution"
+    )
     build_app(
       workspace: "Runner.xcworkspace",
       scheme: "Runner",
-      export_method: "app-store"
+      export_method: "app-store",
+      export_options: {
+        signingStyle: "manual",
+        provisioningProfiles: {
+          "com.banool.auslanDictionary" => "match AppStore com.banool.auslanDictionary"
+        }
+      }
     )
     # https://github.com/flutter/flutter/issues/166367
     ipa_location = lane_context[SharedValues::IPA_OUTPUT_PATH]
