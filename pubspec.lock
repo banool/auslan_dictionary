@@ -222,10 +222,10 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: "076ff41d59483726d550de5cefc7ec584820d98e"
+      resolved-ref: dff00f56cd8015a7307f4ff286dcfc33208cca6c
       url: "https://github.com/banool/dictionarylib.git"
     source: git
-    version: "0.3.3"
+    version: "0.3.4"
   dolphinsr_dart:
     dependency: "direct main"
     description:
@@ -271,10 +271,10 @@ packages:
     dependency: transitive
     description:
       name: ffi
-      sha256: "289279317b4b16eb2bb7e271abccd4bf84ec9bdcbe999e278a94b804f5630418"
+      sha256: d07d37192dbf97461359c1518788f203b0c9102cfd2c35a716b823741219542c
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.4"
+    version: "2.1.5"
   file:
     dependency: transitive
     description:
