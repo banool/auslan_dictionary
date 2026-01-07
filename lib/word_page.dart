@@ -227,9 +227,15 @@ class SubEntryPage extends StatefulWidget {
   SubEntryPageState createState() => SubEntryPageState();
 }
 
-class SubEntryPageState extends State<SubEntryPage> {
+class SubEntryPageState extends State<SubEntryPage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    // Required by AutomaticKeepAliveClientMixin.
+    super.build(context);
     var videoPlayerScreen = VideoPlayerScreen(
       mediaLinks: widget.subEntry.videoLinks,
       fallbackAspectRatio: 16 / 9,
