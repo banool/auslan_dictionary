@@ -19,8 +19,6 @@ platform :ios do
       keychain_name: ENV['MATCH_KEYCHAIN_NAME'],
       keychain_password: ENV["MATCH_KEYCHAIN_PASSWORD"],
     )
-    get_certificates
-    get_provisioning_profile
     upload_to_app_store(
       skip_binary_upload: true,
       screenshots_path: "../screenshots/ios",
@@ -54,8 +52,6 @@ platform :ios do
       keychain_password: ENV["MATCH_KEYCHAIN_PASSWORD"],
       api_key: api_key
     )
-    get_certificates
-    get_provisioning_profile
     build_app(
       workspace: "Runner.xcworkspace",
       scheme: "Runner",

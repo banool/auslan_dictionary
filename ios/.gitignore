@@ -1,6 +1,8 @@
 publish.env
 report.xml
 *.mobileprovision
+*.certSigningRequest
+*.p12
 
 **/dgph
 *.mode1v3
