@@ -1,19 +1,23 @@
-#!/bin/sh
+#!/bin/bash
+#
+# Upload screenshots to App Store Connect using the App Store Connect API key.
+# The Apple App Store will expect that you also upload a build for this app
+# version first.
 
-# If you see an error like this:
-# The provided entity includes an attribute with a value that has already been used - The version number has been previously used. - /data/attributes/versionString
-# You need to build the app: flutter build ios --release --no-codesign
+set -euo pipefail
 
-cd "$(dirname "$0")"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+cd "$DIR/.."
 
-. publish.env
+. ./ios/publish.env
 
-[[ -z "${FASTLANE_USER}" ]] && echo 'Please set FASTLANE_USER' && exit
-[[ -z "${FASTLANE_PASSWORD}" ]] && echo 'Please set FASTLANE_PASSWORD' && exit
-[[ -z "${FASTLANE_SESSION}" ]] && echo 'Please set FASTLANE_SESSION' && exit
-[[ -z "${FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD}" ]] && echo 'Please set FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD' && exit
-[[ -z "${MATCH_KEYCHAIN_NAME}" ]] && echo 'Please set MATCH_KEYCHAIN_NAME' && exit
-[[ -z "${MATCH_KEYCHAIN_PASSWORD}" ]] && echo 'Please set MATCH_KEYCHAIN_PASSWORD' && exit
-[[ -z "${MATCH_PASSWORD}" ]] && echo 'Please set MATCH_PASSWORD' && exit
+[[ -z "${APP_STORE_CONNECT_API_KEY_ID:-}" ]] && echo 'Please set APP_STORE_CONNECT_API_KEY_ID' && exit 1
+[[ -z "${APP_STORE_CONNECT_API_ISSUER_ID:-}" ]] && echo 'Please set APP_STORE_CONNECT_API_ISSUER_ID' && exit 1
+[[ -z "${API_KEY_PATH:-}" ]] && echo 'Please set API_KEY_PATH' && exit 1
+[[ ! -f "$API_KEY_PATH" ]] && echo "API key not found at $API_KEY_PATH" && exit 1
 
-fastlane ios screenshots
+echo "Screenshot upload to App Store Connect without fastlane is not yet"
+echo "supported by this script. Use Transporter.app or the App Store Connect"
+echo "web interface to upload screenshots manually."
+echo ""
+echo "Screenshots are located at: screenshots/ios/"
