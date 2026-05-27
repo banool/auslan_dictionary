@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Facebook Login + general app-name strings referenced from
+  AndroidManifest.xml. Values are provisioned from
+  developers.facebook.com → My Apps → App ID.
+
+  - facebook_app_id           : numeric App ID from developers.facebook.com.
+  - facebook_client_token     : Client Token from the same dashboard
+                                (Settings → Advanced → Client Token).
+  - fb_login_protocol_scheme  : literal "fb" + facebook_app_id.
+-->
+<resources>
+    <string name="app_name">Auslan Dictionary</string>
+    <string name="facebook_app_id">1003244748751862</string>
+    <string name="facebook_client_token">0e84e902c05b8d988138a40157a2f9fa</string>
+    <string name="fb_login_protocol_scheme">fb1003244748751862</string>
+</resources>

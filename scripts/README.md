@@ -18,9 +18,9 @@ uv run bash create_data_update_pr.sh
 ```
 
 This will:
-1. Create a new branch with a timestamp (e.g., `update_data_20240115_143022`)
-2. Scrape all data
-3. Create a PR if there are changes
+1. Create a new branch with a timestamp (e.g., `update_data_20240115_143022`).
+2. Scrape all data.
+3. Create a PR if there are changes.
 
 ### Local Scraping (Manual)
 

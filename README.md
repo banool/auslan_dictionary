@@ -28,7 +28,7 @@ The script uses `xcodebuild` with automatic signing and uploads to TestFlight vi
 Try installing cocoapods with brew instead of gem: https://github.com/flutter/flutter/issues/157694.
 
 ## Screenshots
-First, make sure you've implemented the fix in https://github.com/flutter/flutter/issues/91668 if the issue is still active. In short, make the following change to `~/homebrew/Caskroom/flutter/2.10.3/flutter/packages/integration_test/ios/Classes/IntegrationTestPlugin.m`
+First, make sure you've implemented the fix in https://github.com/flutter/flutter/issues/91668 if the issue is still active. In short, make the following change to `~/homebrew/Caskroom/flutter/2.10.3/flutter/packages/integration_test/ios/Classes/IntegrationTestPlugin.m`:
 ```
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
     [[IntegrationTestPlugin instance] setupChannels:registrar.messenger];

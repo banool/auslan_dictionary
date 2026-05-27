@@ -50,3 +50,10 @@ app.*.symbols
 
 # Obfuscation related
 app.*.map.json
+
+# Provider OAuth client secrets downloaded from GCP / Facebook that
+# aren't needed at runtime. iOS Google reads GIDClientID + URL scheme
+# from Info.plist; Android Google uses Play Services + the SHA-1
+# registered in GCP. Keep these aside locally for reference but don't
+# commit.
+.secrets-reference/

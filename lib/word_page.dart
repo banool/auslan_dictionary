@@ -2,6 +2,7 @@ import 'package:auslan_dictionary/entries_types.dart';
 import 'package:dictionarylib/common.dart';
 import 'package:dictionarylib/entry_types.dart';
 import 'package:dictionarylib/globals.dart';
+import 'package:dictionarylib/lists_service.dart';
 import 'package:dictionarylib/video_player_screen.dart';
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
@@ -59,22 +60,15 @@ class _EntryPageState extends State<EntryPage> {
   }
 
   bool wordIsFavourited(Entry entry) {
-    return userEntryListManager
-        .getEntryLists()[KEY_FAVOURITES_ENTRIES]!
-        .entries
-        .contains(entry);
+    return listsService.favouritesList.entries.contains(entry);
   }
 
   Future<void> addEntryToFavourites(Entry entry) async {
-    await userEntryListManager
-        .getEntryLists()[KEY_FAVOURITES_ENTRIES]!
-        .addEntry(entry);
+    await listsService.favouritesList.addEntry(entry);
   }
 
   Future<void> removeEntryFromFavourites(Entry entry) async {
-    await userEntryListManager
-        .getEntryLists()[KEY_FAVOURITES_ENTRIES]!
-        .removeEntry(entry);
+    await listsService.favouritesList.removeEntry(entry);
   }
 
   void onPageChanged(int index) {

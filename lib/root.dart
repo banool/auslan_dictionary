@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dictionarylib/common.dart';
 import 'package:dictionarylib/entry_types.dart';
 import 'package:dictionarylib/globals.dart';
@@ -6,6 +8,9 @@ import 'package:dictionarylib/page_entry_list_overview.dart';
 import 'package:dictionarylib/page_flashcards_landing.dart';
 import 'package:dictionarylib/page_search.dart';
 import 'package:dictionarylib/page_settings.dart';
+import 'package:dictionarylib/sharing/deep_link_handler.dart';
+import 'package:dictionarylib/sharing/shared_list_landing_page.dart';
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dictionarylib/dictionarylib.dart' show DictLibLocalizations;
@@ -51,12 +56,33 @@ class _RootAppState extends State<RootApp> {
     });
   }
 
+  StreamSubscription<SharePayload>? _deepLinkSub;
+
   @override
   void initState() {
     super.initState();
     locale = widget.startingLocale;
     themeNotifier.value = ThemeMode.values[
         sharedPreferences.getInt(KEY_THEME_MODE) ?? ThemeMode.light.index];
+    // Forward incoming share deep-links to the share landing route. The
+    // invite token (when present) is carried through as a query parameter
+    // so the landing page can drive the accept-invite flow instead of the
+    // anonymous subscribe.
+    final s = sharing;
+    if (s != null) {
+      _deepLinkSub = s.deepLinks.payloads.listen((payload) {
+        final loc = payload.isInvite
+            ? '/share/${payload.listId}?invite=${Uri.encodeQueryComponent(payload.inviteToken!)}'
+            : '/share/${payload.listId}';
+        router.go(loc);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _deepLinkSub?.cancel();
+    super.dispose();
   }
 
   final GoRouter router = GoRouter(
@@ -104,6 +130,26 @@ class _RootAppState extends State<RootApp> {
                   child: FlashcardsLandingPage(
                 controller: controller,
               ));
+            }),
+        GoRoute(
+            path: '/share/:listId',
+            pageBuilder: (BuildContext context, GoRouterState state) {
+              final id = state.pathParameters['listId']!;
+              final invite = state.uri.queryParameters['invite'];
+              // Stable key per (listId, inviteToken) so re-tapping the
+              // same share link doesn't tear down + rebuild the page
+              // (which would re-trigger subscribe / sign-in). Different
+              // links still get distinct keys so navigation between
+              // shares mounts a fresh page.
+              return NoTransitionPage(
+                key: ValueKey('share-$id-${invite ?? ''}'),
+                child: SharedListLandingPage(
+                  listId: id,
+                  inviteToken:
+                      invite != null && invite.isNotEmpty ? invite : null,
+                  navigateToEntryPage: navigateToEntryPage,
+                ),
+              );
             }),
         GoRoute(
             path: SETTINGS_ROUTE,
@@ -214,7 +260,7 @@ class _RootAppState extends State<RootApp> {
                   backgroundColor: Colors.white,
                 ),
                 visualDensity: VisualDensity.adaptivePlatformDensity,
-                pageTransitionsTheme: const PageTransitionsTheme(builders: {
+                pageTransitionsTheme: PageTransitionsTheme(builders: {
                   TargetPlatform.android: CupertinoPageTransitionsBuilder(),
                   TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
                 }),
@@ -289,7 +335,7 @@ class _RootAppState extends State<RootApp> {
                   backgroundColor: Color(0xFF121212),
                 ),
                 visualDensity: VisualDensity.adaptivePlatformDensity,
-                pageTransitionsTheme: const PageTransitionsTheme(builders: {
+                pageTransitionsTheme: PageTransitionsTheme(builders: {
                   TargetPlatform.android: CupertinoPageTransitionsBuilder(),
                   TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
                 }),
