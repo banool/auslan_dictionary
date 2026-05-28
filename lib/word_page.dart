@@ -3,6 +3,8 @@ import 'package:dictionarylib/common.dart';
 import 'package:dictionarylib/entry_types.dart';
 import 'package:dictionarylib/globals.dart';
 import 'package:dictionarylib/lists_service.dart';
+import 'package:dictionarylib/save_video_sheet.dart';
+import 'package:dictionarylib/saved_video.dart';
 import 'package:dictionarylib/video_player_screen.dart';
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
@@ -26,49 +28,60 @@ Widget getAuslanSignbankLaunchAppBarActionWidget(
 }
 
 class EntryPage extends StatefulWidget {
-  const EntryPage(
-      {super.key, required this.entry, required this.showFavouritesButton});
+  const EntryPage({
+    super.key,
+    required this.entry,
+    required this.showFavouritesButton,
+    this.focusVideo,
+  });
 
   final Entry entry;
+
+  /// Whether to render the per-video save UI. Named `showFavouritesButton`
+  /// for source-compat with the pre-per-video-saves codebase — the
+  /// button is no longer specifically a favourites star; it's a
+  /// per-video bookmark that opens the all-lists picker.
   final bool showFavouritesButton;
 
+  /// If supplied, the page lands on the sub-entry containing this
+  /// video and starts the sub-entry's video carousel on that video.
+  /// Used by the list view's tap-to-jump flow.
+  final SavedVideo? focusVideo;
+
   @override
-  _EntryPageState createState() =>
-      _EntryPageState(entry: entry, showFavouritesButton: showFavouritesButton);
+  _EntryPageState createState() => _EntryPageState();
 }
 
 class _EntryPageState extends State<EntryPage> {
-  _EntryPageState({required this.entry, required this.showFavouritesButton});
-
-  final Entry entry;
-  final bool showFavouritesButton;
-
   int currentPage = 0;
 
-  bool isFavourited = false;
+  /// Within-sub-entry video index used when first building the focused
+  /// sub-entry. Null when [EntryPage.focusVideo] is unset or its URL
+  /// isn't in the entry's data. After first build, per-sub-entry video
+  /// position is owned by [SubEntryPage]'s own state — kept alive
+  /// across sub-entry swipes by [AutomaticKeepAliveClientMixin].
+  int? _focusedVideoInitialIndex;
 
   PlaybackSpeed playbackSpeed = PlaybackSpeed.One;
 
   @override
   void initState() {
-    if (wordIsFavourited(entry)) {
-      isFavourited = true;
-    } else {
-      isFavourited = false;
-    }
     super.initState();
+    _applyFocusVideo();
   }
 
-  bool wordIsFavourited(Entry entry) {
-    return listsService.favouritesList.entries.contains(entry);
-  }
-
-  Future<void> addEntryToFavourites(Entry entry) async {
-    await listsService.favouritesList.addEntry(entry);
-  }
-
-  Future<void> removeEntryFromFavourites(Entry entry) async {
-    await listsService.favouritesList.removeEntry(entry);
+  void _applyFocusVideo() {
+    final focus = widget.focusVideo;
+    if (focus == null) return;
+    final subEntries = widget.entry.getSubEntries();
+    for (var i = 0; i < subEntries.length; i++) {
+      final idx = subEntries[i].getMedia().indexOf(focus.videoUrl);
+      if (idx >= 0) {
+        currentPage = i;
+        _focusedVideoInitialIndex = idx;
+        return;
+      }
+    }
   }
 
   void onPageChanged(int index) {
@@ -80,46 +93,10 @@ class _EntryPageState extends State<EntryPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> pages = [];
-    List<MySubEntry> subEntries = entry.getSubEntries() as List<MySubEntry>;
-    for (int i = 0; i < subEntries.length; i++) {
-      MySubEntry subEntry = subEntries[i];
-      SubEntryPage subEntryPage = SubEntryPage(
-        word: entry,
-        subEntry: subEntry,
-      );
-      pages.add(subEntryPage);
-    }
+    final subEntries = widget.entry.getSubEntries() as List<MySubEntry>;
+    final word = widget.entry.getPhrase(LOCALE_ENGLISH)!;
 
-    Icon starIcon;
-    if (isFavourited) {
-      starIcon = const Icon(Icons.star, semanticLabel: "Already favourited!");
-    } else {
-      starIcon =
-          const Icon(Icons.star_outline, semanticLabel: "Favourite this word");
-    }
-
-    List<Widget> actions = [];
-    if (showFavouritesButton) {
-      actions.add(buildActionButton(
-        context,
-        starIcon,
-        () async {
-          setState(() {
-            isFavourited = !isFavourited;
-          });
-          if (isFavourited) {
-            await addEntryToFavourites(entry);
-          } else {
-            await removeEntryFromFavourites(entry);
-          }
-        },
-      ));
-    }
-
-    String word = entry.getPhrase(LOCALE_ENGLISH)!;
-
-    actions += [
+    final actions = <Widget>[
       getAuslanSignbankLaunchAppBarActionWidget(context, word, currentPage),
       getPlaybackSpeedDropdownWidget(
         (p) {
@@ -129,11 +106,11 @@ class _EntryPageState extends State<EntryPage> {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content:
                   Text("Set playback speed to ${getPlaybackSpeedString(p!)}"),
-              //backgroundColor: cur,
               duration: const Duration(milliseconds: 1000)));
         },
       )
     ];
+
     return InheritedPlaybackSpeed(
         playbackSpeed: playbackSpeed,
         child: Scaffold(
@@ -143,10 +120,14 @@ class _EntryPageState extends State<EntryPage> {
             children: [
               Expanded(
                 child: PageView.builder(
+                  controller: PageController(initialPage: currentPage),
                   itemCount: subEntries.length,
                   itemBuilder: (context, index) => SubEntryPage(
-                    word: entry,
+                    word: widget.entry,
                     subEntry: subEntries[index],
+                    initialVideoIndex:
+                        index == currentPage ? _focusedVideoInitialIndex : null,
+                    showSaveButton: widget.showFavouritesButton,
                   ),
                   onPageChanged: onPageChanged,
                 ),
@@ -154,7 +135,7 @@ class _EntryPageState extends State<EntryPage> {
               Padding(
                 padding: const EdgeInsets.only(top: 5, bottom: 15),
                 child: DotsIndicator(
-                  dotsCount: entry.getSubEntries().length,
+                  dotsCount: subEntries.length,
                   position: currentPage.toDouble(),
                   decorator: DotsDecorator(
                     activeColor: MAIN_COLOR,
@@ -177,8 +158,10 @@ Widget? getRelatedEntriesWidget(BuildContext context, MySubEntry subEntry,
           keyedByEnglishEntriesGlobal.containsKey(keyword)
               ? keyedByEnglishEntriesGlobal[keyword]
               : null,
-      navigateToEntryPage: (context, entry, showFavouritesButton) =>
-          navigateToEntryPage(context, entry, showFavouritesButton));
+      navigateToEntryPage: (context, entry, showFavouritesButton,
+              {SavedVideo? focusVideo}) =>
+          navigateToEntryPage(context, entry, showFavouritesButton,
+              focusVideo: focusVideo));
 }
 
 Widget getRegionalInformationWidget(
@@ -212,10 +195,22 @@ class SubEntryPage extends StatefulWidget {
     super.key,
     required this.word,
     required this.subEntry,
+    this.initialVideoIndex,
+    this.showSaveButton = true,
   });
 
   final Entry word;
   final MySubEntry subEntry;
+
+  /// Within-sub-entry video index to land on. Used only on first build
+  /// (via [SubEntryPageState.initState]); subsequent swipes update the
+  /// internal `_currentVideo` directly.
+  final int? initialVideoIndex;
+
+  /// Whether to render the per-video bookmark button. Hidden in
+  /// flashcards review surfaces where bookmarking from the summary
+  /// page isn't the user's intent.
+  final bool showSaveButton;
 
   @override
   SubEntryPageState createState() => SubEntryPageState();
@@ -223,19 +218,39 @@ class SubEntryPage extends StatefulWidget {
 
 class SubEntryPageState extends State<SubEntryPage>
     with AutomaticKeepAliveClientMixin {
+  late int _currentVideo;
+
   @override
   bool get wantKeepAlive => true;
 
   @override
+  void initState() {
+    super.initState();
+    _currentVideo = widget.initialVideoIndex ?? 0;
+  }
+
+  void _onVideoChanged(int index) {
+    if (index == _currentVideo) return;
+    setState(() => _currentVideo = index);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Required by AutomaticKeepAliveClientMixin.
     super.build(context);
     var videoPlayerScreen = VideoPlayerScreen(
       mediaLinks: widget.subEntry.videoLinks,
       fallbackAspectRatio: 16 / 9,
+      initialPage: _currentVideo,
+      onPageChanged: _onVideoChanged,
     );
-    // If the display is wide enough, show the video beside the words instead
-    // of above the words (as well as other layout changes).
+
+    Widget? bookmarkRow;
+    if (widget.showSaveButton && widget.subEntry.videoLinks.isNotEmpty) {
+      final urls = widget.subEntry.videoLinks;
+      final url = urls[_currentVideo.clamp(0, urls.length - 1)];
+      bookmarkRow = _BookmarkButton(entry: widget.word, videoUrl: url);
+    }
+
     var shouldUseHorizontalDisplay = getShouldUseHorizontalLayout(context);
 
     Widget? keywordsWidget = getRelatedEntriesWidget(
@@ -246,6 +261,7 @@ class SubEntryPageState extends State<SubEntryPage>
     if (!shouldUseHorizontalDisplay) {
       List<Widget> children = [];
       children.add(videoPlayerScreen);
+      if (bookmarkRow != null) children.add(bookmarkRow);
       if (keywordsWidget != null) {
         children.add(keywordsWidget);
       }
@@ -268,13 +284,11 @@ class SubEntryPageState extends State<SubEntryPage>
         children: [
           Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             videoPlayerScreen,
+            if (bookmarkRow != null) bookmarkRow,
             regionalInformationWidget,
           ]),
           LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
-            // TODO Make this less janky and hardcoded.
-            // The issue is the parent has infinite width and height
-            // and Expanded doesn't seem to be working.
             List<Widget> children = [];
             if (keywordsWidget != null) {
               children.add(keywordsWidget);
@@ -319,4 +333,48 @@ Widget definition(BuildContext context, Definition definition) {
               .toList(),
         )
       ]));
+}
+
+/// Per-video save toggle rendered beneath the video player. Owns its
+/// own state so a swipe to a new video — or the user toggling the
+/// list-picker sheet — repaints just this button rather than the
+/// whole entry page.
+class _BookmarkButton extends StatefulWidget {
+  final Entry entry;
+  final String videoUrl;
+  const _BookmarkButton({required this.entry, required this.videoUrl});
+
+  @override
+  State<_BookmarkButton> createState() => _BookmarkButtonState();
+}
+
+class _BookmarkButtonState extends State<_BookmarkButton> {
+  @override
+  Widget build(BuildContext context) {
+    final v = SavedVideo(
+        entryKey: widget.entry.getKey(), videoUrl: widget.videoUrl);
+    var saved = false;
+    for (final list in listsService.myLists) {
+      if (list.containsVideo(v)) {
+        saved = true;
+        break;
+      }
+    }
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 2),
+      child: Align(
+        alignment: Alignment.center,
+        child: TextButton.icon(
+          onPressed: () async {
+            await showSaveVideoSheet(context, video: v);
+            if (mounted) setState(() {});
+          },
+          icon: Icon(
+              saved ? Icons.bookmark_remove : Icons.bookmark_add_outlined,
+              size: 20),
+          label: Text(saved ? 'Saved' : 'Save'),
+        ),
+      ),
+    );
+  }
 }

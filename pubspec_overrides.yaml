@@ -1,0 +1,6 @@
+# Local dev override so changes to the in-progress dictionarylib refactor
+# are picked up without needing a git push + ref bump. Remove (or update
+# the ref in pubspec.yaml) before shipping.
+dependency_overrides:
+  dictionarylib:
+    path: ../dictionarylib

@@ -1,4 +1,5 @@
 import 'package:dictionarylib/dictionarylib.dart';
+import 'package:dictionarylib/flashcards_logic.dart';
 import 'package:dictionarylib/page_force_upgrade.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -45,6 +46,13 @@ Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
       paramEntryLoader: myEntryLoader,
       knobUrlBase: KNOBS_URL_BASE,
       entriesGlobalReplacement: entriesGlobalReplacement);
+
+  // One-shot migration of stored DolphinSR review history from the
+  // v1 master id shape ("entryKey-firstVideoFilename") to the v2
+  // shape (per-saved-video). No-op after the first successful run.
+  // Must run after setupPhaseThree because it walks the dictionary
+  // to resolve legacy master ids.
+  await migrateLegacyReviewsIfNeeded();
 
   // Opt in to the shared-lists feature. Runs after phase three because the
   // synced-list manager resolves owner-share metadata against

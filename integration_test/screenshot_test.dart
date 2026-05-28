@@ -136,22 +136,22 @@ void main() async {
     await userEntryListManager.createEntryList(listKey);
     await userEntryListManager
         .getEntryLists()[listKey]!
-        .addEntry(keyedByEnglishEntriesGlobal["kangaroo"]!);
+        .addAllVideosOfEntry(keyedByEnglishEntriesGlobal["kangaroo"]!);
     await userEntryListManager
         .getEntryLists()[listKey]!
-        .addEntry(keyedByEnglishEntriesGlobal["platypus"]!);
+        .addAllVideosOfEntry(keyedByEnglishEntriesGlobal["platypus"]!);
     await userEntryListManager
         .getEntryLists()[listKey]!
-        .addEntry(keyedByEnglishEntriesGlobal["echidna"]!);
+        .addAllVideosOfEntry(keyedByEnglishEntriesGlobal["echidna"]!);
     await userEntryListManager
         .getEntryLists()[listKey]!
-        .addEntry(keyedByEnglishEntriesGlobal["dog"]!);
+        .addAllVideosOfEntry(keyedByEnglishEntriesGlobal["dog"]!);
     await userEntryListManager
         .getEntryLists()[listKey]!
-        .addEntry(keyedByEnglishEntriesGlobal["cat"]!);
+        .addAllVideosOfEntry(keyedByEnglishEntriesGlobal["cat"]!);
     await userEntryListManager
         .getEntryLists()[listKey]!
-        .addEntry(keyedByEnglishEntriesGlobal["bird"]!);
+        .addAllVideosOfEntry(keyedByEnglishEntriesGlobal["bird"]!);
 
     await sharedPreferences
         .setStringList(KEY_LISTS_TO_REVIEW, [KEY_FAVOURITES_ENTRIES, listKey]);

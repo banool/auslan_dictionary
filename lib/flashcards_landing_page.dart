@@ -34,46 +34,46 @@ class MyFlashcardsLandingPageController
     return getFlashcardsHelpPage(context);
   }
 
+  /// Filter the saved-video pool against the user's region prefs and
+  /// the "one card per word" toggle.
+  ///
+  /// Region filter: applied to the parent sub-entry of each saved
+  /// video — a video belonging to a sub-entry tagged Victoria is in
+  /// scope iff Victoria is one of the allowed regions (or the "all
+  /// of Australia" / "unknown region" branches apply).
+  ///
+  /// One card per word: when set, dedupe by entry key, keeping the
+  /// first saved video the user has for the entry. Insertion order is
+  /// preserved.
   @override
-  Map<Entry, List<SubEntry>> filterSubEntries(
-      Map<Entry, List<SubEntry>> subEntries) {
-    List<Region> allowedRegions =
+  List<ResolvedSavedVideo> filterSavedVideos(
+      List<ResolvedSavedVideo> videos) {
+    final allowedRegions =
         (sharedPreferences.getStringList(KEY_FLASHCARD_REGIONS) ?? [])
             .map((i) => Region.values[int.parse(i)])
             .toList();
-    bool useUnknownRegionSigns =
+    final useUnknownRegionSigns =
         sharedPreferences.getBool(KEY_USE_UNKNOWN_REGION_SIGNS) ?? true;
-    bool oneCardPerEntry =
+    final oneCardPerEntry =
         sharedPreferences.getBool(KEY_ONE_CARD_PER_WORD) ?? false;
 
-    Map<Entry, List<SubEntry>> out = {};
-
-    for (MapEntry<Entry, List<SubEntry>> e in subEntries.entries) {
-      List<SubEntry> validSubEntries = [];
-      for (SubEntry se in e.value) {
-        if (validSubEntries.isNotEmpty && oneCardPerEntry) {
-          break;
-        }
-        if (se.getRegions().contains(Region.EVERYWHERE)) {
-          validSubEntries.add(se);
-          continue;
-        }
-        if (se.getRegions().isEmpty && useUnknownRegionSigns) {
-          validSubEntries.add(se);
-          continue;
-        }
-        for (Region r in se.getRegions()) {
-          if (allowedRegions.contains(r)) {
-            validSubEntries.add(se);
-            break;
-          }
-        }
+    final seenEntries = <String>{};
+    final out = <ResolvedSavedVideo>[];
+    for (final r in videos) {
+      final sub = r.subEntry as MySubEntry;
+      final regions = sub.getRegions();
+      bool passesRegion;
+      if (regions.contains(Region.EVERYWHERE)) {
+        passesRegion = true;
+      } else if (regions.isEmpty && useUnknownRegionSigns) {
+        passesRegion = true;
+      } else {
+        passesRegion = regions.any(allowedRegions.contains);
       }
-      if (validSubEntries.isNotEmpty) {
-        out[e.key] = validSubEntries;
-      }
+      if (!passesRegion) continue;
+      if (oneCardPerEntry && !seenEntries.add(r.entry.getKey())) continue;
+      out.add(r);
     }
-
     return out;
   }
 

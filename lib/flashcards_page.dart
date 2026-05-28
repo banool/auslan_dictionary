@@ -225,18 +225,21 @@ class FlashcardsPageState extends State<FlashcardsPage> {
         ));
   }
 
-  Widget buildFlashcardWidget(DRCard card, SubEntry subEntry, String word,
-      bool wordToSign, bool revealed) {
+  Widget buildFlashcardWidget(DRCard card, ResolvedSavedVideo resolved,
+      String word, bool wordToSign, bool revealed) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
     var shouldUseHorizontalDisplay = getShouldUseHorizontalLayout(context);
 
-    // See here for an explanation of why I pass in a key here:
-    // https://stackoverflow.com/questions/55237188/flutter-is-not-rebuilding-same-widget-with-different-parameters
+    // Render exactly the saved video the master represents — not every
+    // video of the sub-entry. The per-video-revision model means each
+    // card is one specific video the user chose to save.
     var videoPlayerScreen = VideoPlayerScreen(
-      mediaLinks: subEntry.getMedia(),
+      mediaLinks: [resolved.videoUrl],
       fallbackAspectRatio: 16 / 9,
-      key: Key(subEntry.getMedia()[0]),
+      key: Key(resolved.videoUrl),
     );
+
+    final subEntry = resolved.subEntry;
 
     Widget topWidget;
     if (wordToSign) {
@@ -510,8 +513,8 @@ class FlashcardsPageState extends State<FlashcardsPage> {
     if (currentCard != null) {
       DRCard card = currentCard!;
 
-      MySubEntry subEntry =
-          widget.di.keyToSubEntryMap[card.master]! as MySubEntry;
+      final resolved = widget.di.masterToVideoMap[card.master]!;
+      final subEntry = resolved.subEntry as MySubEntry;
 
       String word;
       bool wordToSign = card.back![0] == VIDEO_LINKS_MARKER;
@@ -528,7 +531,7 @@ class FlashcardsPageState extends State<FlashcardsPage> {
           child: InheritedPlaybackSpeed(
               playbackSpeed: playbackSpeed,
               child: buildFlashcardWidget(
-                  card, subEntry, word, wordToSign, currentCardRevealed)));
+                  card, resolved, word, wordToSign, currentCardRevealed)));
       int progressString = getCardsReviewed() + 1;
       if (currentCardRevealed) {
         progressString -= 1;
