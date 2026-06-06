@@ -10,19 +10,45 @@ import 'package:dictionarylib/page_search.dart';
 import 'package:dictionarylib/page_settings.dart';
 import 'package:dictionarylib/sharing/deep_link_handler.dart';
 import 'package:dictionarylib/sharing/shared_list_landing_page.dart';
-import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
+import 'package:dictionarylib/theme.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dictionarylib/dictionarylib.dart' show DictLibLocalizations;
 
 import 'common.dart';
+import 'entries_types.dart';
 import 'flashcards_landing_page.dart';
 import 'legal_information.dart';
+
+/// Short plain-text preview of an entry's first definition, for the
+/// "sign of the day" card on the search screen.
+String? auslanDefinitionPreview(Entry entry) {
+  if (entry is! MyEntry) return null;
+  if (entry.subEntries.isEmpty) return null;
+  final defs = entry.subEntries.first.definitions;
+  if (defs.isEmpty) return null;
+  final subdefs = defs.first.subdefinitions;
+  if (subdefs == null || subdefs.isEmpty) return null;
+  return subdefs.first;
+}
 
 const SEARCH_ROUTE = "/search";
 const LISTS_ROUTE = "/lists";
 const REVISION_ROUTE = "/revision";
 const SETTINGS_ROUTE = "/settings";
+
+// Debug-only launch overrides for testing a specific screen / theme without
+// hand-editing this file (and risking leaving the edit in). They're set via
+// --dart-define, default to empty when absent, and are ignored entirely
+// outside debug builds — so the shipped app always boots to SEARCH_ROUTE with
+// the user's persisted theme. Examples:
+//   flutter run --dart-define=DEBUG_INITIAL_LOCATION='/search?query=dog&navigate_to_first_match=true'
+//   flutter run --dart-define=DEBUG_THEME_VARIANT=classic --dart-define=DEBUG_THEME_MODE=dark
+const String _kDebugInitialLocation =
+    String.fromEnvironment('DEBUG_INITIAL_LOCATION');
+const String _kDebugThemeVariant = String.fromEnvironment('DEBUG_THEME_VARIANT');
+const String _kDebugThemeMode = String.fromEnvironment('DEBUG_THEME_MODE');
 
 late Locale systemLocale;
 
@@ -32,7 +58,7 @@ class RootApp extends StatefulWidget {
   final Locale startingLocale;
 
   @override
-  _RootAppState createState() => _RootAppState(locale: startingLocale);
+  State<RootApp> createState() => _RootAppState();
 
   static void applyLocaleOverride(BuildContext context, Locale newLocale) {
     _RootAppState state = context.findAncestorStateOfType<_RootAppState>()!;
@@ -46,8 +72,6 @@ class RootApp extends StatefulWidget {
 }
 
 class _RootAppState extends State<RootApp> {
-  _RootAppState({required this.locale});
-
   late Locale locale;
 
   void _setLocale(Locale newLocale) {
@@ -64,19 +88,27 @@ class _RootAppState extends State<RootApp> {
     locale = widget.startingLocale;
     themeNotifier.value = ThemeMode.values[
         sharedPreferences.getInt(KEY_THEME_MODE) ?? ThemeMode.light.index];
+    themeVariantNotifier.value =
+        appThemeVariantFromName(sharedPreferences.getString(KEY_THEME_VARIANT));
+    // Debug-only theme overrides (see _kDebug* consts above). No-ops in release
+    // and when the corresponding --dart-define isn't set.
+    if (kDebugMode && _kDebugThemeMode.isNotEmpty) {
+      themeNotifier.value =
+          _kDebugThemeMode == 'dark' ? ThemeMode.dark : ThemeMode.light;
+    }
+    if (kDebugMode && _kDebugThemeVariant.isNotEmpty) {
+      themeVariantNotifier.value = appThemeVariantFromName(_kDebugThemeVariant);
+    }
     // Forward incoming share deep-links to the share landing route. The
     // invite token (when present) is carried through as a query parameter
     // so the landing page can drive the accept-invite flow instead of the
     // anonymous subscribe.
-    final s = sharing;
-    if (s != null) {
-      _deepLinkSub = s.deepLinks.payloads.listen((payload) {
-        final loc = payload.isInvite
-            ? '/share/${payload.listId}?invite=${Uri.encodeQueryComponent(payload.inviteToken!)}'
-            : '/share/${payload.listId}';
-        router.go(loc);
-      });
-    }
+    _deepLinkSub = sharing.deepLinks.payloads.listen((payload) {
+      final loc = payload.isInvite
+          ? '/share/${payload.listId}?invite=${Uri.encodeQueryComponent(payload.inviteToken!)}'
+          : '/share/${payload.listId}';
+      router.go(loc);
+    });
   }
 
   @override
@@ -87,7 +119,9 @@ class _RootAppState extends State<RootApp> {
 
   final GoRouter router = GoRouter(
       navigatorKey: rootNavigatorKey,
-      initialLocation: SEARCH_ROUTE,
+      initialLocation: kDebugMode && _kDebugInitialLocation.isNotEmpty
+          ? _kDebugInitialLocation
+          : SEARCH_ROUTE,
       routes: [
         GoRoute(
           path: "/",
@@ -107,6 +141,7 @@ class _RootAppState extends State<RootApp> {
                   initialQuery: initialQuery,
                   navigateToFirstMatch: navigateToFirstMatch,
                   includeEntryTypeButton: false,
+                  entryDefinitionPreview: auslanDefinitionPreview,
                 ),
               );
             }),
@@ -171,177 +206,46 @@ class _RootAppState extends State<RootApp> {
 
   @override
   Widget build(BuildContext context) {
+    // Outer listener: the light/dark mode. Inner listener: which visual style
+    // ("theme variant") to build, e.g. Hearth or Classic. Both themes are
+    // built by the shared library so all the theming lives in one place.
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: themeNotifier,
       builder: (context, themeMode, child) {
-        return GestureDetector(
-            onTap: () {
-              FocusScopeNode currentFocus = FocusScope.of(context);
-              if (!currentFocus.hasPrimaryFocus &&
-                  currentFocus.focusedChild != null) {
-                FocusManager.instance.primaryFocus!.unfocus();
-              }
-            },
-            child: MaterialApp.router(
-              title: APP_NAME,
-              onGenerateTitle: (context) => APP_NAME,
-              localizationsDelegates:
-                  DictLibLocalizations.localizationsDelegates,
-              supportedLocales: LANGUAGE_CODE_TO_LOCALE.values,
-              locale: locale,
-              debugShowCheckedModeBanner: false,
-              themeMode: themeMode,
-              theme: ThemeData(
-                colorScheme: ColorScheme.fromSeed(
-                  seedColor: MAIN_COLOR,
-                  brightness: Brightness.light,
-                ),
-                appBarTheme: const AppBarTheme(
-                  backgroundColor: MAIN_COLOR,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                ),
-                scaffoldBackgroundColor: Colors.white,
-                cardTheme: CardThemeData(
-                  color: Colors.white,
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+        return ValueListenableBuilder<AppThemeVariant>(
+          valueListenable: themeVariantNotifier,
+          builder: (context, themeVariant, child) {
+            return GestureDetector(
+                onTap: () {
+                  FocusScopeNode currentFocus = FocusScope.of(context);
+                  if (!currentFocus.hasPrimaryFocus &&
+                      currentFocus.focusedChild != null) {
+                    FocusManager.instance.primaryFocus!.unfocus();
+                  }
+                },
+                child: MaterialApp.router(
+                  title: APP_NAME,
+                  onGenerateTitle: (context) => APP_NAME,
+                  localizationsDelegates:
+                      DictLibLocalizations.localizationsDelegates,
+                  supportedLocales: LANGUAGE_CODE_TO_LOCALE.values,
+                  locale: locale,
+                  debugShowCheckedModeBanner: false,
+                  themeMode: themeMode,
+                  theme: buildAppTheme(
+                    variant: themeVariant,
+                    brightness: Brightness.light,
+                    classicSeed: MAIN_COLOR,
                   ),
-                ),
-                typography: Typography.material2021(
-                    colorScheme: ColorScheme.fromSeed(
-                        seedColor: MAIN_COLOR, brightness: Brightness.light)),
-                textButtonTheme: TextButtonThemeData(
-                  style: ButtonStyle(
-                    foregroundColor: WidgetStatePropertyAll(Colors.black),
+                  darkTheme: buildAppTheme(
+                    variant: themeVariant,
+                    brightness: Brightness.dark,
+                    classicSeed: MAIN_COLOR,
                   ),
-                ),
-                iconButtonTheme: IconButtonThemeData(
-                  style: ButtonStyle(
-                    foregroundColor: WidgetStateProperty.resolveWith<Color>(
-                      (Set<WidgetState> states) =>
-                          states.contains(WidgetState.disabled)
-                              ? Colors.black38
-                              : Colors.black,
-                    ),
-                  ),
-                ),
-                // Update InputDecoration theme for search field underline and placeholder
-                inputDecorationTheme: const InputDecorationTheme(
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: MAIN_COLOR),
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: MAIN_COLOR),
-                  ),
-                  hintStyle: TextStyle(color: Colors.black54),
-                ),
-                // Update TabBar theme
-                tabBarTheme: TabBarThemeData(
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.white,
-                  labelStyle: TextStyle(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  unselectedLabelStyle: TextStyle(
-                    fontSize: 16.0,
-                  ),
-                ),
-                snackBarTheme: SnackBarThemeData(
-                  backgroundColor: MAIN_COLOR,
-                  contentTextStyle: TextStyle(color: Colors.white),
-                ),
-                // Update BottomNavigationBar theme
-                bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-                  selectedItemColor: MAIN_COLOR,
-                  unselectedItemColor: Colors.grey,
-                  backgroundColor: Colors.white,
-                ),
-                visualDensity: VisualDensity.adaptivePlatformDensity,
-                pageTransitionsTheme: PageTransitionsTheme(builders: {
-                  TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-                  TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-                }),
-              ),
-              darkTheme: ThemeData(
-                colorScheme: ColorScheme.fromSeed(
-                  seedColor: MAIN_COLOR,
-                  brightness: Brightness.dark,
-                ),
-                appBarTheme: const AppBarTheme(
-                  backgroundColor: Color(0xFF1F1F1F),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                ),
-                scaffoldBackgroundColor: const Color(0xFF121212),
-                cardTheme: CardThemeData(
-                  color: const Color(0xFF2C2C2C),
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                typography: Typography.material2021(
-                    colorScheme: ColorScheme.fromSeed(
-                        seedColor: MAIN_COLOR, brightness: Brightness.dark)),
-                // Update TextButton theme
-                textButtonTheme: TextButtonThemeData(
-                  style: ButtonStyle(
-                    foregroundColor: WidgetStatePropertyAll(Colors.white),
-                  ),
-                ),
-                iconButtonTheme: IconButtonThemeData(
-                  style: ButtonStyle(
-                    foregroundColor: WidgetStateProperty.resolveWith<Color>(
-                      (Set<WidgetState> states) =>
-                          states.contains(WidgetState.disabled)
-                              ? Colors.white24
-                              : Colors.white,
-                    ),
-                  ),
-                ),
-                // Update InputDecoration theme for search field underline and placeholder
-                inputDecorationTheme: const InputDecorationTheme(
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: MAIN_COLOR),
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: MAIN_COLOR),
-                  ),
-                  hintStyle: TextStyle(color: Colors.white60),
-                ),
-                // Update TabBar theme
-                tabBarTheme: TabBarThemeData(
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.white,
-                  labelStyle: TextStyle(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  unselectedLabelStyle: TextStyle(
-                    fontSize: 16.0,
-                  ),
-                ),
-                snackBarTheme: SnackBarThemeData(
-                  backgroundColor: MAIN_COLOR,
-                  contentTextStyle: TextStyle(color: Colors.black),
-                ),
-                // Update BottomNavigationBar theme
-                bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-                  selectedItemColor: MAIN_COLOR,
-                  unselectedItemColor: Colors.grey,
-                  backgroundColor: Color(0xFF121212),
-                ),
-                visualDensity: VisualDensity.adaptivePlatformDensity,
-                pageTransitionsTheme: PageTransitionsTheme(builders: {
-                  TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-                  TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-                }),
-              ),
-              routerConfig: router,
-            ));
+                  routerConfig: router,
+                ));
+          },
+        );
       },
     );
   }

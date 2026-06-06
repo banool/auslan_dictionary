@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:dictionarylib/common.dart';
-import 'package:dictionarylib/entry_types.dart';
 import 'package:dictionarylib/flashcards_logic.dart';
-import 'package:dictionarylib/globals.dart';
+import 'package:dictionarylib/hearth.dart';
 import 'package:dictionarylib/revision.dart';
 import 'package:dictionarylib/video_player_screen.dart';
 import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 import 'package:flutter/material.dart';
+import 'package:dictionarylib/dictionarylib.dart' show DictLibLocalizations;
 
 import 'entries_types.dart';
 import 'word_page.dart';
@@ -64,7 +64,13 @@ class FlashcardsPageState extends State<FlashcardsPage> {
   // they do it by pressing one of our buttons, which ensures this function
   // gets called.
   Future<void> beforePop() async {
-    if (!reviewsWritten) {
+    // Single-shot + re-entrancy guard: set the flag before the first await so a
+    // concurrent caller — the session-end nextCard() and the user tapping close
+    // — doesn't write the reviews twice. Reset on failure so an explicit close
+    // can retry.
+    if (reviewsWritten) return;
+    reviewsWritten = true;
+    try {
       switch (widget.revisionStrategy) {
         case RevisionStrategy.SpacedRepetition:
           await writeReviews(widget.existingReviews, answers.values.toList());
@@ -73,9 +79,9 @@ class FlashcardsPageState extends State<FlashcardsPage> {
           await bumpRandomReviewCounter(answers.length);
           break;
       }
-      setState(() {
-        reviewsWritten = true;
-      });
+    } catch (e) {
+      reviewsWritten = false;
+      printAndLog("Failed to write reviews on exit: $e");
     }
   }
 
@@ -152,82 +158,110 @@ class FlashcardsPageState extends State<FlashcardsPage> {
     }
   }
 
+  // A rating button. The positive/negative meaning is carried by icon + label
+  // + colour together (never colour alone) so it stays accessible.
   Widget getRatingButton(Rating rating, bool active, {bool isNext = false}) {
-    String textData;
-    Color backgroundColor;
-    Color overlayColor; // For tap animation, should be translucent.
-    Color borderColor;
-    if (rating == Rating.Easy && isNext) {
-      textData = "Next";
-      overlayColor = const Color.fromARGB(92, 30, 143, 250);
-      backgroundColor = const Color.fromARGB(0, 255, 255, 255);
-      borderColor = const Color.fromARGB(255, 116, 116, 116);
-    } else {
+    final cs = Theme.of(context).colorScheme;
+    final l = DictLibLocalizations.of(context)!;
+
+    void onPressed() {
       switch (rating) {
         case Rating.Hard:
-          textData = "Forgot";
-          overlayColor = const Color.fromARGB(90, 211, 88, 79);
+          forgotRatingWidgetActive = true;
+          rememberedRatingWidgetActive = false;
           break;
         case Rating.Good:
-          textData = "Got it!";
-          overlayColor = const Color.fromARGB(90, 72, 167, 77);
+          rememberedRatingWidgetActive = true;
+          forgotRatingWidgetActive = false;
+          break;
+        case Rating.Easy:
           break;
         default:
-          throw "Rating $rating not supported yet";
+          throw UnsupportedError("Rating $rating not supported yet");
       }
-      if (active) {
-        switch (rating) {
-          case Rating.Hard:
-            backgroundColor = const Color.fromARGB(118, 255, 104, 104);
-            borderColor = const Color.fromARGB(255, 189, 40, 29);
-            break;
-          case Rating.Good:
-            backgroundColor = const Color.fromARGB(60, 88, 255, 124);
-            borderColor = const Color.fromARGB(255, 33, 102, 37);
-            break;
-          default:
-            throw "Rating $rating not supported yet";
-        }
-      } else {
-        backgroundColor = const Color.fromARGB(0, 255, 255, 255);
-        borderColor = const Color.fromARGB(255, 116, 116, 116);
-      }
+      completeCard(currentCard!, rating: rating, forceUseTimer: isNext);
     }
-    return TextButton(
-        onPressed: () {
-          switch (rating) {
-            case Rating.Hard:
-              forgotRatingWidgetActive = true;
-              rememberedRatingWidgetActive = false;
-              break;
-            case Rating.Good:
-              rememberedRatingWidgetActive = true;
-              forgotRatingWidgetActive = false;
-              break;
-            case Rating.Easy:
-              break;
-            default:
-              throw "Rating $rating not supported yet";
-          }
-          completeCard(currentCard!, rating: rating, forceUseTimer: isNext);
-        },
-        style: ButtonStyle(
-            backgroundColor: WidgetStateProperty.all(backgroundColor),
-            overlayColor: WidgetStateProperty.all(overlayColor),
-            padding: WidgetStateProperty.all(const EdgeInsets.only(
-                top: 14, bottom: 14, left: 40, right: 40)),
-            side: WidgetStateProperty.all(
-                BorderSide(color: borderColor, width: 1.5))),
-        child: Text(
-          textData,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 16),
-        ));
+
+    if (rating == Rating.Easy && isNext) {
+      return FilledButton.icon(
+        onPressed: onPressed,
+        style: FilledButton.styleFrom(minimumSize: const Size(0, 54)),
+        icon: const Icon(Icons.arrow_forward, size: 20),
+        label: Text(l.ratingNext),
+      );
+    }
+    // Forgot / Got it! fill when active and outline otherwise, so tapping one
+    // visibly selects it (for the brief moment before the next card).
+    if (rating == Rating.Hard) {
+      return active
+          ? FilledButton.icon(
+              onPressed: onPressed,
+              style: FilledButton.styleFrom(
+                backgroundColor: cs.error,
+                foregroundColor: cs.onError,
+                minimumSize: const Size(0, 54),
+              ),
+              icon: const Icon(Icons.close, size: 20),
+              label: Text(l.ratingForgot),
+            )
+          : OutlinedButton.icon(
+              onPressed: onPressed,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: cs.error,
+                side: BorderSide(color: cs.error, width: 1.5),
+                minimumSize: const Size(0, 54),
+              ),
+              icon: const Icon(Icons.close, size: 20),
+              label: Text(l.ratingForgot),
+            );
+    }
+    // Rating.Good — the positive action.
+    return active
+        ? FilledButton.icon(
+            onPressed: onPressed,
+            style: FilledButton.styleFrom(
+              backgroundColor: cs.tertiary,
+              foregroundColor: cs.onTertiary,
+              minimumSize: const Size(0, 54),
+            ),
+            icon: const Icon(Icons.check, size: 20),
+            label: Text(l.ratingGotIt),
+          )
+        : OutlinedButton.icon(
+            onPressed: onPressed,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: cs.tertiary,
+              side: BorderSide(color: cs.tertiary, width: 1.5),
+              minimumSize: const Size(0, 54),
+            ),
+            icon: const Icon(Icons.check, size: 20),
+            label: Text(l.ratingGotIt),
+          );
+  }
+
+  /// The single "reveal the answer" call to action shown before a card is
+  /// flipped. Shared by the vertical and horizontal layouts.
+  Widget _revealButton() {
+    final l = DictLibLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: SizedBox(
+        width: double.infinity,
+        child: FilledButton.icon(
+          key: const ValueKey("revealButton"),
+          onPressed: () => completeCard(currentCard!, rating: Rating.Good),
+          style: FilledButton.styleFrom(minimumSize: const Size(0, 54)),
+          icon: const Icon(Icons.visibility_outlined, size: 20),
+          label: Text(l.tapToReveal),
+        ),
+      ),
+    );
   }
 
   Widget buildFlashcardWidget(DRCard card, ResolvedSavedVideo resolved,
-      String word, bool wordToSign, bool revealed) {
-    ColorScheme colorScheme = Theme.of(context).colorScheme;
+      String word,
+      {required bool wordToSign, required bool revealed}) {
+    final l = DictLibLocalizations.of(context)!;
     var shouldUseHorizontalDisplay = getShouldUseHorizontalLayout(context);
 
     // Render exactly the saved video the master represents — not every
@@ -249,8 +283,9 @@ class FlashcardsPageState extends State<FlashcardsPage> {
         double top = shouldUseHorizontalDisplay ? 100 : 120;
         topWidget = Container(
             padding: EdgeInsets.only(top: top, bottom: 70),
-            child: const Text("What is the sign for this word?",
-                textAlign: TextAlign.center, style: TextStyle(fontSize: 20)));
+            child: Text(l.studyPromptWordToSign,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 20)));
       }
     } else {
       topWidget = videoPlayerScreen;
@@ -262,8 +297,9 @@ class FlashcardsPageState extends State<FlashcardsPage> {
           textAlign: TextAlign.center, style: const TextStyle(fontSize: 20));
     } else {
       if (!revealed) {
-        bottomWidget = const Text("What does this sign mean?",
-            textAlign: TextAlign.center, style: TextStyle(fontSize: 20));
+        bottomWidget = Text(l.studyPromptSignToWord,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 20));
       } else {
         bottomWidget = Text(word,
             textAlign: TextAlign.center, style: const TextStyle(fontSize: 20));
@@ -278,70 +314,71 @@ class FlashcardsPageState extends State<FlashcardsPage> {
     if (revealed) {
       switch (widget.revisionStrategy) {
         case RevisionStrategy.SpacedRepetition:
-          ratingButtonsRow = Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              getRatingButton(Rating.Hard, forgotRatingWidgetActive),
-              const Padding(
-                padding: EdgeInsets.only(left: 15, right: 15),
-              ),
-              getRatingButton(Rating.Good, rememberedRatingWidgetActive),
-            ],
+          ratingButtonsRow = Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                Expanded(
+                    child: getRatingButton(
+                        Rating.Hard, forgotRatingWidgetActive)),
+                const SizedBox(width: 12),
+                Expanded(
+                    child: getRatingButton(
+                        Rating.Good, rememberedRatingWidgetActive)),
+              ],
+            ),
           );
           break;
         case RevisionStrategy.Random:
-          ratingButtonsRow = Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              getRatingButton(Rating.Easy, forgotRatingWidgetActive,
-                  isNext: true),
-            ],
+          ratingButtonsRow = Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                Expanded(
+                    child: getRatingButton(Rating.Easy,
+                        forgotRatingWidgetActive,
+                        isNext: true)),
+              ],
+            ),
           );
           break;
       }
     }
 
     List<Widget> openDictionaryEntryWidgets = [
-      const Padding(padding: EdgeInsets.only(top: 30)),
+      const Padding(padding: EdgeInsets.only(top: 24)),
       TextButton(
-          style: ButtonStyle(
-            padding:
-                WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.all(10)),
-            backgroundColor: WidgetStateProperty.resolveWith(
-              (states) {
-                if (states.contains(WidgetState.disabled)) {
-                  return Colors.grey;
-                } else {
-                  return colorScheme.primaryContainer;
-                }
-              },
-            ),
-          ),
           onPressed: () async {
             await Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) => EntryPage(
-                          entry: keyedByEnglishEntriesGlobal[word]!,
+                          // Use the entry already resolved for this card rather
+                          // than re-looking-it-up by phrase (which would be a
+                          // force-unwrap and wouldn't work for non-English
+                          // revision locales).
+                          entry: resolved.entry,
                           showFavouritesButton: false,
                         )));
           },
-          child: const Text(
-            "Open dictionary entry",
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                l.openDictionaryEntry,
+                style: const TextStyle(
+                    fontSize: 14, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(width: 6),
+              const Icon(Icons.arrow_forward, size: 16),
+            ],
           ))
     ];
 
     if (!shouldUseHorizontalDisplay) {
       List<Widget?> children = [];
       children.add(topWidget);
-      children.add(const Divider(
-        height: 80,
-        thickness: 2,
-        indent: 20,
-        endIndent: 20,
-      ));
+      children.add(const SizedBox(height: 28));
       children.add(bottomWidget);
 
       if (revealed) {
@@ -354,6 +391,12 @@ class FlashcardsPageState extends State<FlashcardsPage> {
         children.add(const Padding(padding: EdgeInsets.only(bottom: 10)));
         children.add(ratingButtonsRow);
         children.add(regionalInformationWidget);
+      } else {
+        // A single, clear reveal affordance pinned at the bottom. Tapping
+        // anywhere on the card also reveals (the full-bleed GestureDetector
+        // below), but this explicit button is the discoverable, screen-reader
+        // labelled action.
+        children.add(_revealButton());
       }
 
       children.add(const Padding(
@@ -409,6 +452,10 @@ class FlashcardsPageState extends State<FlashcardsPage> {
       ));
       if (revealed) {
         children.add(ratingButtonsRow!);
+      } else {
+        // Same explicit reveal CTA as the vertical layout, so tablets/TVs get a
+        // discoverable affordance rather than relying on tap-anywhere alone.
+        children.add(_revealButton());
       }
       children.add(const Padding(padding: EdgeInsets.only(bottom: 80)));
       var secondColumn = Column(
@@ -446,6 +493,9 @@ class FlashcardsPageState extends State<FlashcardsPage> {
   }
 
   Widget buildSummaryWidget() {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    final l = DictLibLocalizations.of(context)!;
     int numCardsRemembered = answers.values
         .where(
           (element) => element.rating == Rating.Good,
@@ -457,63 +507,77 @@ class FlashcardsPageState extends State<FlashcardsPage> {
         )
         .length;
     int totalAnswers = answers.length;
-    double rememberRate = numCardsRemembered / totalAnswers;
+    double rememberRate =
+        totalAnswers == 0 ? 0 : numCardsRemembered / totalAnswers;
 
-    Widget getText(String s, {bool bold = false}) {
-      FontWeight? weight;
-      if (bold) {
-        weight = FontWeight.w600;
-      }
-      return Padding(
-        padding: const EdgeInsets.only(top: 30),
-        child: Text(s, style: TextStyle(fontSize: 16, fontWeight: weight)),
-      );
-    }
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(24, 28, 24, 28),
       children: [
-        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          const Padding(
-            padding: EdgeInsets.only(left: 60),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              getText("Success Rate:", bold: true),
-              getText("Total Cards:", bold: true),
-              getText("Successful Cards:", bold: true),
-              getText("Incorrect Cards:", bold: true)
-            ],
-          ),
-          const Spacer(),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              getText("${(rememberRate * 100).toStringAsFixed(1)}%"),
-              getText("$totalAnswers"),
-              getText("$numCardsRemembered"),
-              getText("$numCardsForgotten"),
-            ],
-          ),
-          const Padding(
-            padding: EdgeInsets.only(left: 60),
-          ),
-        ]),
-        const Padding(padding: EdgeInsets.only(bottom: 250))
+        Text(
+          l.sessionComplete.toUpperCase(),
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.6,
+              color: cs.primary),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          l.sessionCompleteHeadline(totalAnswers),
+          textAlign: TextAlign.center,
+          style: tt.displaySmall?.copyWith(fontSize: 28),
+        ),
+        const SizedBox(height: 26),
+        Center(
+          child: HearthRing(
+              percent: rememberRate, size: 140, centerLabel: l.summarySuccess),
+        ),
+        const SizedBox(height: 28),
+        Row(
+          children: [
+            Expanded(
+                child: HearthStatTile(
+                    value: "$totalAnswers", label: l.summaryCards)),
+            const SizedBox(width: 12),
+            Expanded(
+                child: HearthStatTile(
+                    value: "$numCardsRemembered",
+                    label: l.summaryGotIt,
+                    valueColor: cs.tertiary)),
+            const SizedBox(width: 12),
+            Expanded(
+                child: HearthStatTile(
+                    value: "$numCardsForgotten",
+                    label: l.summaryForgot,
+                    valueColor: cs.error)),
+          ],
+        ),
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final l = DictLibLocalizations.of(context)!;
     Widget body;
     String appBarTitle;
     List<Widget> actions = [];
     if (currentCard != null) {
       DRCard card = currentCard!;
 
-      final resolved = widget.di.masterToVideoMap[card.master]!;
+      final resolved = widget.di.masterToVideoMap[card.master];
+      if (resolved == null) {
+        // Defensive: we couldn't resolve the saved video for this card (e.g.
+        // the dictionary data changed mid-session). Skip to the next card
+        // rather than crash.
+        printAndLog("No resolved video for master ${card.master}; skipping card");
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) nextCard();
+        });
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      }
       final subEntry = resolved.subEntry as MySubEntry;
 
       String word;
@@ -530,8 +594,8 @@ class FlashcardsPageState extends State<FlashcardsPage> {
       body = Center(
           child: InheritedPlaybackSpeed(
               playbackSpeed: playbackSpeed,
-              child: buildFlashcardWidget(
-                  card, resolved, word, wordToSign, currentCardRevealed)));
+              child: buildFlashcardWidget(card, resolved, word,
+                  wordToSign: wordToSign, revealed: currentCardRevealed)));
       int progressString = getCardsReviewed() + 1;
       if (currentCardRevealed) {
         progressString -= 1;
@@ -549,12 +613,12 @@ class FlashcardsPageState extends State<FlashcardsPage> {
         });
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(
-                "Set playback speed to ${getPlaybackSpeedString(playbackSpeed)}"),
+                "${DictLibLocalizations.of(context)!.setPlaybackSpeedTo} ${getPlaybackSpeedString(playbackSpeed)}"),
             duration: const Duration(milliseconds: 1000)));
-      }, enabled: videoIsShowing));
+      }, enabled: videoIsShowing, current: playbackSpeed));
     } else {
       body = buildSummaryWidget();
-      appBarTitle = "Revision Summary";
+      appBarTitle = l.revisionSummaryTitle;
     }
 
     // Disable swipe back with WillPopScope.
@@ -572,7 +636,27 @@ class FlashcardsPageState extends State<FlashcardsPage> {
               onPressed: () async {
                 await beforePop();
                 Navigator.of(context).pop();
-              })),
+              }),
+          bottom: currentCard == null
+              ? null
+              : PreferredSize(
+                  preferredSize: const Size.fromHeight(3),
+                  // Cards whose rating is finalised. Revealing a card adds it to
+                  // `answers` (as the default rating) before it's been rated, so
+                  // exclude the in-progress revealed card — otherwise the bar
+                  // would jump forward on reveal, ahead of the "x / N" counter.
+                  child: Builder(builder: (context) {
+                    final cardsCompleted =
+                        getCardsReviewed() - (currentCardRevealed ? 1 : 0);
+                    return LinearProgressIndicator(
+                      value: numCardsToReview > 0
+                          ? (cardsCompleted / numCardsToReview).clamp(0.0, 1.0)
+                          : null,
+                      minHeight: 3,
+                      backgroundColor: cs.surfaceContainerHighest,
+                    );
+                  }),
+                )),
       body: body,
     ));
   }

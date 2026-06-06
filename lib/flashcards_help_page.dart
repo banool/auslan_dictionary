@@ -1,5 +1,4 @@
 import 'package:dictionarylib/help_common.dart';
-import 'package:dictionarylib/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 import 'flashcards_landing_page.dart';
@@ -36,15 +35,6 @@ Widget getFlashcardsHelpPage(BuildContext context) {
           "For those you may enable \"$UNKNOWN_REGIONS_TEXT\". I would "
           "generally recommend leaving this enabled, but we provide this option "
           "based on whatever works best for you."
-    ],
-    "What does \"${DictLibLocalizations.of(context)!.flashcardsOnlyOneCard}\" mean?":
-        const [
-      "Based on the other filtering options you have set, there may be "
-          "situations where there are multiple sub-entries for a single entry. "
-          "In other words, for a single word you might have a sub-entry from "
-          "VIC, another from WA, and another that applies Australia-wide.",
-      "You may not want this behaviour, instead preferring to see only one "
-          "set of cards per word. If so, you should enable this option."
     ],
     "What is a revision strategy?": const [
       "A revision strategy determines how we decide what flashcards to show "

@@ -1,5 +1,4 @@
 import 'package:dictionarylib/dictionarylib.dart';
-import 'package:dictionarylib/flashcards_logic.dart';
 import 'package:dictionarylib/page_force_upgrade.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';

@@ -1,3 +1,4 @@
+import 'package:dictionarylib/entry_list.dart';
 import 'package:dictionarylib/entry_types.dart';
 import 'package:dictionarylib/saved_video.dart';
 import 'package:flutter/material.dart';
@@ -13,13 +14,14 @@ const String ANDROID_APP_ID = "com.banool.auslan_dictionary";
 
 Future<void> navigateToEntryPage(
     BuildContext context, Entry entry, bool showFavouritesButton,
-    {SavedVideo? focusVideo}) {
+    {SavedVideo? focusVideo, EntryList? saveToList}) {
   return Navigator.push(
     context,
     MaterialPageRoute(
         builder: (context) => EntryPage(
             entry: entry,
             showFavouritesButton: showFavouritesButton,
-            focusVideo: focusVideo)),
+            focusVideo: focusVideo,
+            saveToList: saveToList)),
   );
 }

@@ -18,7 +18,7 @@ class MyEntryLoader extends EntryLoader {
   @override
   Future<NewData?> downloadNewData(
       int currentVersion, bool forceDownload) async {
-    print("Fetching latest version of data");
+    printAndLog("Fetching latest version of data");
 
     // Try each base URL until one works
     for (var baseUrl in baseUrls) {

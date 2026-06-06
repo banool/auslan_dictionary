@@ -18,7 +18,7 @@ class MyEntry implements Entry {
   // This should be an entry in the list under "data".
   static MyEntry fromJson(dynamic data) {
     if (data["entry_type"] != "WORD") {
-      throw "Unexpected entry type ${data["entry_type"]}";
+      throw FormatException("Unexpected entry type ${data["entry_type"]}");
     }
 
     var entryInEnglish = data["entry_in_english"];
@@ -158,10 +158,10 @@ class MySubEntry implements SubEntry {
     String firstVideoLink;
     try {
       firstVideoLink = videoLinks[0].split("/auslan/")[1];
-    } catch (_e) {
+    } catch (_) {
       try {
         firstVideoLink = videoLinks[0].split("/mp4video/")[1];
-      } catch (_e) {
+      } catch (_) {
         firstVideoLink = videoLinks[0];
       }
     }
@@ -287,6 +287,6 @@ Region regionFromLegacyString(String s) {
     case "tas":
       return Region.TAS;
     default:
-      throw "Unexpected legacy region string $s";
+      throw ArgumentError("Unexpected legacy region string $s");
   }
 }

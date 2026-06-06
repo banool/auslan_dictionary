@@ -271,7 +271,7 @@ packages:
       path: "../dictionarylib"
       relative: true
     source: path
-    version: "0.3.8"
+    version: "0.3.10"
   dolphinsr_dart:
     dependency: "direct main"
     description:
@@ -281,14 +281,6 @@ packages:
       url: "https://github.com/banool/dolphhinsr_dart.git"
     source: git
     version: "3.0.1"
-  dots_indicator:
-    dependency: "direct main"
-    description:
-      name: dots_indicator
-      sha256: c070af5058a084ba7b354df4b4c26c719595d70a3531eea6edd8af8716684ba3
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.0.1"
   edit_distance:
     dependency: transitive
     description:
@@ -503,6 +495,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "14.8.1"
+  google_fonts:
+    dependency: transitive
+    description:
+      name: google_fonts
+      sha256: ba03d03bcaa2f6cb7bd920e3b5027181db75ab524f8891c8bc3aa603885b8055
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.3.3"
   google_identity_services_web:
     dependency: transitive
     description:
@@ -797,15 +797,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
-  multi_select_flutter:
-    dependency: transitive
-    description:
-      path: "."
-      ref: master
-      resolved-ref: "6581736ca3db116b90a7750c51c2c01187179cdb"
-      url: "https://github.com/erickgon92/multi_select_flutter"
-    source: git
-    version: "4.1.3"
   native_toolchain_c:
     dependency: transitive
     description:
@@ -998,14 +989,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.3"
-  settings_ui:
-    dependency: "direct main"
-    description:
-      name: settings_ui
-      sha256: d9838037cb554b24b4218b2d07666fbada3478882edefae375ee892b6c820ef3
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.2"
   share_plus:
     dependency: transitive
     description:

@@ -1,12 +1,14 @@
 import 'package:auslan_dictionary/entries_types.dart';
 import 'package:dictionarylib/common.dart';
+import 'package:dictionarylib/entry_list.dart';
 import 'package:dictionarylib/entry_types.dart';
 import 'package:dictionarylib/globals.dart';
+import 'package:dictionarylib/hearth.dart';
 import 'package:dictionarylib/lists_service.dart';
 import 'package:dictionarylib/save_video_sheet.dart';
 import 'package:dictionarylib/saved_video.dart';
 import 'package:dictionarylib/video_player_screen.dart';
-import 'package:dots_indicator/dots_indicator.dart';
+import 'package:dictionarylib/dictionarylib.dart' show DictLibLocalizations;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -21,7 +23,7 @@ Widget getAuslanSignbankLaunchAppBarActionWidget(
     () async {
       var url =
           'http://www.auslan.org.au/dictionary/words/$word-${currentPage + 1}.html';
-      await launch(url, forceSafariVC: false);
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     },
     enabled: enabled,
   );
@@ -33,6 +35,7 @@ class EntryPage extends StatefulWidget {
     required this.entry,
     required this.showFavouritesButton,
     this.focusVideo,
+    this.saveToList,
   });
 
   final Entry entry;
@@ -48,8 +51,13 @@ class EntryPage extends StatefulWidget {
   /// Used by the list view's tap-to-jump flow.
   final SavedVideo? focusVideo;
 
+  /// If supplied, the per-video save button adds the video straight to this
+  /// list (toggling membership) instead of opening the all-lists picker. Set
+  /// by the list-edit "add videos from this entry" flow.
+  final EntryList? saveToList;
+
   @override
-  _EntryPageState createState() => _EntryPageState();
+  State<EntryPage> createState() => _EntryPageState();
 }
 
 class _EntryPageState extends State<EntryPage> {
@@ -64,10 +72,22 @@ class _EntryPageState extends State<EntryPage> {
 
   PlaybackSpeed playbackSpeed = PlaybackSpeed.One;
 
+  /// Pages between the entry's sub-entries (variations). Created once in
+  /// [initState] (not per build) so it isn't leaked/recreated on every
+  /// rebuild and an in-progress swipe isn't interrupted.
+  late final PageController _pageController;
+
   @override
   void initState() {
     super.initState();
     _applyFocusVideo();
+    _pageController = PageController(initialPage: currentPage);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   void _applyFocusVideo() {
@@ -104,10 +124,11 @@ class _EntryPageState extends State<EntryPage> {
             playbackSpeed = p!;
           });
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content:
-                  Text("Set playback speed to ${getPlaybackSpeedString(p!)}"),
+              content: Text(
+                  "${DictLibLocalizations.of(context)!.setPlaybackSpeedTo} ${getPlaybackSpeedString(p!)}"),
               duration: const Duration(milliseconds: 1000)));
         },
+        current: playbackSpeed,
       )
     ];
 
@@ -116,33 +137,20 @@ class _EntryPageState extends State<EntryPage> {
         child: Scaffold(
           appBar:
               AppBar(title: Text(word), actions: buildActionButtons(actions)),
-          body: Column(
-            children: [
-              Expanded(
-                child: PageView.builder(
-                  controller: PageController(initialPage: currentPage),
-                  itemCount: subEntries.length,
-                  itemBuilder: (context, index) => SubEntryPage(
-                    word: widget.entry,
-                    subEntry: subEntries[index],
-                    initialVideoIndex:
-                        index == currentPage ? _focusedVideoInitialIndex : null,
-                    showSaveButton: widget.showFavouritesButton,
-                  ),
-                  onPageChanged: onPageChanged,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 5, bottom: 15),
-                child: DotsIndicator(
-                  dotsCount: subEntries.length,
-                  position: currentPage.toDouble(),
-                  decorator: DotsDecorator(
-                    activeColor: MAIN_COLOR,
-                  ),
-                ),
-              ),
-            ],
+          body: PageView.builder(
+            controller: _pageController,
+            itemCount: subEntries.length,
+            itemBuilder: (context, index) => SubEntryPage(
+              word: widget.entry,
+              subEntry: subEntries[index],
+              subEntryIndex: index,
+              subEntryCount: subEntries.length,
+              initialVideoIndex:
+                  index == currentPage ? _focusedVideoInitialIndex : null,
+              showSaveButton: widget.showFavouritesButton,
+              saveToList: widget.saveToList,
+            ),
+            onPageChanged: onPageChanged,
           ),
         ));
   }
@@ -158,8 +166,10 @@ Widget? getRelatedEntriesWidget(BuildContext context, MySubEntry subEntry,
           keyedByEnglishEntriesGlobal.containsKey(keyword)
               ? keyedByEnglishEntriesGlobal[keyword]
               : null,
+      // Tapping a related word goes to a *different* entry, so it never
+      // carries the save-to-list context — saveToList stays null here.
       navigateToEntryPage: (context, entry, showFavouritesButton,
-              {SavedVideo? focusVideo}) =>
+              {SavedVideo? focusVideo, EntryList? saveToList}) =>
           navigateToEntryPage(context, entry, showFavouritesButton,
               focusVideo: focusVideo));
 }
@@ -190,17 +200,66 @@ Widget getRegionalInformationWidget(
   }
 }
 
+/// A quiet footer under the definitions: a demoted "See also" related-words
+/// line first, then a globe + region line beneath it.
+Widget buildWordFooter(
+    BuildContext context, MySubEntry subEntry, Widget? keywordsWidget) {
+  final cs = Theme.of(context).colorScheme;
+  final region = subEntry.getRegionsString();
+  final hasRegion = region.trim().isNotEmpty;
+  if (!hasRegion && keywordsWidget == null) return const SizedBox.shrink();
+  return Container(
+    width: double.infinity,
+    margin: const EdgeInsets.only(top: 8),
+    padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+    decoration: BoxDecoration(
+      border: Border(top: BorderSide(color: cs.outlineVariant)),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (keywordsWidget != null) keywordsWidget,
+        if (hasRegion)
+          Padding(
+            padding: EdgeInsets.only(top: keywordsWidget != null ? 8 : 0),
+            child: Row(children: [
+              Icon(Icons.public, size: 16, color: cs.onSurfaceVariant),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(region,
+                    style:
+                        TextStyle(fontSize: 13.5, color: cs.onSurfaceVariant)),
+              ),
+            ]),
+          ),
+      ],
+    ),
+  );
+}
+
 class SubEntryPage extends StatefulWidget {
   const SubEntryPage({
     super.key,
     required this.word,
     required this.subEntry,
+    this.subEntryIndex = 0,
+    this.subEntryCount = 1,
     this.initialVideoIndex,
     this.showSaveButton = true,
+    this.saveToList,
   });
 
   final Entry word;
   final MySubEntry subEntry;
+
+  /// When set, the bookmark button saves straight to this list (toggling
+  /// membership) instead of opening the all-lists picker.
+  final EntryList? saveToList;
+
+  /// This sub-entry's position among the entry's variations, for the dots.
+  final int subEntryIndex;
+  final int subEntryCount;
 
   /// Within-sub-entry video index to land on. Used only on first build
   /// (via [SubEntryPageState.initState]); subsequent swipes update the
@@ -234,6 +293,68 @@ class SubEntryPageState extends State<SubEntryPage>
     setState(() => _currentVideo = index);
   }
 
+  /// Inner tier: which video *within* this variation you're on. Subdued, muted
+  /// dots directly under the video. Null when there's only one recording.
+  /// Shared by the vertical and horizontal layouts so tablets/TVs get it too.
+  Widget? _videoIndicator(BuildContext context) {
+    final videoCount = widget.subEntry.videoLinks.length;
+    if (videoCount <= 1) return null;
+    final cs = Theme.of(context).colorScheme;
+    final l = DictLibLocalizations.of(context)!;
+    final currentVideo = _currentVideo.clamp(0, videoCount - 1);
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 2),
+      child: SizedBox(
+        width: double.infinity,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            HearthDots(
+              count: videoCount,
+              index: currentVideo,
+              size: 5,
+              activeColor: cs.onSurfaceVariant,
+            ),
+            const SizedBox(height: 5),
+            Text(
+              l.videoIndicator(currentVideo + 1, videoCount),
+              style: TextStyle(fontSize: 11.5, color: cs.onSurfaceVariant),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Outer tier: which variation of the word you're on. Prominent clay dots +
+  /// a "Variation n of m · swipe to compare" label. Null for single-variation
+  /// words (no "1 of 1" noise). Shared by both layouts.
+  Widget? _variationIndicator(BuildContext context) {
+    if (widget.subEntryCount <= 1) return null;
+    final cs = Theme.of(context).colorScheme;
+    final l = DictLibLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, bottom: 18),
+      child: SizedBox(
+        width: double.infinity,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            HearthDots(
+                count: widget.subEntryCount, index: widget.subEntryIndex),
+            const SizedBox(height: 8),
+            Text(
+              l.wordVariationWithHint(
+                  widget.subEntryIndex + 1, widget.subEntryCount),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -244,11 +365,29 @@ class SubEntryPageState extends State<SubEntryPage>
       onPageChanged: _onVideoChanged,
     );
 
+    // Tap the video to open it full-screen / full-width.
+    final videoLinks = widget.subEntry.videoLinks;
+    final Widget tappableVideo = videoLinks.isEmpty
+        ? videoPlayerScreen
+        : GestureDetector(
+            onTap: () {
+              final url =
+                  videoLinks[_currentVideo.clamp(0, videoLinks.length - 1)];
+              // The full-screen view is video-only; image recordings (.jpg)
+              // can't be played, so don't open it for them.
+              if (url.endsWith(".jpg")) return;
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => FullScreenVideoPage(mediaLink: url)));
+            },
+            child: videoPlayerScreen,
+          );
+
     Widget? bookmarkRow;
     if (widget.showSaveButton && widget.subEntry.videoLinks.isNotEmpty) {
       final urls = widget.subEntry.videoLinks;
       final url = urls[_currentVideo.clamp(0, urls.length - 1)];
-      bookmarkRow = _BookmarkButton(entry: widget.word, videoUrl: url);
+      bookmarkRow = _BookmarkButton(
+          entry: widget.word, videoUrl: url, saveToList: widget.saveToList);
     }
 
     var shouldUseHorizontalDisplay = getShouldUseHorizontalLayout(context);
@@ -258,17 +397,24 @@ class SubEntryPageState extends State<SubEntryPage>
     Widget regionalInformationWidget = getRegionalInformationWidget(
         widget.subEntry, shouldUseHorizontalDisplay);
 
+    // The within-variation video dots and the variation dots — shared by both
+    // layouts (each null when there's only one video / one variation).
+    final videoIndicator = _videoIndicator(context);
+    final variationIndicator = _variationIndicator(context);
+
     if (!shouldUseHorizontalDisplay) {
       List<Widget> children = [];
-      children.add(videoPlayerScreen);
+      children.add(tappableVideo);
+      // Inner tier: which video within this variation (only if >1 recording).
+      if (videoIndicator != null) children.add(videoIndicator);
       if (bookmarkRow != null) children.add(bookmarkRow);
-      if (keywordsWidget != null) {
-        children.add(keywordsWidget);
-      }
       children.add(Expanded(
         child: definitions(context, widget.subEntry.definitions),
       ));
-      children.add(regionalInformationWidget);
+      // Quiet footer: a demoted "See also" line, then the region info.
+      children.add(buildWordFooter(context, widget.subEntry, keywordsWidget));
+      // Outer tier: which variation of the word, anchored at the bottom.
+      if (variationIndicator != null) children.add(variationIndicator);
       return Column(
         mainAxisAlignment: MainAxisAlignment.start,
         mainAxisSize: MainAxisSize.max,
@@ -283,9 +429,13 @@ class SubEntryPageState extends State<SubEntryPage>
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            videoPlayerScreen,
+            tappableVideo,
+            // Same indicators as the vertical layout so tablets/TVs aren't left
+            // without a "which video / which variation" cue.
+            if (videoIndicator != null) videoIndicator,
             if (bookmarkRow != null) bookmarkRow,
             regionalInformationWidget,
+            if (variationIndicator != null) variationIndicator,
           ]),
           LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
@@ -318,18 +468,40 @@ Widget definitions(BuildContext context, List<Definition> definitions) {
 }
 
 Widget definition(BuildContext context, Definition definition) {
+  final cs = Theme.of(context).colorScheme;
   return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(
-          definition.heading!,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
+        // A small primary marker + the heading set as an uppercase eyebrow.
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Container(
+            margin: const EdgeInsets.only(top: 5),
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: cs.primary,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              definition.heading!.toUpperCase(),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.5,
+                color: cs.primary,
+              ),
+            ),
+          ),
+        ]),
         Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: definition.subdefinitions!
               .map((s) => Padding(
-                  padding: const EdgeInsets.only(left: 10.0, top: 8.0),
-                  child: Text(s)))
+                  padding: const EdgeInsets.only(left: 14.0, top: 8.0),
+                  child: Text(s, style: const TextStyle(fontSize: 15, height: 1.5))))
               .toList(),
         )
       ]));
@@ -342,7 +514,17 @@ Widget definition(BuildContext context, Definition definition) {
 class _BookmarkButton extends StatefulWidget {
   final Entry entry;
   final String videoUrl;
-  const _BookmarkButton({required this.entry, required this.videoUrl});
+
+  /// When set, the button toggles this video's membership in [saveToList]
+  /// directly (the user arrived here to add to a specific list). When null,
+  /// it opens the all-lists picker sheet.
+  final EntryList? saveToList;
+
+  const _BookmarkButton({
+    required this.entry,
+    required this.videoUrl,
+    this.saveToList,
+  });
 
   @override
   State<_BookmarkButton> createState() => _BookmarkButtonState();
@@ -353,27 +535,81 @@ class _BookmarkButtonState extends State<_BookmarkButton> {
   Widget build(BuildContext context) {
     final v = SavedVideo(
         entryKey: widget.entry.getKey(), videoUrl: widget.videoUrl);
-    var saved = false;
-    for (final list in listsService.myLists) {
-      if (list.containsVideo(v)) {
-        saved = true;
-        break;
+    final l = DictLibLocalizations.of(context)!;
+
+    // Direct mode: we came from a specific list, so the button just adds (or
+    // removes) this video to/from that one list — no picker.
+    final target = widget.saveToList;
+    if (target != null) {
+      final saved = target.containsVideo(v);
+      // Capture before the await so we don't touch BuildContext across the gap.
+      final messenger = ScaffoldMessenger.of(context);
+      Future<void> toggle() async {
+        try {
+          if (saved) {
+            await target.removeVideo(v);
+          } else {
+            await target.addVideo(v);
+          }
+        } catch (e) {
+          printAndLog("Failed to toggle video in list ${target.key}: $e");
+          if (mounted) {
+            messenger.showSnackBar(SnackBar(content: Text(l.saveVideoFailed)));
+          }
+        }
+        if (mounted) setState(() {});
       }
-    }
-    return Padding(
-      padding: const EdgeInsets.only(top: 4, bottom: 2),
-      child: Align(
-        alignment: Alignment.center,
-        child: TextButton.icon(
-          onPressed: () async {
-            await showSaveVideoSheet(context, video: v);
-            if (mounted) setState(() {});
-          },
-          icon: Icon(
-              saved ? Icons.bookmark_remove : Icons.bookmark_add_outlined,
-              size: 20),
-          label: Text(saved ? 'Saved' : 'Save'),
+
+      final name = target.getName(context);
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+        child: SizedBox(
+          width: double.infinity,
+          child: saved
+              ? FilledButton.icon(
+                  onPressed: toggle,
+                  icon: const Icon(Icons.bookmark, size: 20),
+                  label: Text(l.savedToNamedList(name)),
+                )
+              : OutlinedButton.icon(
+                  onPressed: toggle,
+                  icon: const Icon(Icons.bookmark_border, size: 20),
+                  label: Text(l.saveToNamedList(name)),
+                ),
         ),
+      );
+    }
+
+    var savedCount = 0;
+    for (final list in listsService.myLists) {
+      if (list.containsVideo(v)) savedCount++;
+    }
+    final saved = savedCount > 0;
+
+    // Tapping always opens the "save to list" sheet — it never silently
+    // un-saves. The button just reflects how many lists hold this video.
+    Future<void> openSheet() async {
+      await showSaveVideoSheet(context, video: v);
+      if (mounted) setState(() {});
+    }
+
+    final label = saved ? l.savedToListCount(savedCount) : l.saveVideoButton;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: SizedBox(
+        width: double.infinity,
+        child: saved
+            ? FilledButton.icon(
+                onPressed: openSheet,
+                icon: const Icon(Icons.bookmark, size: 20),
+                label: Text(label),
+              )
+            : OutlinedButton.icon(
+                onPressed: openSheet,
+                icon: const Icon(Icons.bookmark_border, size: 20),
+                label: Text(label),
+              ),
       ),
     );
   }
