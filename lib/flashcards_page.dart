@@ -320,34 +320,27 @@ class FlashcardsPageState extends State<FlashcardsPage> {
       String word,
       {required bool wordToSign, required bool revealed}) {
     final l = DictLibLocalizations.of(context)!;
+    final cs = Theme.of(context).colorScheme;
     var shouldUseHorizontalDisplay = getShouldUseHorizontalLayout(context);
 
-    // Render exactly the saved video the master represents — not every
-    // video of the sub-entry. The per-video-revision model means each
-    // card is one specific video the user chose to save.
-    final Widget videoPlayerScreen = VideoPlayerScreen(
+    // Render exactly the saved video the master represents — not every video of
+    // the sub-entry. The per-video-revision model means each card is one
+    // specific video the user chose to save.
+    //
+    // Tapping the video expands it over a dimmed backdrop — even while it's the
+    // unrevealed "what does this sign mean?" video. Handled inside
+    // VideoPlayerScreen (expandOnTap), so the inline tile pauses + hides while
+    // expanded rather than a second player running. It's a nested gesture
+    // target, so a tap on the video expands it while a tap elsewhere on the
+    // card reveals; .jpg recordings are skipped automatically.
+    final Widget tappableVideo = VideoPlayerScreen(
       mediaLinks: [resolved.videoUrl],
       fallbackAspectRatio: 16 / 9,
       key: Key(resolved.videoUrl),
+      expandOnTap: true,
     );
 
-    // Tap the video to open it full-screen, the same as on the word page — but
-    // only once the card is revealed (the video is then the answer, shown for
-    // reference). While a sign-to-word card is still unrevealed the video is the
-    // question, so a tap must fall through to the reveal gesture instead.
-    // Image recordings (.jpg) can't be played full-screen, so skip them too.
-    final bool videoOpensFullScreen =
-        revealed && !resolved.videoUrl.endsWith(".jpg");
-    final Widget tappableVideo = videoOpensFullScreen
-        ? GestureDetector(
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) =>
-                    FullScreenVideoPage(mediaLink: resolved.videoUrl))),
-            child: videoPlayerScreen,
-          )
-        : videoPlayerScreen;
-
-    final subEntry = resolved.subEntry;
+    final subEntry = resolved.subEntry as MySubEntry;
 
     Widget topWidget;
     if (wordToSign) {
@@ -365,24 +358,10 @@ class FlashcardsPageState extends State<FlashcardsPage> {
       topWidget = tappableVideo;
     }
 
-    Widget bottomWidget;
-    if (wordToSign) {
-      bottomWidget = Text(word,
-          textAlign: TextAlign.center, style: const TextStyle(fontSize: 20));
-    } else {
-      if (!revealed) {
-        bottomWidget = Text(l.studyPromptSignToWord,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 20));
-      } else {
-        bottomWidget = Text(word,
-            textAlign: TextAlign.center, style: const TextStyle(fontSize: 20));
-      }
-    }
-
-    Widget regionalInformationWidget = getRegionalInformationWidget(
-        subEntry as MySubEntry, shouldUseHorizontalDisplay,
-        hide: !revealed);
+    Widget bottomWidget = Text(
+        wordToSign || revealed ? word : l.studyPromptSignToWord,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 20));
 
     Widget? ratingButtonsRow;
     if (revealed) {
@@ -452,130 +431,130 @@ class FlashcardsPageState extends State<FlashcardsPage> {
           ))
     ];
 
+    // The region line, flanked by plain (no-fill) back/forward arrows that are
+    // absolutely positioned on either side. Back goes to the previous card;
+    // forward only lights up once you've stepped back and there's a later card
+    // to return to. Shown in both states so navigation is always available.
+    final regionsText = revealed ? subEntry.getRegionsString() : "";
+    Widget navArrow(bool forward) {
+      final enabled = forward ? _pos < _shownCards.length - 1 : _pos > 0;
+      // A single opaque GestureDetector (rather than an IconButton) so the tap
+      // is ALWAYS consumed here — nav when enabled, a no-op when disabled —
+      // and never falls through to the card's reveal/proceed gesture. The
+      // padding gives a comfortable hit area around the small chevron.
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: enabled ? (forward ? nextCard : previousCard) : () {},
+        child: Tooltip(
+          message: forward ? l.revisionNextCard : l.revisionPreviousCard,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Icon(forward ? Icons.chevron_right : Icons.chevron_left,
+                size: 30,
+                color: enabled
+                    ? cs.onSurfaceVariant
+                    : cs.onSurfaceVariant.withValues(alpha: 0.25)),
+          ),
+        ),
+      );
+    }
+
+    Widget regionWithArrows = SizedBox(
+      height: 48,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 52),
+                child: Text(regionsText, textAlign: TextAlign.center),
+              ),
+            ),
+          ),
+          Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Center(child: navArrow(false))),
+          Positioned(
+              right: 0,
+              top: 0,
+              bottom: 0,
+              child: Center(child: navArrow(true))),
+        ],
+      ),
+    );
+
+    // Before the answer is shown, a tap anywhere reveals it; afterwards a tap
+    // anywhere proceeds to the next card, keeping whatever rating is recorded
+    // (the default "got it", or a previous answer when revisiting — it doesn't
+    // override it). The video and the nav arrows are nested gesture targets, so
+    // they keep their own behaviour. A pending "forgot" feedback timer
+    // suppresses taps so we don't double-advance.
+    void onCardTap() {
+      if (nextCardTimer != null) return;
+      if (!revealed) {
+        completeCard(currentCard!, rating: Rating.Good);
+      } else {
+        nextCard();
+      }
+    }
+
     if (!shouldUseHorizontalDisplay) {
-      List<Widget?> children = [];
-      children.add(topWidget);
-      children.add(const SizedBox(height: 28));
-      children.add(bottomWidget);
-
-      if (revealed) {
-        children += openDictionaryEntryWidgets;
-      }
-
-      children.add(Expanded(child: Container()));
-
-      if (revealed) {
-        children.add(const Padding(padding: EdgeInsets.only(bottom: 10)));
-        children.add(ratingButtonsRow);
-        children.add(regionalInformationWidget);
-      } else {
-        // A single, clear reveal affordance pinned at the bottom. Tapping
-        // anywhere on the card also reveals (the full-bleed GestureDetector
-        // below), but this explicit button is the discoverable, screen-reader
-        // labelled action. Mirror the revealed layout's bottom block (leading
-        // gap + the hidden, space-reserving region line) so the reveal button
-        // lands at the same height as the Got it / Forgot buttons that replace
-        // it — the card doesn't jump when it flips.
-        children.add(const Padding(padding: EdgeInsets.only(bottom: 10)));
-        children.add(_revealButton());
-        children.add(regionalInformationWidget);
-      }
-
-      children.add(const Padding(
-        padding: EdgeInsets.only(bottom: 35),
-      ));
-
-      List<Widget> nonNullChildren = [];
-      for (Widget? w in children) {
-        if (w != null) {
-          nonNullChildren.add(w);
-        }
-      }
-
-      // Note: I put the Expanded inside a column to make the "Incorrect use
-      // "of ParentDataWidget" error go away.
-      return Stack(children: [
-        Column(children: [
-          Expanded(
-              child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => setState(() {
-              completeCard(currentCard!, rating: Rating.Good);
-            }),
-            child: Container(
-              key: const ValueKey("revealTapArea"),
-              constraints: const BoxConstraints.expand(),
-            ),
-          ))
-        ]),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: nonNullChildren,
-        )
-      ]);
-    } else {
-      MainAxisAlignment firstColumnMainAxisAlignment;
-      if (wordToSign && !revealed) {
-        firstColumnMainAxisAlignment = MainAxisAlignment.start;
-      } else {
-        firstColumnMainAxisAlignment = MainAxisAlignment.center;
-      }
-      List<Widget> children = [
-        const Padding(padding: EdgeInsets.only(top: 100)),
-        bottomWidget,
-      ];
-      if (revealed) {
-        children += openDictionaryEntryWidgets;
-      }
-      children.add(Expanded(
-        child: Container(),
-      ));
-      if (revealed) {
-        children.add(ratingButtonsRow!);
-      } else {
-        // Same explicit reveal CTA as the vertical layout, so tablets/TVs get a
-        // discoverable affordance rather than relying on tap-anywhere alone.
-        children.add(_revealButton());
-      }
-      children.add(const Padding(padding: EdgeInsets.only(bottom: 80)));
-      var secondColumn = Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: children);
-      return Stack(children: [
-        Column(children: [
-          Expanded(
-              child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => setState(() {
-              completeCard(currentCard!, rating: Rating.Good);
-            }),
-            child: Container(
-              key: const ValueKey("revealTapArea"),
-              constraints: const BoxConstraints.expand(),
-            ),
-          ))
-        ]),
-        // Keep the content (especially the video) clear of the display notch /
-        // rounded corners in landscape, so it reads as centred rather than
-        // jammed against the edge.
-        SafeArea(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onCardTap,
+        child: SizedBox.expand(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Expanded(
-                  flex: 1,
-                  child: Column(
-                    mainAxisAlignment: firstColumnMainAxisAlignment,
-                    children: [topWidget, regionalInformationWidget],
-                  )),
-              Expanded(flex: 1, child: secondColumn),
+              topWidget,
+              const SizedBox(height: 28),
+              bottomWidget,
+              if (revealed) ...openDictionaryEntryWidgets,
+              Expanded(child: Container()),
+              const Padding(padding: EdgeInsets.only(bottom: 10)),
+              if (revealed) ratingButtonsRow! else _revealButton(),
+              regionWithArrows,
+              const Padding(padding: EdgeInsets.only(bottom: 28)),
             ],
           ),
-        )
-      ]);
+        ),
+      );
+    } else {
+      // Mirror the word page's (verified) horizontal layout: give the video a
+      // bounded half via Expanded + Center — Expanded hands the player a
+      // definite width instead of letting it fight its own landscape sizing,
+      // which is what left the right side blank and the frame missing while the
+      // video loaded — and put the prompt, controls and nav arrows in the other
+      // half.
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onCardTap,
+        child: SafeArea(
+          child: Row(
+            children: [
+              Expanded(flex: 5, child: Center(child: topWidget)),
+              Expanded(
+                flex: 4,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    bottomWidget,
+                    if (revealed) ...openDictionaryEntryWidgets,
+                    const SizedBox(height: 22),
+                    if (revealed) ratingButtonsRow! else _revealButton(),
+                    regionWithArrows,
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
   }
 
@@ -709,23 +688,14 @@ class FlashcardsPageState extends State<FlashcardsPage> {
       appBarTitle = l.revisionSummaryTitle;
     }
 
-    // A back gesture rewinds one card rather than exiting the session. Only
-    // when there's nothing to rewind to (the first card, or the summary screen)
-    // does it leave revision — writing the reviews first, like the close button.
+    // Swiping back does nothing: card navigation is via the on-screen arrows,
+    // and leaving revision is via the close (×) button (which writes the
+    // reviews). Disabling the gesture avoids an accidental swipe dumping the
+    // user out mid-session. The × button uses Navigator.pop() directly, which
+    // isn't gated by canPop.
     return PopScope(
         canPop: false,
-        onPopInvokedWithResult: (didPop, result) async {
-          if (didPop) return;
-          if (currentCard != null && _pos > 0) {
-            previousCard();
-            return;
-          }
-          // Capture the navigator before the await so we don't reach back
-          // through a possibly-unmounted context to pop.
-          final navigator = Navigator.of(context);
-          await beforePop();
-          navigator.pop();
-        },
+        onPopInvokedWithResult: (didPop, result) {},
         child: Scaffold(
       appBar: AppBar(
           centerTitle: true,

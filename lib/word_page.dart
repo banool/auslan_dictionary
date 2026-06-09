@@ -358,29 +358,16 @@ class SubEntryPageState extends State<SubEntryPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    var videoPlayerScreen = VideoPlayerScreen(
+    // Tapping a video expands it over a dimmed backdrop (handled inside
+    // VideoPlayerScreen so the inline tile pauses + hides while expanded —
+    // no second player). Image recordings (.jpg) are skipped automatically.
+    final Widget tappableVideo = VideoPlayerScreen(
       mediaLinks: widget.subEntry.videoLinks,
       fallbackAspectRatio: 16 / 9,
       initialPage: _currentVideo,
       onPageChanged: _onVideoChanged,
+      expandOnTap: true,
     );
-
-    // Tap the video to open it full-screen / full-width.
-    final videoLinks = widget.subEntry.videoLinks;
-    final Widget tappableVideo = videoLinks.isEmpty
-        ? videoPlayerScreen
-        : GestureDetector(
-            onTap: () {
-              final url =
-                  videoLinks[_currentVideo.clamp(0, videoLinks.length - 1)];
-              // The full-screen view is video-only; image recordings (.jpg)
-              // can't be played, so don't open it for them.
-              if (url.endsWith(".jpg")) return;
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => FullScreenVideoPage(mediaLink: url)));
-            },
-            child: videoPlayerScreen,
-          );
 
     Widget? bookmarkRow;
     if (widget.showSaveButton && widget.subEntry.videoLinks.isNotEmpty) {
@@ -394,8 +381,6 @@ class SubEntryPageState extends State<SubEntryPage>
 
     Widget? keywordsWidget = getRelatedEntriesWidget(
         context, widget.subEntry, shouldUseHorizontalDisplay);
-    Widget regionalInformationWidget = getRegionalInformationWidget(
-        widget.subEntry, shouldUseHorizontalDisplay);
 
     // The within-variation video dots and the variation dots — shared by both
     // layouts (each null when there's only one video / one variation).
@@ -406,8 +391,8 @@ class SubEntryPageState extends State<SubEntryPage>
       List<Widget> children = [];
       children.add(tappableVideo);
       // Inner tier: which video within this variation (only if >1 recording).
-      if (videoIndicator != null) children.add(videoIndicator);
       if (bookmarkRow != null) children.add(bookmarkRow);
+      if (videoIndicator != null) children.add(videoIndicator);
       children.add(Expanded(
         child: definitions(context, widget.subEntry.definitions),
       ));
@@ -422,37 +407,38 @@ class SubEntryPageState extends State<SubEntryPage>
         children: children,
       );
     } else {
-      var size = MediaQuery.of(context).size;
-      var screenWidth = size.width;
-      var screenHeight = size.height;
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            tappableVideo,
-            // Same indicators as the vertical layout so tablets/TVs aren't left
-            // without a "which video / which variation" cue.
-            if (videoIndicator != null) videoIndicator,
-            if (bookmarkRow != null) bookmarkRow,
-            regionalInformationWidget,
-            if (variationIndicator != null) variationIndicator,
-          ]),
-          LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-            List<Widget> children = [];
-            if (keywordsWidget != null) {
-              children.add(keywordsWidget);
-            }
-            children.add(Expanded(
-                child: definitions(context, widget.subEntry.definitions)));
-            return ConstrainedBox(
-                constraints: BoxConstraints(
-                    maxWidth: screenWidth * 0.4, maxHeight: screenHeight * 0.7),
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: children));
-          })
-        ],
+      // Landscape / wide: the video sits on the left, and everything else —
+      // the indicators, save button, definitions, "see also" and region — goes
+      // in a scrollable panel on the right so nothing is ever clipped. SafeArea
+      // keeps it clear of the notch / rounded corners.
+      return SafeArea(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              flex: 5,
+              child: Center(child: tappableVideo),
+            ),
+            Expanded(
+              flex: 4,
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                children: [
+                  if (videoIndicator != null) Center(child: videoIndicator),
+                  if (bookmarkRow != null) bookmarkRow,
+                  ...widget.subEntry.definitions
+                      .map((d) => definition(context, d)),
+                  buildWordFooter(context, widget.subEntry, keywordsWidget),
+                  if (variationIndicator != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Center(child: variationIndicator),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
       );
     }
   }
