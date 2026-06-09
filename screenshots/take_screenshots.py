@@ -1,39 +1,69 @@
 """
-This whole script is a bit janky, sometimes all you need is some strategic
-retries and flutter cleans and what was previously not working will
+Generate App Store / Play Store screenshots by driving the app's
+integration_test screenshot target across the device formats each store
+requires.
+
+The simulators and emulators this needs are CREATED ON DEMAND (and reused on
+later runs), so you don't have to set any up by hand first — see IOS_TARGETS and
+ANDROID_TARGETS below. Captures land in screenshots/<platform>/en-AU/.
+
+Run from anywhere:
+    python3 screenshots/take_screenshots.py                 # both platforms
+    python3 screenshots/take_screenshots.py --ios-only
+    python3 screenshots/take_screenshots.py --android-only
+    python3 screenshots/take_screenshots.py --clear-screenshots
+
+Prerequisites: Xcode (iOS) and the Android SDK command-line tools + emulator
+(found via ANDROID_HOME / ANDROID_SDK_ROOT, else ~/Library/Android/sdk). The
+first Android run downloads a system image (~1 GB).
+
+This whole script is a bit janky; sometimes all you need is some strategic
+retries (and the odd `flutter clean`) and what was previously not working will
 magically start to work.
 """
 
 import argparse
-import asyncio
 import logging
 import os
 import re
+import shutil
+import subprocess
+import time
+from pathlib import Path
 
-from subprocess import Popen, PIPE, STDOUT
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+SCREENSHOTS_DIR = PROJECT_ROOT / "screenshots"
 
-# The list of iOS simulators to run.
-# This comes from inspecting `xcrun simctl list`
-IOS_SIMULATORS = [
-    "iPhone 8",
-    "iPhone 8 Plus",
-    "iPhone 13 Pro Max",
-    "iPad Pro (12.9-inch) (5th generation)",
-    "iPad Pro (9.7-inch)",
+DRIVER = "test_driver/integration_driver.dart"
+TARGET = "integration_test/screenshot_test.dart"
+
+# --- Target devices: one per screenshot format the stores require. ---
+
+# App Store Connect requires a 6.9" iPhone and (for iPad apps) a 13" iPad, and
+# scales those down for every smaller device; the 6.3" iPhone is an optional
+# standard-size extra. Each entry is (simulator name — which shows up in the
+# screenshot path — and the `xcrun simctl list devicetypes` identifier to
+# create it from). The newest installed iOS runtime is used automatically.
+IOS_TARGETS = [
+    ("iPhone 17 Pro Max",
+     "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro-Max"),         # 6.9" (required)
+    ("iPhone 17",
+     "com.apple.CoreSimulator.SimDeviceType.iPhone-17"),                 # 6.3" (standard)
+    ("iPad Pro 13-inch (M5)",
+     "com.apple.CoreSimulator.SimDeviceType.iPad-Pro-13-inch-M5-12GB"),  # 13" (required for iPad)
 ]
 
-ANDROID_EMULATORS = [
-    "Nexus_7_API_32",
-    "Nexus_10_API_32",
-    "Pixel_5_API_32",
+# Google Play requires phone screenshots and, for tablet support, 7"/10" tablet
+# screenshots. Each entry is (AVD name, `avdmanager list device` profile id).
+ANDROID_TARGETS = [
+    ("AD_phone", "pixel_7"),        # phone (required)
+    ("AD_tablet", "pixel_tablet"),  # ~11" tablet (covers the 10" slot)
 ]
+# System image every AVD is created from. arm64-v8a for Apple Silicon hosts;
+# API 35 = Android 15.
+ANDROID_SYSTEM_IMAGE = "system-images;android-35;google_apis;arm64-v8a"
 
-
-LOG = logging.getLogger(__name__)
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-ch = logging.StreamHandler()
-ch.setFormatter(formatter)
-LOG.addHandler(ch)
+LOG = logging.getLogger("screenshots")
 
 
 def parse_args():
@@ -42,163 +72,210 @@ def parse_args():
     parser.add_argument(
         "--clear-screenshots",
         action="store_true",
-        help="Delete all existing local screenshots",
+        help="Delete all existing local screenshots first",
     )
     parser.add_argument(
         "--ios-only", action="store_true", help="Only take screenshots for iOS"
     )
     parser.add_argument(
-        "--android-only", action="store_true", help="Only take screenshots for Android"
+        "--android-only",
+        action="store_true",
+        help="Only take screenshots for Android",
     )
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
-class cd:
-    """Context manager for changing the current working directory"""
-
-    def __init__(self, newPath):
-        self.newPath = os.path.expanduser(newPath)
-
-    def __enter__(self):
-        self.savedPath = os.getcwd()
-        os.chdir(self.newPath)
-
-    def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
-
-
-async def run_command(command):
-    proc = await asyncio.create_subprocess_exec(
-        *command,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
+def run(cmd, *, cwd=None, check=True, capture=False, stdin=None):
+    """Run a subprocess. Returns the CompletedProcess; raises on failure when
+    check is set."""
+    cmd = [str(c) for c in cmd]
+    LOG.debug("$ %s", " ".join(cmd))
+    res = subprocess.run(
+        cmd,
+        cwd=cwd,
+        text=True,
+        input=stdin,
+        stdout=subprocess.PIPE if capture else None,
+        stderr=subprocess.PIPE if capture else None,
     )
-    stdout, stderr = await proc.communicate()
-    if stderr:
-        LOG.debug(f"stderr of command {command}: {stderr}")
-    return stdout.decode("utf-8")
-
-
-async def get_uuids_of_ios_simulators(simulators):
-    command_output = await run_command(["xcrun", "simctl", "list"])
-
-    out = {}
-    for s in simulators:
-        for line in command_output.splitlines():
-            r = "    " + re.escape(s) + r" \((.*)\) \(.*"
-            m = re.match(r, line)
-            if m is not None:
-                out[s] = m[1]
-
-    return out
-
-
-async def start_ios_simulators(uuids_of_ios_simulators):
-    async def start_ios_simulator(uuid):
-        await run_command(["xcrun", "simctl", "boot", uuid])
-
-    await asyncio.gather(
-        *[start_ios_simulator(uuid) for uuid in uuids_of_ios_simulators.values()]
-    )
-
-
-async def start_android_emulators(android_emulator_names):
-    async def start_android_emulator(name):
-        await run_command(["flutter", "emulators", "--launch", name])
-
-    await asyncio.gather(
-        *[start_android_emulator(name) for name in android_emulator_names]
-    )
-
-
-async def get_all_device_ids(ios_only=False, android_only=False):
-    raw = await run_command(["flutter", "devices"])
-    out = []
-    for line in raw.splitlines():
-        if "•" not in line:
-            continue
-        if "Daniel" in line:
-            continue
-        if "Chrome" in line:
-            continue
-        if ios_only and "android" in line:
-            continue
-        if android_only and "apple" in line:
-            continue
-        device_id = line.split("•")[1].lstrip().rstrip()
-        out.append(device_id)
-
-    return out
-
-
-async def run_tests(device_ids):
-    async def run_test(device_id):
-        LOG.info(f"Started testing for {device_id}")
-        await run_command(
-            [
-                "flutter",
-                "drive",
-                "--driver=test_driver/integration_driver.dart",
-                "--target=integration_test/screenshot_test.dart",
-                "-d",
-                device_id,
-            ]
+    if check and res.returncode != 0:
+        raise RuntimeError(
+            f"command failed ({res.returncode}): {' '.join(cmd)}\n"
+            f"{res.stderr or ''}"
         )
-        LOG.info(f"Finished testing for {device_id}")
-
-    for device_id in device_ids:
-        await run_test(device_id)
-
-    # await asyncio.gather(*[run_test(device_id) for device_id in device_ids])
+    return res
 
 
-async def main():
+def drive(device_id):
+    """Run the screenshot integration test on one device via flutter_driver.
+    Not fatal on failure: the drive sometimes crashes at the very end but the
+    screenshots are still written."""
+    LOG.info("Capturing screenshots on %s", device_id)
+    run(
+        ["flutter", "drive", f"--driver={DRIVER}", f"--target={TARGET}",
+         "-d", device_id],
+        cwd=PROJECT_ROOT,
+        check=False,
+    )
+
+
+# --- iOS ------------------------------------------------------------------
+
+
+def ios_simulators_by_name():
+    out = run(["xcrun", "simctl", "list", "devices"], capture=True).stdout
+    devices = {}
+    for line in out.splitlines():
+        # Anchor to end-of-line so "(unavailable, runtime profile not found)"
+        # sims (left over from older runtimes) are skipped, not reused.
+        m = re.match(
+            r"\s+(.+?) \(([0-9A-Fa-f-]{36})\) \((?:Booted|Shutdown)\)\s*$", line
+        )
+        if m:
+            devices.setdefault(m.group(1).strip(), m.group(2))
+    return devices
+
+
+def ensure_ios_simulators():
+    """Create any missing target simulators; reuse those that already exist.
+    Returns name -> udid."""
+    existing = ios_simulators_by_name()
+    out = {}
+    for name, devtype in IOS_TARGETS:
+        if name in existing:
+            LOG.info("Reusing simulator: %s", name)
+            out[name] = existing[name]
+        else:
+            LOG.info("Creating simulator: %s", name)
+            udid = run(
+                ["xcrun", "simctl", "create", name, devtype], capture=True
+            ).stdout.strip()
+            out[name] = udid
+    return out
+
+
+def boot_ios(udid):
+    # Boot if needed and block until the simulator has finished booting.
+    run(["xcrun", "simctl", "bootstatus", udid, "-b"], check=False)
+
+
+# --- Android --------------------------------------------------------------
+
+
+def android_sdk():
+    for var in ("ANDROID_HOME", "ANDROID_SDK_ROOT"):
+        p = os.environ.get(var)
+        if p:
+            return Path(p)
+    return Path.home() / "Library" / "Android" / "sdk"
+
+
+def android_tool(*parts):
+    return android_sdk().joinpath(*parts)
+
+
+def ensure_android_avds():
+    """Install the system image (no-op once present) and create any missing
+    target AVDs."""
+    sdkmanager = android_tool("cmdline-tools", "latest", "bin", "sdkmanager")
+    avdmanager = android_tool("cmdline-tools", "latest", "bin", "avdmanager")
+    if not avdmanager.exists():
+        raise RuntimeError(
+            f"Android cmdline-tools not found under {android_sdk()}. Install "
+            "them via Android Studio > SDK Manager (or set ANDROID_HOME)."
+        )
+    LOG.info("Ensuring system image %s (downloads on first run)", ANDROID_SYSTEM_IMAGE)
+    # Pipe a stream of "y" to accept the licence prompt non-interactively.
+    run([sdkmanager, ANDROID_SYSTEM_IMAGE], stdin="y\n" * 50, check=False)
+
+    existing = run([avdmanager, "list", "avd", "-c"], capture=True).stdout.split()
+    for name, device in ANDROID_TARGETS:
+        if name in existing:
+            LOG.info("Reusing AVD: %s", name)
+            continue
+        LOG.info("Creating AVD: %s (%s)", name, device)
+        # Answer "no" to the "custom hardware profile?" prompt.
+        run(
+            [avdmanager, "create", "avd", "-n", name, "-k", ANDROID_SYSTEM_IMAGE,
+             "-d", device, "--force"],
+            stdin="no\n",
+        )
+
+
+def boot_android(name):
+    """Launch an AVD and wait for it to finish booting. Returns its adb serial."""
+    emulator = android_tool("emulator", "emulator")
+    adb = android_tool("platform-tools", "adb")
+    LOG.info("Booting emulator: %s", name)
+    subprocess.Popen(
+        [str(emulator), "-avd", name, "-no-boot-anim", "-no-snapshot"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    run([adb, "wait-for-device"])
+    for _ in range(150):
+        done = run(
+            [adb, "shell", "getprop", "sys.boot_completed"],
+            capture=True,
+            check=False,
+        ).stdout.strip()
+        if done == "1":
+            time.sleep(2)
+            return run([adb, "get-serialno"], capture=True).stdout.strip()
+        time.sleep(2)
+    raise RuntimeError(f"emulator {name} did not finish booting")
+
+
+def kill_android():
+    adb = android_tool("platform-tools", "adb")
+    run([adb, "emu", "kill"], check=False)
+
+
+# --- Main -----------------------------------------------------------------
+
+
+def main():
     args = parse_args()
-
-    # chdir to location of python file.
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-    os.chdir(dname)
-
-    if args.debug:
-        LOG.setLevel("DEBUG")
-    else:
-        LOG.setLevel("INFO")
+    logging.basicConfig(
+        level=logging.DEBUG if args.debug else logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s",
+    )
 
     if args.clear_screenshots:
-        await run_command(["rm", "-rf", "ios/en-AU"])
-        await run_command(["rm", "-rf", "android/en-AU"])
-        await run_command(["mkdir", "ios/en-AU"])
-        await run_command(["mkdir", "android/en-AU"])
+        for platform in ("ios", "android"):
+            leaf = SCREENSHOTS_DIR / platform / "en-AU"
+            if leaf.exists():
+                shutil.rmtree(leaf)
+            leaf.mkdir(parents=True, exist_ok=True)
         LOG.info("Cleared existing screenshots")
 
-    uuids_of_ios_simulators = await get_uuids_of_ios_simulators(IOS_SIMULATORS)
-    LOG.info(f"iOS simulatior name to UUID: {uuids_of_ios_simulators}")
-
     if not args.android_only:
-        LOG.info("Launching iOS simulators")
-        await start_ios_simulators(uuids_of_ios_simulators)
-        LOG.info("Launched iOS simulators")
+        LOG.info("Preparing iOS simulators")
+        sims = ensure_ios_simulators()
+        # Boot, capture and shut down one at a time. Running several fresh
+        # simulators at once thrashes the host (each spins up its own system
+        # services) and slows every drive to a crawl.
+        for name, udid in sims.items():
+            LOG.info("Booting simulator: %s", name)
+            boot_ios(udid)
+            try:
+                drive(udid)
+            finally:
+                run(["xcrun", "simctl", "shutdown", udid], check=False)
 
     if not args.ios_only:
-        LOG.info("Launching Android emulators")
-        await start_android_emulators(ANDROID_EMULATORS)
-        LOG.info("Launched Android emulators")
+        LOG.info("Preparing Android emulators")
+        ensure_android_avds()
+        for name, _ in ANDROID_TARGETS:
+            serial = boot_android(name)
+            try:
+                drive(serial)
+            finally:
+                kill_android()
+                time.sleep(3)
 
-    await asyncio.sleep(5)
-
-    device_ids = await get_all_device_ids(
-        ios_only=args.ios_only, android_only=args.android_only
-    )
-    LOG.debug(f"Device IDs: {device_ids}")
-
-    LOG.info("Running tests")
-    await run_tests(device_ids)
-    LOG.info("Ran tests")
-
-    LOG.info("Done!")
+    LOG.info("Done! Screenshots in %s", SCREENSHOTS_DIR)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

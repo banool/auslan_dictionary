@@ -374,7 +374,10 @@ class SubEntryPageState extends State<SubEntryPage>
       final urls = widget.subEntry.videoLinks;
       final url = urls[_currentVideo.clamp(0, urls.length - 1)];
       bookmarkRow = _BookmarkButton(
-          entry: widget.word, videoUrl: url, saveToList: widget.saveToList);
+          key: const ValueKey('wordPage.saveButton'),
+          entry: widget.word,
+          videoUrl: url,
+          saveToList: widget.saveToList);
     }
 
     var shouldUseHorizontalDisplay = getShouldUseHorizontalLayout(context);
@@ -511,6 +514,7 @@ class _BookmarkButton extends StatefulWidget {
   final EntryList? saveToList;
 
   const _BookmarkButton({
+    super.key,
     required this.entry,
     required this.videoUrl,
     this.saveToList,

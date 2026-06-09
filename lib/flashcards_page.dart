@@ -372,12 +372,16 @@ class FlashcardsPageState extends State<FlashcardsPage> {
             child: Row(
               children: [
                 Expanded(
-                    child: getRatingButton(
-                        Rating.Hard, forgotRatingWidgetActive)),
+                    child: KeyedSubtree(
+                        key: const ValueKey("ratingButton.forgot"),
+                        child: getRatingButton(
+                            Rating.Hard, forgotRatingWidgetActive))),
                 const SizedBox(width: 12),
                 Expanded(
-                    child: getRatingButton(
-                        Rating.Good, rememberedRatingWidgetActive)),
+                    child: KeyedSubtree(
+                        key: const ValueKey("ratingButton.gotIt"),
+                        child: getRatingButton(
+                            Rating.Good, rememberedRatingWidgetActive))),
               ],
             ),
           );
@@ -388,9 +392,11 @@ class FlashcardsPageState extends State<FlashcardsPage> {
             child: Row(
               children: [
                 Expanded(
-                    child: getRatingButton(Rating.Easy,
-                        forgotRatingWidgetActive,
-                        isNext: true)),
+                    child: KeyedSubtree(
+                        key: const ValueKey("ratingButton.next"),
+                        child: getRatingButton(Rating.Easy,
+                            forgotRatingWidgetActive,
+                            isNext: true))),
               ],
             ),
           );

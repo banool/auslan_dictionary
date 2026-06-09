@@ -7,6 +7,8 @@ import 'package:dictionarylib/entry_list.dart';
 import 'package:dictionarylib/entry_types.dart';
 import 'package:dictionarylib/flashcards_logic.dart';
 import 'package:dictionarylib/globals.dart';
+import 'package:dictionarylib/page_entry_list_overview.dart'
+    show KEY_LISTS_OVERVIEW_TAB_INDEX;
 import 'package:dictionarylib/revision.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,9 +16,25 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:integration_test/src/channel.dart';
 
+import 'package:auslan_dictionary/common.dart' as app;
+import 'package:auslan_dictionary/entries_types.dart' as et;
 import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/root.dart';
 
+// Drives the app through its marketable screens and captures a screenshot of
+// each. Run it (and actually save the PNGs) via:
+//
+//   flutter drive \
+//     --driver=test_driver/integration_driver.dart \
+//     --target=integration_test/screenshot_test.dart \
+//     -d <device>
+//
+// (see screenshots/take_screenshots.py, which fans this out across the device
+// matrix). Under `flutter drive` the integration_driver's onScreenshot callback
+// writes each capture to screenshots/<name>.png. This is the current official
+// Flutter screenshot approach — `integration_test` + IntegrationTestWidgets-
+// FlutterBinding.takeScreenshot — driven by flutter_driver.
+//
 // Note, sometimes the test will crash at the end, but the screenshots do
 // actually still get taken.
 
@@ -58,6 +76,28 @@ Future<void> takeScreenshotForAndroid(
   );
 }
 
+/// pumpAndSettle, but tolerant of the video player: a buffering media_kit
+/// player can keep scheduling frames so pumpAndSettle never converges (and the
+/// fully-live frame policy this test runs under makes that more likely). Fall
+/// back to a few fixed pumps in that case.
+Future<void> settle(WidgetTester tester) async {
+  try {
+    await tester.pumpAndSettle(const Duration(milliseconds: 100));
+  } catch (_) {
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+  }
+}
+
+/// Give an on-screen video a few seconds of real frames to fetch and paint a
+/// first frame before we capture, so video-bearing screens aren't shot mid-load.
+Future<void> letVideoLoad(WidgetTester tester) async {
+  for (var i = 0; i < 22; i++) {
+    await tester.pump(const Duration(milliseconds: 150));
+  }
+}
+
 Future<void> takeScreenshot(
     WidgetTester tester,
     IntegrationTestWidgetsFlutterBinding binding,
@@ -67,8 +107,7 @@ Future<void> takeScreenshot(
       "${screenshotNameInfo.deviceName}-${screenshotNameInfo.physicalScreenSize}-"
       "${screenshotNameInfo.getAndIncrementCounter().toString().padLeft(2, '0')}-"
       "$name";
-  await tester.pumpAndSettle();
-  sleep(const Duration(milliseconds: 250));
+  await settle(tester);
   if (Platform.isAndroid) {
     await takeScreenshotForAndroid(binding, name);
   } else {
@@ -95,7 +134,9 @@ class ScreenshotNameInfo {
   }
 
   static Future<ScreenshotNameInfo> buildScreenshotNameInfo() async {
-    Size size = window.physicalSize;
+    // Use the modern single-view accessor rather than the deprecated top-level
+    // `window`.
+    Size size = PlatformDispatcher.instance.implicitView!.physicalSize;
     String physicalScreenSize = "${size.width.toInt()}x${size.height.toInt()}";
 
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
@@ -131,108 +172,121 @@ void main() async {
   testWidgets("takeScreenshots", (WidgetTester tester) async {
     await setup();
 
-    String listName = "Animals";
-    String listKey = EntryList.getKeyFromName(listName);
-    await userEntryListManager.createEntryList(listKey);
-    await userEntryListManager
-        .getEntryLists()[listKey]!
-        .addAllVideosOfEntry(keyedByEnglishEntriesGlobal["kangaroo"]!);
-    await userEntryListManager
-        .getEntryLists()[listKey]!
-        .addAllVideosOfEntry(keyedByEnglishEntriesGlobal["platypus"]!);
-    await userEntryListManager
-        .getEntryLists()[listKey]!
-        .addAllVideosOfEntry(keyedByEnglishEntriesGlobal["echidna"]!);
-    await userEntryListManager
-        .getEntryLists()[listKey]!
-        .addAllVideosOfEntry(keyedByEnglishEntriesGlobal["dog"]!);
-    await userEntryListManager
-        .getEntryLists()[listKey]!
-        .addAllVideosOfEntry(keyedByEnglishEntriesGlobal["cat"]!);
-    await userEntryListManager
-        .getEntryLists()[listKey]!
-        .addAllVideosOfEntry(keyedByEnglishEntriesGlobal["bird"]!);
+    // --- Seed data so the captured screens are populated. ---
+    const String listName = "Animals";
+    final String listKey = EntryList.getKeyFromName(listName);
+    // Idempotent: the screenshot run may target a simulator that already holds
+    // this list from a previous run, and createEntryList throws on a duplicate.
+    if (!userEntryListManager.getEntryLists().containsKey(listKey)) {
+      await userEntryListManager.createEntryList(listKey);
+    }
+    final animalList = userEntryListManager.getEntryLists()[listKey]!;
+    for (final word in const [
+      "kangaroo",
+      "platypus",
+      "echidna",
+      "dog",
+      "cat",
+      "bird"
+    ]) {
+      final entry = keyedByEnglishEntriesGlobal[word];
+      if (entry != null) await animalList.addAllVideosOfEntry(entry);
+    }
 
-    await sharedPreferences
-        .setStringList(KEY_LISTS_TO_REVIEW, [KEY_FAVOURITES_ENTRIES, listKey]);
-
+    // Revise the Animals list with spaced repetition, allowing every region so
+    // the session always has cards.
+    await sharedPreferences.setStringList(KEY_LISTS_TO_REVIEW, [listKey]);
     await sharedPreferences.setInt(
         KEY_REVISION_STRATEGY, RevisionStrategy.SpacedRepetition.index);
+    await sharedPreferences.setStringList(KEY_FLASHCARD_REGIONS,
+        [for (var i = 0; i < et.Region.values.length; i++) '$i']);
+    await sharedPreferences.setBool(KEY_USE_UNKNOWN_REGION_SIGNS, true);
+
+    // Open the lists overview on the My Lists tab, and don't let the advisories
+    // interstitial pop over the search screen.
+    await sharedPreferences.setInt(KEY_LISTS_OVERVIEW_TAB_INDEX, 0);
+    advisoryShownOnce = true;
 
     await tester.pumpWidget(RootApp(startingLocale: LOCALE_ENGLISH));
-    await tester.pumpAndSettle(const Duration(seconds: 10));
-    var screenshotNameInfo = await ScreenshotNameInfo.buildScreenshotNameInfo();
+    await tester.pumpAndSettle(const Duration(seconds: 5));
+    final info = await ScreenshotNameInfo.buildScreenshotNameInfo();
 
-    await takeScreenshot(tester, binding, screenshotNameInfo, "search");
+    // 1. Search screen — the productive empty state (sign of the day, recents).
+    await takeScreenshot(tester, binding, info, "search");
 
-    final Finder searchField =
-        find.byKey(const ValueKey("searchPage.searchForm"));
+    // 2. Search results for a query.
+    final searchField = find.byKey(const ValueKey("searchPage.searchForm"));
     await tester.tap(searchField);
-    await tester.pumpAndSettle();
-    await tester.enterText(searchField, "hey");
-    await takeScreenshot(tester, binding, screenshotNameInfo, "searchWithText");
+    await settle(tester);
+    await tester.enterText(searchField, "dog");
+    await takeScreenshot(tester, binding, info, "searchResults");
+    FocusManager.instance.primaryFocus?.unfocus();
+    await settle(tester);
 
-    final Finder listsNavBarButton = find.byIcon(Icons.view_list);
-    await tester.tap(listsNavBarButton);
-    await tester.pumpAndSettle();
-    await takeScreenshot(tester, binding, screenshotNameInfo, "listsOverview");
+    // 3. A word page (opened in all-lists picker mode, so the save button opens
+    // the sheet). Pushed on the root navigator, the same way search results do.
+    final dog = keyedByEnglishEntriesGlobal["dog"]!;
+    app.navigateToEntryPage(rootNavigatorKey.currentContext!, dog, true);
+    await letVideoLoad(tester);
+    await takeScreenshot(tester, binding, info, "wordPage");
 
-    final Finder animalsListButton = find.byKey(ValueKey(listName));
-    await tester.tap(animalsListButton);
-    await tester.pumpAndSettle();
-    await takeScreenshot(tester, binding, screenshotNameInfo, "insideList");
+    // 4. The per-video "save to list" sheet — the recent per-video-saves feature.
+    await tester.tap(find.byKey(const ValueKey("wordPage.saveButton")).first);
+    await settle(tester);
+    await takeScreenshot(tester, binding, info, "saveToList");
+    rootNavigatorKey.currentState!.pop(); // close the sheet
+    await settle(tester);
+    rootNavigatorKey.currentState!.pop(); // close the word page
+    await settle(tester);
 
-    final Finder dogButton = find.byKey(const ValueKey("dog"));
-    await tester.tap(dogButton);
-    await tester.pumpAndSettle();
-    sleep(const Duration(seconds: 2));
-    await takeScreenshot(tester, binding, screenshotNameInfo, "wordPage");
+    // 5. Lists overview (My Lists tab).
+    await tester.tap(find.byIcon(Icons.view_list));
+    await settle(tester);
+    await takeScreenshot(tester, binding, info, "lists");
 
-    await tester.pumpAndSettle();
+    // 6. Inside a list.
+    await tester.tap(find.byKey(ValueKey(listKey)));
+    await letVideoLoad(tester);
+    await takeScreenshot(tester, binding, info, "insideList");
     await tester.pageBack();
-    await tester.pumpAndSettle();
-    await tester.pageBack();
-    await tester.pumpAndSettle();
+    await settle(tester);
 
-    final Finder revisionNavBarButton = find.byIcon(Icons.style);
-    await tester.tap(revisionNavBarButton);
-    await tester.pumpAndSettle();
-    await takeScreenshot(
-        tester, binding, screenshotNameInfo, "revisionLanding");
+    // 7. Revision landing — the flashcard session setup.
+    await tester.tap(find.byIcon(Icons.style));
+    await settle(tester);
+    await takeScreenshot(tester, binding, info, "revisionLanding");
 
-    final Finder helpAppBarButton = find.byIcon(Icons.help);
-    await tester.tap(helpAppBarButton);
-    await tester.pumpAndSettle();
-    await takeScreenshot(
-        tester, binding, screenshotNameInfo, "revisionHelpPage");
+    // 8. A flashcard, front side.
+    await tester.tap(find.byKey(const ValueKey("startButton")));
+    await letVideoLoad(tester);
+    await takeScreenshot(tester, binding, info, "flashcardFront");
 
-    await tester.pumpAndSettle();
-    await tester.pageBack();
-    await tester.pumpAndSettle();
+    // 9. The same flashcard revealed, with the rating buttons.
+    await tester.tap(find.byKey(const ValueKey("revealButton")));
+    await letVideoLoad(tester);
+    await takeScreenshot(tester, binding, info, "flashcardRevealed");
 
-    final Finder startAppBarButton = find.byKey(const ValueKey("startButton"));
-    await tester.tap(startAppBarButton);
-    await tester.pumpAndSettle();
-    sleep(const Duration(seconds: 4));
-    await takeScreenshot(tester, binding, screenshotNameInfo, "revisionPage");
+    // Leave the session via the app-bar close button (writes reviews) and return
+    // to the revision landing page. Target the IconButton specifically — the
+    // "Forgot" rating button also uses an Icons.close glyph.
+    await tester.tap(find.widgetWithIcon(IconButton, Icons.close));
+    await settle(tester);
 
-    sleep(const Duration(milliseconds: 500));
-    await tester.pumpAndSettle();
-    final Finder revealTapArea = find.byKey(const ValueKey("revealTapArea"));
-    await tester.tap(revealTapArea);
-    await tester.pumpAndSettle();
-    sleep(const Duration(seconds: 4));
-    await tester.pumpAndSettle();
-    await takeScreenshot(
-        tester, binding, screenshotNameInfo, "revisionPageRevealed");
+    // 10. Settings.
+    await tester.tap(find.byIcon(Icons.settings));
+    await settle(tester);
+    await takeScreenshot(tester, binding, info, "settings");
 
-    final Finder exitRevisionAppBarButton = find.byIcon(Icons.close);
-    await tester.tap(exitRevisionAppBarButton);
-    await tester.pumpAndSettle();
+    // --- The home screen in Hearth dark mode. ---
+    await tester.tap(find.byIcon(Icons.search));
+    await settle(tester);
 
-    final Finder settingsNavBarButton = find.byIcon(Icons.settings);
-    await tester.tap(settingsNavBarButton);
-    await tester.pumpAndSettle();
-    await takeScreenshot(tester, binding, screenshotNameInfo, "settingsPage");
+    // 11. Dark mode (Hearth).
+    themeNotifier.value = ThemeMode.dark;
+    await settle(tester);
+    await takeScreenshot(tester, binding, info, "searchDark");
+
+    // Restore the default light mode.
+    themeNotifier.value = ThemeMode.light;
   });
 }
