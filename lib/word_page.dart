@@ -558,7 +558,7 @@ class _BookmarkButtonState extends State<_BookmarkButton> {
         } catch (e) {
           printAndLog("Failed to toggle video in list ${target.key}: $e");
           if (mounted) {
-            messenger.showSnackBar(SnackBar(content: Text(l.saveVideoFailed)));
+            showSnackVia(messenger, l.saveVideoFailed);
           }
         }
         if (mounted) setState(() {});
