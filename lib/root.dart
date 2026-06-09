@@ -103,11 +103,17 @@ class _RootAppState extends State<RootApp> {
     // invite token (when present) is carried through as a query parameter
     // so the landing page can drive the accept-invite flow instead of the
     // anonymous subscribe.
+    //
+    // We `push` rather than `go` so the app's existing screen stays
+    // underneath: the landing page (and the list page it swaps itself for)
+    // then has something to pop back to. On a cold start the initial
+    // location (search) is the base, so opening a shared list still leaves a
+    // working back button instead of stranding the user on a rootless route.
     _deepLinkSub = sharing.deepLinks.payloads.listen((payload) {
       final loc = payload.isInvite
           ? '/share/${payload.listId}?invite=${Uri.encodeQueryComponent(payload.inviteToken!)}'
           : '/share/${payload.listId}';
-      router.go(loc);
+      router.push(loc);
     });
   }
 
@@ -200,6 +206,7 @@ class _RootAppState extends State<RootApp> {
                 iOSAppId: IOS_APP_ID,
                 androidAppId: ANDROID_APP_ID,
                 showPrivacyPolicy: false,
+                privacyPolicyEmail: 'daniel@dport.me',
               ));
             }),
       ]);

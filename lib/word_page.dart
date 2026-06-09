@@ -123,10 +123,10 @@ class _EntryPageState extends State<EntryPage> {
           setState(() {
             playbackSpeed = p!;
           });
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(
-                  "${DictLibLocalizations.of(context)!.setPlaybackSpeedTo} ${getPlaybackSpeedString(p!)}"),
-              duration: const Duration(milliseconds: 1000)));
+          showSnack(
+              context,
+              "${DictLibLocalizations.of(context)!.setPlaybackSpeedTo} ${getPlaybackSpeedString(p!)}",
+              duration: const Duration(milliseconds: 1000));
         },
         current: playbackSpeed,
       )
@@ -224,12 +224,14 @@ Widget buildWordFooter(
           Padding(
             padding: EdgeInsets.only(top: keywordsWidget != null ? 8 : 0),
             child: Row(children: [
-              Icon(Icons.public, size: 16, color: cs.onSurfaceVariant),
+              Icon(Icons.public, size: 18, color: cs.onSurfaceVariant),
               const SizedBox(width: 8),
               Flexible(
                 child: Text(region,
-                    style:
-                        TextStyle(fontSize: 13.5, color: cs.onSurfaceVariant)),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: cs.onSurfaceVariant)),
               ),
             ]),
           ),
@@ -327,10 +329,8 @@ class SubEntryPageState extends State<SubEntryPage>
   }
 
   /// Outer tier: which variation of the word you're on. Prominent clay dots +
-  /// a "Variation n of m · swipe to compare" label. Null for single-variation
-  /// words (no "1 of 1" noise). Shared by both layouts.
+  /// a "Variation n of m · swipe to compare" label.
   Widget? _variationIndicator(BuildContext context) {
-    if (widget.subEntryCount <= 1) return null;
     final cs = Theme.of(context).colorScheme;
     final l = DictLibLocalizations.of(context)!;
     return Padding(
@@ -501,7 +501,11 @@ Widget definition(BuildContext context, Definition definition) {
           children: definition.subdefinitions!
               .map((s) => Padding(
                   padding: const EdgeInsets.only(left: 14.0, top: 8.0),
-                  child: Text(s, style: const TextStyle(fontSize: 15, height: 1.5))))
+                  child: Text(s,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyLarge
+                          ?.copyWith(height: 1.45))))
               .toList(),
         )
       ]));
@@ -533,8 +537,8 @@ class _BookmarkButton extends StatefulWidget {
 class _BookmarkButtonState extends State<_BookmarkButton> {
   @override
   Widget build(BuildContext context) {
-    final v = SavedVideo(
-        entryKey: widget.entry.getKey(), videoUrl: widget.videoUrl);
+    final v =
+        SavedVideo(entryKey: widget.entry.getKey(), videoUrl: widget.videoUrl);
     final l = DictLibLocalizations.of(context)!;
 
     // Direct mode: we came from a specific list, so the button just adds (or

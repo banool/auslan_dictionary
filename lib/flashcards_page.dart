@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dictionarylib/common.dart';
 import 'package:dictionarylib/flashcards_logic.dart';
+import 'package:dictionarylib/globals.dart';
 import 'package:dictionarylib/hearth.dart';
 import 'package:dictionarylib/revision.dart';
 import 'package:dictionarylib/video_player_screen.dart';
@@ -36,6 +37,14 @@ class FlashcardsPageState extends State<FlashcardsPage> {
   DRCard? currentCard;
   bool currentCardRevealed = false;
 
+  /// The cards shown so far this session, in order, and our position within
+  /// them. Tracking the sequence ourselves (rather than only ever asking
+  /// Dolphin for the next card) lets a back gesture revisit the previous card
+  /// and then move forward again to exactly where the user was. Fresh cards are
+  /// only drawn from Dolphin when we step forward past the end of this list.
+  final List<DRCard> _shownCards = [];
+  int _pos = -1;
+
   bool forgotRatingWidgetActive = false;
   bool rememberedRatingWidgetActive = true;
 
@@ -50,6 +59,12 @@ class FlashcardsPageState extends State<FlashcardsPage> {
     super.initState();
     numCardsToReview =
         getNumDueCards(widget.di.dolphin, widget.revisionStrategy);
+    // Apply the optional session-size cap the user set on the landing page.
+    // 0 means no limit. The landing page caps its displayed count the same way.
+    final cardLimit = sharedPreferences.getInt(KEY_REVISION_CARD_LIMIT) ?? 0;
+    if (cardLimit > 0 && numCardsToReview > cardLimit) {
+      numCardsToReview = cardLimit;
+    }
     nextCard();
   }
 
@@ -85,10 +100,30 @@ class FlashcardsPageState extends State<FlashcardsPage> {
     }
   }
 
+  /// Sync the reveal / rating-widget flags to [currentCard]. A card that's
+  /// already in [answers] (one we've revealed before, e.g. when stepping
+  /// back/forward through the session) reappears revealed with its prior
+  /// rating selected; a fresh card starts unrevealed with the default rating.
+  /// Keeping this in one place means forward- and back-navigation can't drift
+  /// into showing an already-answered card as if it were new (which would make
+  /// the reveal tap skip it).
+  void _syncRevealStateToCurrentCard() {
+    final prior = currentCard == null ? null : answers[currentCard]?.rating;
+    currentCardRevealed = prior != null;
+    forgotRatingWidgetActive = prior == Rating.Hard;
+    rememberedRatingWidgetActive = prior != Rating.Hard;
+  }
+
   void nextCard() {
     setState(() {
       playbackSpeed = PlaybackSpeed.One;
-      if (getCardsReviewed() >= numCardsToReview) {
+      if (_pos < _shownCards.length - 1) {
+        // We'd stepped back earlier — move forward through the cards already
+        // shown rather than drawing a new one, so back-then-forward returns to
+        // exactly where the user was.
+        _pos++;
+        currentCard = _shownCards[_pos];
+      } else if (getCardsReviewed() >= numCardsToReview) {
         // From here the only cards Dolphin will return are cards that were
         // failed as part of the revision session. We choose to cut the user
         // off here, they can start a new session to review these if they wish.
@@ -96,11 +131,34 @@ class FlashcardsPageState extends State<FlashcardsPage> {
         currentCard = null;
         beforePop();
       } else {
-        currentCard = widget.di.dolphin.nextCard();
+        final next = widget.di.dolphin.nextCard();
+        currentCard = next;
+        if (next != null) {
+          _shownCards.add(next);
+          _pos = _shownCards.length - 1;
+        } else {
+          // Nothing left to draw — end the session.
+          beforePop();
+        }
       }
-      currentCardRevealed = false;
-      forgotRatingWidgetActive = false;
-      rememberedRatingWidgetActive = true;
+      _syncRevealStateToCurrentCard();
+    });
+  }
+
+  /// Step back to the card shown before the current one. Wired to the system
+  /// back gesture (see [PopScope] in [build]) so an accidental swipe revisits
+  /// the previous card instead of dumping the user out of the session. The card
+  /// reappears with its earlier answer revealed (if it had one) so they can
+  /// review or change it; re-rating overwrites the stored answer.
+  void previousCard() {
+    if (_pos <= 0) return;
+    nextCardTimer?.cancel();
+    nextCardTimer = null;
+    setState(() {
+      playbackSpeed = PlaybackSpeed.One;
+      _pos--;
+      currentCard = _shownCards[_pos];
+      _syncRevealStateToCurrentCard();
     });
   }
 
@@ -267,18 +325,34 @@ class FlashcardsPageState extends State<FlashcardsPage> {
     // Render exactly the saved video the master represents — not every
     // video of the sub-entry. The per-video-revision model means each
     // card is one specific video the user chose to save.
-    var videoPlayerScreen = VideoPlayerScreen(
+    final Widget videoPlayerScreen = VideoPlayerScreen(
       mediaLinks: [resolved.videoUrl],
       fallbackAspectRatio: 16 / 9,
       key: Key(resolved.videoUrl),
     );
+
+    // Tap the video to open it full-screen, the same as on the word page — but
+    // only once the card is revealed (the video is then the answer, shown for
+    // reference). While a sign-to-word card is still unrevealed the video is the
+    // question, so a tap must fall through to the reveal gesture instead.
+    // Image recordings (.jpg) can't be played full-screen, so skip them too.
+    final bool videoOpensFullScreen =
+        revealed && !resolved.videoUrl.endsWith(".jpg");
+    final Widget tappableVideo = videoOpensFullScreen
+        ? GestureDetector(
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) =>
+                    FullScreenVideoPage(mediaLink: resolved.videoUrl))),
+            child: videoPlayerScreen,
+          )
+        : videoPlayerScreen;
 
     final subEntry = resolved.subEntry;
 
     Widget topWidget;
     if (wordToSign) {
       if (revealed) {
-        topWidget = videoPlayerScreen;
+        topWidget = tappableVideo;
       } else {
         double top = shouldUseHorizontalDisplay ? 100 : 120;
         topWidget = Container(
@@ -288,7 +362,7 @@ class FlashcardsPageState extends State<FlashcardsPage> {
                 style: const TextStyle(fontSize: 20)));
       }
     } else {
-      topWidget = videoPlayerScreen;
+      topWidget = tappableVideo;
     }
 
     Widget bottomWidget;
@@ -358,7 +432,10 @@ class FlashcardsPageState extends State<FlashcardsPage> {
                           // force-unwrap and wouldn't work for non-English
                           // revision locales).
                           entry: resolved.entry,
-                          showFavouritesButton: false,
+                          // Show the per-video save UI so the user can add the
+                          // sign to (or remove it from) their lists straight
+                          // from a card they're revising.
+                          showFavouritesButton: true,
                         )));
           },
           child: Row(
@@ -395,8 +472,13 @@ class FlashcardsPageState extends State<FlashcardsPage> {
         // A single, clear reveal affordance pinned at the bottom. Tapping
         // anywhere on the card also reveals (the full-bleed GestureDetector
         // below), but this explicit button is the discoverable, screen-reader
-        // labelled action.
+        // labelled action. Mirror the revealed layout's bottom block (leading
+        // gap + the hidden, space-reserving region line) so the reveal button
+        // lands at the same height as the Got it / Forgot buttons that replace
+        // it — the card doesn't jump when it flips.
+        children.add(const Padding(padding: EdgeInsets.only(bottom: 10)));
         children.add(_revealButton());
+        children.add(regionalInformationWidget);
       }
 
       children.add(const Padding(
@@ -476,17 +558,22 @@ class FlashcardsPageState extends State<FlashcardsPage> {
             ),
           ))
         ]),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-                flex: 1,
-                child: Column(
-                  mainAxisAlignment: firstColumnMainAxisAlignment,
-                  children: [topWidget, regionalInformationWidget],
-                )),
-            Expanded(flex: 1, child: secondColumn),
-          ],
+        // Keep the content (especially the video) clear of the display notch /
+        // rounded corners in landscape, so it reads as centred rather than
+        // jammed against the edge.
+        SafeArea(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                  flex: 1,
+                  child: Column(
+                    mainAxisAlignment: firstColumnMainAxisAlignment,
+                    children: [topWidget, regionalInformationWidget],
+                  )),
+              Expanded(flex: 1, child: secondColumn),
+            ],
+          ),
         )
       ]);
     }
@@ -574,7 +661,9 @@ class FlashcardsPageState extends State<FlashcardsPage> {
         // rather than crash.
         printAndLog("No resolved video for master ${card.master}; skipping card");
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) nextCard();
+          if (!mounted) return;
+          showSnack(context, l.flashcardsCardUnavailable);
+          nextCard();
         });
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
       }
@@ -596,11 +685,10 @@ class FlashcardsPageState extends State<FlashcardsPage> {
               playbackSpeed: playbackSpeed,
               child: buildFlashcardWidget(card, resolved, word,
                   wordToSign: wordToSign, revealed: currentCardRevealed)));
-      int progressString = getCardsReviewed() + 1;
-      if (currentCardRevealed) {
-        progressString -= 1;
-      }
-      appBarTitle = "$progressString / $numCardsToReview";
+      // 1-based position of the current card in the session sequence. Using the
+      // position (rather than the answered-count) keeps the counter correct when
+      // the user steps back to revisit an earlier card.
+      appBarTitle = "${_pos + 1} / $numCardsToReview";
       actions.add(getAuslanSignbankLaunchAppBarActionWidget(
         context,
         word,
@@ -611,18 +699,33 @@ class FlashcardsPageState extends State<FlashcardsPage> {
         setState(() {
           playbackSpeed = p!;
         });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(
-                "${DictLibLocalizations.of(context)!.setPlaybackSpeedTo} ${getPlaybackSpeedString(playbackSpeed)}"),
-            duration: const Duration(milliseconds: 1000)));
+        showSnack(
+            context,
+            "${DictLibLocalizations.of(context)!.setPlaybackSpeedTo} ${getPlaybackSpeedString(playbackSpeed)}",
+            duration: const Duration(milliseconds: 1000));
       }, enabled: videoIsShowing, current: playbackSpeed));
     } else {
       body = buildSummaryWidget();
       appBarTitle = l.revisionSummaryTitle;
     }
 
-    // Disable swipe back with WillPopScope.
+    // A back gesture rewinds one card rather than exiting the session. Only
+    // when there's nothing to rewind to (the first card, or the summary screen)
+    // does it leave revision — writing the reviews first, like the close button.
     return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop) return;
+          if (currentCard != null && _pos > 0) {
+            previousCard();
+            return;
+          }
+          // Capture the navigator before the await so we don't reach back
+          // through a possibly-unmounted context to pop.
+          final navigator = Navigator.of(context);
+          await beforePop();
+          navigator.pop();
+        },
         child: Scaffold(
       appBar: AppBar(
           centerTitle: true,
@@ -641,13 +744,12 @@ class FlashcardsPageState extends State<FlashcardsPage> {
               ? null
               : PreferredSize(
                   preferredSize: const Size.fromHeight(3),
-                  // Cards whose rating is finalised. Revealing a card adds it to
-                  // `answers` (as the default rating) before it's been rated, so
-                  // exclude the in-progress revealed card — otherwise the bar
-                  // would jump forward on reveal, ahead of the "x / N" counter.
+                  // Track the current card's position so the bar matches the
+                  // "x / N" counter and doesn't jump on reveal (revealing adds a
+                  // default answer, which the position is immune to) or when the
+                  // user steps back to an earlier card.
                   child: Builder(builder: (context) {
-                    final cardsCompleted =
-                        getCardsReviewed() - (currentCardRevealed ? 1 : 0);
+                    final cardsCompleted = _pos;
                     return LinearProgressIndicator(
                       value: numCardsToReview > 0
                           ? (cardsCompleted / numCardsToReview).clamp(0.0, 1.0)
