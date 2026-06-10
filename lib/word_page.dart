@@ -105,8 +105,11 @@ class _EntryPageState extends State<EntryPage> {
   }
 
   void onPageChanged(int index) {
+    // Don't reset the playback speed here: a user-chosen speed should survive
+    // swiping between sub-entries. Updating currentPage flips each SubEntryPage's
+    // isActive flag, which pauses the now-offscreen sub-entry's videos and
+    // resumes the newly-visible one (see SubEntryPage / VideoPlayerScreen).
     setState(() {
-      playbackSpeed = PlaybackSpeed.One;
       currentPage = index;
     });
   }
@@ -149,6 +152,9 @@ class _EntryPageState extends State<EntryPage> {
                   index == currentPage ? _focusedVideoInitialIndex : null,
               showSaveButton: widget.showFavouritesButton,
               saveToList: widget.saveToList,
+              // Only the on-screen sub-entry's videos should play; kept-alive
+              // off-screen pages pause via this flag (see VideoPlayerScreen).
+              isActive: index == currentPage,
             ),
             onPageChanged: onPageChanged,
           ),
@@ -250,6 +256,7 @@ class SubEntryPage extends StatefulWidget {
     this.initialVideoIndex,
     this.showSaveButton = true,
     this.saveToList,
+    this.isActive = true,
   });
 
   final Entry word;
@@ -272,6 +279,11 @@ class SubEntryPage extends StatefulWidget {
   /// flashcards review surfaces where bookmarking from the summary
   /// page isn't the user's intent.
   final bool showSaveButton;
+
+  /// Whether this sub-entry is the one currently on screen. Forwarded to
+  /// [VideoPlayerScreen] so off-screen kept-alive pages pause their videos
+  /// instead of looping in the background.
+  final bool isActive;
 
   @override
   SubEntryPageState createState() => SubEntryPageState();
@@ -367,6 +379,7 @@ class SubEntryPageState extends State<SubEntryPage>
       initialPage: _currentVideo,
       onPageChanged: _onVideoChanged,
       expandOnTap: true,
+      isActive: widget.isActive,
     );
 
     Widget? bookmarkRow;
