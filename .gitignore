@@ -59,3 +59,7 @@ app.*.map.json
 # registered in GCP. Keep these aside locally for reference but don't
 # commit.
 .secrets-reference/
+
+# Local-only dev override (dictionarylib path dep); never commit it —
+# a committed override breaks CI and makes store builds unreproducible.
+pubspec_overrides.yaml
