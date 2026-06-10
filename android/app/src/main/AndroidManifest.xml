@@ -1,5 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.banool.auslan_dictionary">
+    <!-- The Facebook SDK injects the advertising-id permission, but the app
+         never uses advertising IDs (and Facebook sign-in is iOS-only) — the
+         Play Console declaration says so, and Play rejects uploads carrying
+         the permission. Strip it at manifest-merge time. -->
+    <uses-permission
+        android:name="com.google.android.gms.permission.AD_ID"
+        tools:node="remove" />
     <application
         android:name="${applicationName}"
         android:label="Auslan Dictionary"
