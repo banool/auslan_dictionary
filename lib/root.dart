@@ -11,6 +11,8 @@ import 'package:dictionarylib/page_settings.dart';
 import 'package:dictionarylib/sharing/deep_link_handler.dart';
 import 'package:dictionarylib/sharing/shared_list_landing_page.dart';
 import 'package:dictionarylib/theme.dart';
+import 'package:dictionarylib/top_level_scaffold.dart'
+    show LISTS_ROUTE, REVISION_ROUTE, SEARCH_ROUTE, SETTINGS_ROUTE;
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -33,10 +35,9 @@ String? auslanDefinitionPreview(Entry entry) {
   return subdefs.first;
 }
 
-const SEARCH_ROUTE = "/search";
-const LISTS_ROUTE = "/lists";
-const REVISION_ROUTE = "/revision";
-const SETTINGS_ROUTE = "/settings";
+// The four tab-route paths (SEARCH_ROUTE, LISTS_ROUTE, REVISION_ROUTE,
+// SETTINGS_ROUTE) are defined once in dictionarylib's top_level_scaffold.dart
+// and imported above, so the router here and the bottom nav there can't drift.
 
 // Debug-only launch overrides for testing a specific screen / theme without
 // hand-editing this file (and risking leaving the edit in). They're set via

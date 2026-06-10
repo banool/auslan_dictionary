@@ -13,6 +13,8 @@ import 'package:auslan_dictionary/common.dart' as app;
 import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/root.dart';
 
+import 'helpers.dart';
+
 // End-to-end coverage for the "save individual videos rather than entire
 // entries" feature. It drives the real per-video bookmark button, the real
 // save-to-list sheet, and asserts the toggle both persists to disk (a fresh
@@ -22,19 +24,6 @@ import 'package:auslan_dictionary/root.dart';
 // use, with no saveToList, so the bookmark button opens the all-lists picker
 // sheet) rather than by typing in search, so the test targets a known entry
 // and isn't at the mercy of search-result ordering / lazy list building.
-
-/// pumpAndSettle, but tolerant of the video player: a buffering media_kit
-/// player can keep scheduling frames so pumpAndSettle never converges. Fall
-/// back to a few fixed pumps in that case.
-Future<void> settle(WidgetTester tester) async {
-  try {
-    await tester.pumpAndSettle(const Duration(milliseconds: 100));
-  } catch (_) {
-    for (var i = 0; i < 6; i++) {
-      await tester.pump(const Duration(milliseconds: 200));
-    }
-  }
-}
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

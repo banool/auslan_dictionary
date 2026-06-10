@@ -21,6 +21,8 @@ import 'package:auslan_dictionary/entries_types.dart' as et;
 import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/root.dart';
 
+import 'helpers.dart';
+
 // Drives the app through its marketable screens and captures a screenshot of
 // each. Run it (and actually save the PNGs) via:
 //
@@ -74,20 +76,6 @@ Future<void> takeScreenshotForAndroid(
     'revertFlutterImage',
     null,
   );
-}
-
-/// pumpAndSettle, but tolerant of the video player: a buffering media_kit
-/// player can keep scheduling frames so pumpAndSettle never converges (and the
-/// fully-live frame policy this test runs under makes that more likely). Fall
-/// back to a few fixed pumps in that case.
-Future<void> settle(WidgetTester tester) async {
-  try {
-    await tester.pumpAndSettle(const Duration(milliseconds: 100));
-  } catch (_) {
-    for (var i = 0; i < 8; i++) {
-      await tester.pump(const Duration(milliseconds: 150));
-    }
-  }
 }
 
 /// Give an on-screen video a few seconds of real frames to fetch and paint a

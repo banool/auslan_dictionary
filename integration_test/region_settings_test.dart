@@ -9,6 +9,8 @@ import 'package:integration_test/integration_test.dart';
 import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/root.dart';
 
+import 'helpers.dart';
+
 // End-to-end coverage for the sign-region configurator on the revision
 // landing page:
 //   - the "Signs with unknown region" toggle is presented as Recommended,
@@ -17,16 +19,6 @@ import 'package:auslan_dictionary/root.dart';
 //     spelling out every selected region — it lists a handful but switches
 //     to a count once more than three are on, so the row can't grow tall
 //     and crowd the card.
-
-Future<void> settle(WidgetTester tester) async {
-  try {
-    await tester.pumpAndSettle(const Duration(milliseconds: 100));
-  } catch (_) {
-    for (var i = 0; i < 6; i++) {
-      await tester.pump(const Duration(milliseconds: 200));
-    }
-  }
-}
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

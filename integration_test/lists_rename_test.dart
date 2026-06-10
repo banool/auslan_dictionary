@@ -11,6 +11,8 @@ import 'package:integration_test/integration_test.dart';
 import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/root.dart';
 
+import 'helpers.dart';
+
 // End-to-end coverage for tap-to-rename in the lists overview's edit mode,
 // and the guarantee that favourites — whose key is fixed — can never be
 // renamed through the UI.
@@ -19,19 +21,6 @@ import 'package:auslan_dictionary/root.dart';
 // targets a known name, then driven through the real edit-mode tap → rename
 // dialog → confirm flow. It asserts both the visible result and that the
 // list's saved videos survive the underlying key change.
-
-/// pumpAndSettle, but tolerant of the video player + fire-and-forget sync:
-/// either can keep scheduling frames so pumpAndSettle never converges. Fall
-/// back to a few fixed pumps in that case.
-Future<void> settle(WidgetTester tester) async {
-  try {
-    await tester.pumpAndSettle(const Duration(milliseconds: 100));
-  } catch (_) {
-    for (var i = 0; i < 6; i++) {
-      await tester.pump(const Duration(milliseconds: 200));
-    }
-  }
-}
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

@@ -7,22 +7,14 @@ import 'package:integration_test/integration_test.dart';
 import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/root.dart';
 
+import 'helpers.dart';
+
 // Guards the alignment of the Hearth single-choice picker (used by the
 // App theme / Colour mode settings rows). The bug this protects against:
 // the option rows sat at a 15dp inset while the dialog title used the
 // Material 24dp inset, so the options looked outdented to the left of the
 // title. The fix lines the option labels up under the title; this test
 // asserts their left edges match.
-
-Future<void> settle(WidgetTester tester) async {
-  try {
-    await tester.pumpAndSettle(const Duration(milliseconds: 100));
-  } catch (_) {
-    for (var i = 0; i < 6; i++) {
-      await tester.pump(const Duration(milliseconds: 200));
-    }
-  }
-}
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

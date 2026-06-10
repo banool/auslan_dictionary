@@ -14,6 +14,8 @@ import 'package:auslan_dictionary/entries_types.dart' as et;
 import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/root.dart';
 
+import 'helpers.dart';
+
 // End-to-end coverage for the flashcard review feature: a full 10-card spaced-
 // repetition session driven through the real UI. It exercises the recently
 // reworked bits the audit flagged as untested:
@@ -25,19 +27,6 @@ import 'package:auslan_dictionary/root.dart';
 //     existing screenshot test walks but never asserts.
 
 const int kSessionCards = 10;
-
-/// pumpAndSettle, but tolerant of the video player: a buffering media_kit
-/// player can keep scheduling frames so pumpAndSettle never converges. Fall
-/// back to a few fixed pumps in that case.
-Future<void> settle(WidgetTester tester) async {
-  try {
-    await tester.pumpAndSettle(const Duration(milliseconds: 100));
-  } catch (_) {
-    for (var i = 0; i < 6; i++) {
-      await tester.pump(const Duration(milliseconds: 200));
-    }
-  }
-}
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

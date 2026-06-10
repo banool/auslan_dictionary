@@ -82,6 +82,12 @@ except Exception:
 sys.exit(0 if isinstance(d, dict) and d.get("success") else 1)'
 }
 
+# NOTE: reconcile_dns is duplicated verbatim in the sibling copy of this
+# script (dictionarylib/lists/scripts/attach-domains.sh and
+# auslan_dictionary/site/scripts/attach-domains.sh). The split is deliberate,
+# but any change here must be mirrored into the other copy or the two will
+# drift.
+#
 # reconcile_dns ZONE_ID HOST TARGET — delete every A/AAAA/CNAME at HOST that
 # isn't a proxied CNAME to TARGET. Sets the global RECONCILE_CORRECT to the id
 # of a kept correct CNAME, or "".

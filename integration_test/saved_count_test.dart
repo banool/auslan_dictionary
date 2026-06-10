@@ -10,21 +10,13 @@ import 'package:auslan_dictionary/common.dart' as app;
 import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/root.dart';
 
+import 'helpers.dart';
+
 // End-to-end coverage for the word page's "saved to N lists" count. It is
 // computed from the same writable-list set the save sheet shows
 // (ListsService.writableLists), so the label and the sheet's ticked rows
 // can't disagree: saving a video into two lists reads back as "Saved to 2
 // lists", and clearing both drops the button back to "Save".
-
-Future<void> settle(WidgetTester tester) async {
-  try {
-    await tester.pumpAndSettle(const Duration(milliseconds: 100));
-  } catch (_) {
-    for (var i = 0; i < 6; i++) {
-      await tester.pump(const Duration(milliseconds: 200));
-    }
-  }
-}
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
