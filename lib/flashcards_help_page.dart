@@ -18,6 +18,17 @@ Widget getFlashcardsHelpPage(BuildContext context) {
           "whether you remembered the answer correctly or not.",
       "You can also just tap again anywhere if you got the answer right, as "
           "we select that option by default.",
+      "Use the back and forward chevrons at the bottom of the screen to move "
+          "between cards. The back chevron lets you revisit the previous card if "
+          "you want to take another look or change your answer; the forward "
+          "chevron advances to the next card.",
+    ],
+    "Can I limit how many cards I review in one session?": const [
+      "Yes. Before you start, the revision settings let you set a card limit "
+          "for the session. Choose \"No limit\" to revise every selected card, "
+          "or pick a number to cap how many cards you'll be shown this time. "
+          "This is handy when a lot of cards are due and a full session would "
+          "otherwise feel overwhelming.",
     ],
     "Where do the words for the flashcards come from?": const [
       "You may select one or more lists as the flashcard source. By default "

@@ -32,6 +32,14 @@ class FlashcardsPage extends StatefulWidget {
 class FlashcardsPageState extends State<FlashcardsPage> {
   Map<DRCard, Review> answers = {};
 
+  /// The live [DolphinInformation] this session draws cards from.
+  /// Starts as [widget.di] but is replaced wholesale whenever a card is
+  /// re-rated — see [completeCard]. We can't mutate the in-place
+  /// DolphinSR back to one-review-per-card (the package only ever
+  /// accumulates reviews), so a re-rate rebuilds a fresh instance from
+  /// the retained masters + seed reviews + the latest answer per card.
+  late DolphinInformation di;
+
   late int numCardsToReview;
 
   DRCard? currentCard;
@@ -50,6 +58,12 @@ class FlashcardsPageState extends State<FlashcardsPage> {
 
   bool reviewsWritten = false;
 
+  /// Set when [beforePop] failed to persist the session's reviews on the
+  /// session-end path. Drives a retry banner on the summary screen so a
+  /// silent write failure can't make the user think their progress was
+  /// saved when it wasn't.
+  bool reviewWriteFailed = false;
+
   PlaybackSpeed playbackSpeed = PlaybackSpeed.One;
 
   Timer? nextCardTimer;
@@ -57,8 +71,9 @@ class FlashcardsPageState extends State<FlashcardsPage> {
   @override
   void initState() {
     super.initState();
+    di = widget.di;
     numCardsToReview =
-        getNumDueCards(widget.di.dolphin, widget.revisionStrategy);
+        getNumDueCards(di.dolphin, widget.revisionStrategy);
     // Apply the optional session-size cap the user set on the landing page.
     // 0 means no limit. The landing page caps its displayed count the same way.
     final cardLimit = sharedPreferences.getInt(KEY_REVISION_CARD_LIMIT) ?? 0;
@@ -78,12 +93,18 @@ class FlashcardsPageState extends State<FlashcardsPage> {
   // ban users from swiping back to ensure that if they want to exit revision,
   // they do it by pressing one of our buttons, which ensures this function
   // gets called.
-  Future<void> beforePop() async {
+  //
+  // Returns true when the reviews are safely persisted (or there was
+  // nothing to persist), false when the write threw — the caller is
+  // expected to surface that so the user knows their progress wasn't
+  // saved and can retry.
+  Future<bool> beforePop() async {
     // Single-shot + re-entrancy guard: set the flag before the first await so a
     // concurrent caller — the session-end nextCard() and the user tapping close
     // — doesn't write the reviews twice. Reset on failure so an explicit close
-    // can retry.
-    if (reviewsWritten) return;
+    // can retry. A prior successful write (reviewsWritten still true) is itself
+    // a success, so report it as one.
+    if (reviewsWritten) return true;
     reviewsWritten = true;
     try {
       switch (widget.revisionStrategy) {
@@ -94,9 +115,59 @@ class FlashcardsPageState extends State<FlashcardsPage> {
           await bumpRandomReviewCounter(answers.length);
           break;
       }
+      return true;
     } catch (e) {
       reviewsWritten = false;
       printAndLog("Failed to write reviews on exit: $e");
+      return false;
+    }
+  }
+
+  /// End-of-session finish: persist the reviews and, if that fails,
+  /// surface it. The session-end path used to call [beforePop]
+  /// fire-and-forget, so a failed write left the user on the summary
+  /// screen believing their progress was saved. Now a failure raises a
+  /// retry banner on the summary screen and a snack with a retry action.
+  /// Called (not awaited) from [nextCard]'s setState; the summary screen
+  /// shows immediately and the banner/snack appear once the write
+  /// resolves.
+  Future<void> _finishSession() async {
+    final ok = await beforePop();
+    if (!mounted) return;
+    if (!ok) {
+      setState(() {
+        reviewWriteFailed = true;
+      });
+      _showWriteFailedSnack();
+    }
+  }
+
+  /// Snack telling the user their progress wasn't saved, with a retry
+  /// action.
+  void _showWriteFailedSnack() {
+    final l = DictLibLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(SnackBar(
+      content: Text(l.flashcardsSaveFailed),
+      action: SnackBarAction(
+        label: l.sharedListLandingTryAgain,
+        onPressed: _retryWriteReviews,
+      ),
+    ));
+  }
+
+  /// Retry a failed end-of-session write. Clears the single-shot guard
+  /// so [beforePop] actually re-attempts, then re-surfaces success
+  /// (clear the banner) or failure (keep it, re-offer the snack).
+  Future<void> _retryWriteReviews() async {
+    reviewsWritten = false;
+    final ok = await beforePop();
+    if (!mounted) return;
+    setState(() {
+      reviewWriteFailed = !ok;
+    });
+    if (!ok) {
+      _showWriteFailedSnack();
     }
   }
 
@@ -129,16 +200,17 @@ class FlashcardsPageState extends State<FlashcardsPage> {
         // off here, they can start a new session to review these if they wish.
         // Accordingly set currentCard to null and store the results.
         currentCard = null;
-        beforePop();
+        _finishSession();
       } else {
-        final next = widget.di.dolphin.nextCard();
+        final next = di.dolphin.nextCard();
         currentCard = next;
         if (next != null) {
           _shownCards.add(next);
           _pos = _shownCards.length - 1;
         } else {
           // Nothing left to draw — end the session.
-          beforePop();
+          currentCard = null;
+          _finishSession();
         }
       }
       _syncRevealStateToCurrentCard();
@@ -188,8 +260,21 @@ class FlashcardsPageState extends State<FlashcardsPage> {
     Rating? previousRating = answers[card]?.rating;
     bool shouldNavigate = answers.containsKey(card);
     setState(() {
-      widget.di.dolphin.addReviews([review]);
       answers[card] = review;
+      if (shouldNavigate) {
+        // Re-rating a card we've already answered. We can't tell the
+        // in-session DolphinSR to forget the earlier rating — it only
+        // ever accumulates reviews — so the only way to keep its state
+        // at one-review-per-card (matching what next session rebuilds
+        // from the single persisted review) is to rebuild from scratch:
+        // the same masters + the same seed reviews + the persisted
+        // history + the latest answer per card, applied in ts order.
+        di = rebuildDolphin(di, answers.values);
+      } else {
+        // First answer for a fresh card: no prior review to reconcile,
+        // so the cheap in-place add is exact.
+        di.dolphin.addReviews([review]);
+      }
     });
     if (shouldNavigate) {
       if (forceUseTimer ||
@@ -585,6 +670,34 @@ class FlashcardsPageState extends State<FlashcardsPage> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 28, 24, 28),
       children: [
+        // Persisting the session's reviews failed. Make it unmissable on
+        // the summary screen (alongside the transient snack) and offer an
+        // inline retry so the user can save their progress without losing
+        // the session.
+        if (reviewWriteFailed) ...[
+          Container(
+            padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+            decoration: BoxDecoration(
+              color: cs.errorContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l.flashcardsSaveFailed,
+                    style: TextStyle(color: cs.onErrorContainer),
+                  ),
+                ),
+                TextButton(
+                  onPressed: _retryWriteReviews,
+                  child: Text(l.sharedListLandingTryAgain),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
         Text(
           l.sessionComplete.toUpperCase(),
           textAlign: TextAlign.center,
@@ -639,7 +752,7 @@ class FlashcardsPageState extends State<FlashcardsPage> {
     if (currentCard != null) {
       DRCard card = currentCard!;
 
-      final resolved = widget.di.masterToVideoMap[card.master];
+      final resolved = di.masterToVideoMap[card.master];
       if (resolved == null) {
         // Defensive: we couldn't resolve the saved video for this card (e.g.
         // the dictionary data changed mid-session). Skip to the next card
@@ -713,8 +826,21 @@ class FlashcardsPageState extends State<FlashcardsPage> {
           leading: IconButton(
               icon: const Icon(Icons.close),
               onPressed: () async {
-                await beforePop();
-                Navigator.of(context).pop();
+                final navigator = Navigator.of(context);
+                final ok = await beforePop();
+                if (!mounted) return;
+                if (ok) {
+                  navigator.pop();
+                } else {
+                  // The write failed. Don't drop the user out silently —
+                  // beforePop already reset its single-shot guard, so surface
+                  // the failure and let them retry (re-tapping close, or the
+                  // snack action, re-attempts the write).
+                  setState(() {
+                    reviewWriteFailed = true;
+                  });
+                  _showWriteFailedSnack();
+                }
               }),
           bottom: currentCard == null
               ? null
