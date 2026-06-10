@@ -574,8 +574,12 @@ class _BookmarkButtonState extends State<_BookmarkButton> {
       );
     }
 
+    // Count against the same set the save sheet shows (local lists routed
+    // through owner wrappers + editor lists), so the label and the sheet
+    // never disagree — e.g. an editor list the old myLists-only count
+    // missed, leaving "saved to N lists" stuck after an unsave.
     var savedCount = 0;
-    for (final list in listsService.myLists) {
+    for (final list in listsService.writableLists) {
       if (list.containsVideo(v)) savedCount++;
     }
     final saved = savedCount > 0;

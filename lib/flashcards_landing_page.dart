@@ -83,23 +83,27 @@ class MyFlashcardsLandingPageController
             .map((e) => int.parse(e))
             .toList();
 
-    String regionsString = "All of Australia";
-
-    String additionalRegionsValuesString = additionalRegionsValues
-        .map((i) => Region.values[i].pretty)
-        .toList()
-        .join(", ");
-
-    if (additionalRegionsValuesString.isNotEmpty) {
-      regionsString += " + $additionalRegionsValuesString";
-    }
-
     bool useUnknownRegionSigns =
         sharedPreferences.getBool(KEY_USE_UNKNOWN_REGION_SIGNS) ?? true;
 
-    if (useUnknownRegionSigns) {
-      regionsString += " + signs with unknown region";
+    // Keep the subtitle to one short summary line. Spelling out every
+    // selected region made the row wrap to several lines and crowd the
+    // card once more than a couple were on; past three we just show a
+    // count instead.
+    final parts = <String>["All of Australia"];
+    if (additionalRegionsValues.isNotEmpty) {
+      if (additionalRegionsValues.length <= 3) {
+        parts.add(additionalRegionsValues
+            .map((i) => Region.values[i].pretty)
+            .join(", "));
+      } else {
+        parts.add("${additionalRegionsValues.length} regions");
+      }
     }
+    if (useUnknownRegionSigns) {
+      parts.add("unknown-region signs");
+    }
+    final String regionsString = parts.join(" + ");
     return [
       HearthRow(
         icon: Icons.public,
@@ -240,24 +244,55 @@ class MyFlashcardsLandingPageController
                     const Divider(height: 1),
                     Padding(
                       padding: const EdgeInsets.only(top: 6),
-                      child: Row(children: [
-                        Expanded(
-                          child: Text(UNKNOWN_REGIONS_TEXT,
-                              style: const TextStyle(
-                                  fontSize: 15.5,
-                                  fontWeight: FontWeight.w600)),
-                        ),
-                        Switch(
-                          value: unknown,
-                          onChanged: (v) {
-                            sharedPreferences.setBool(
-                                KEY_USE_UNKNOWN_REGION_SIGNS, v);
-                            updateRevisionSettings();
-                            pageSetState(() {});
-                            setSheet(() {});
-                          },
-                        ),
-                      ]),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Row(children: [
+                                  const Flexible(
+                                    child: Text(UNKNOWN_REGIONS_TEXT,
+                                        style: TextStyle(
+                                            fontSize: 15.5,
+                                            fontWeight: FontWeight.w600)),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  HearthTag(
+                                    DictLibLocalizations.of(ctx)!
+                                        .regionSheetRecommended,
+                                    color: cs.onPrimaryContainer,
+                                    background: cs.primaryContainer,
+                                  ),
+                                ]),
+                                const SizedBox(height: 4),
+                                // Most signs in the dictionary aren't tagged
+                                // with a region, so turning this off hides a
+                                // large chunk of the deck.
+                                Text(
+                                  DictLibLocalizations.of(ctx)!
+                                      .regionSheetUnknownExplanation,
+                                  style: tt.bodySmall?.copyWith(
+                                      color: cs.onSurfaceVariant, height: 1.3),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Switch(
+                            value: unknown,
+                            onChanged: (v) {
+                              sharedPreferences.setBool(
+                                  KEY_USE_UNKNOWN_REGION_SIGNS, v);
+                              updateRevisionSettings();
+                              pageSetState(() {});
+                              setSheet(() {});
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 16),
                     SizedBox(
