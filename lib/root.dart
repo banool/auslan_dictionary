@@ -254,6 +254,10 @@ class _RootAppState extends State<RootApp> {
                   supportedLocales: LANGUAGE_CODE_TO_LOCALE.values,
                   locale: locale,
                   debugShowCheckedModeBanner: false,
+                  // Scale text up on tablet-sized displays so the phone
+                  // layouts don't read as tiny on a 13" panel; phones are
+                  // untouched. See kLargeScreenTextScale in dictionarylib.
+                  builder: largeScreenTextScaleBuilder,
                   themeMode: themeMode,
                   theme: buildAppTheme(
                     variant: themeVariant,

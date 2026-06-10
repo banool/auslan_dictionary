@@ -55,10 +55,22 @@ IOS_TARGETS = [
 
 # Google Play requires phone screenshots and, for tablet support, 7"/10" tablet
 # screenshots. Each entry is (AVD name, `avdmanager list device` profile id).
+# AD_tv approximates the school touch TVs the app runs on: a landscape-natural
+# 1080p panel at mdpi, i.e. a 1920x1080dp logical display, far larger than any
+# tablet. avdmanager has no TV-sized touch profile, so it's created from the
+# tablet profile and resized via config.ini (see _patch_tv_avd).
 ANDROID_TARGETS = [
     ("AD_phone", "pixel_7"),        # phone (required)
     ("AD_tablet", "pixel_tablet"),  # ~11" tablet (covers the 10" slot)
+    ("AD_tv", "pixel_tablet"),      # touch TV (schools)
 ]
+
+TV_AVD_NAME = "AD_tv"
+TV_LCD_CONFIG = {
+    "hw.lcd.width": "1920",
+    "hw.lcd.height": "1080",
+    "hw.lcd.density": "160",
+}
 # System image every AVD is created from. arm64-v8a for Apple Silicon hosts;
 # API 35 = Android 15.
 ANDROID_SYSTEM_IMAGE = "system-images;android-35;google_apis;arm64-v8a"
@@ -200,35 +212,72 @@ def ensure_android_avds():
              "-d", device, "--force"],
             stdin="no\n",
         )
+    # Idempotent: re-applied every run so a hand-edited or stale AD_tv
+    # config converges back to the TV dimensions.
+    _patch_tv_avd()
 
 
-def boot_android(name):
-    """Launch an AVD and wait for it to finish booting. Returns its adb serial."""
+def _patch_tv_avd():
+    """Resize the AD_tv AVD to TV dimensions by rewriting its config.ini
+    LCD keys (avdmanager can only create from fixed device profiles)."""
+    cfg = Path.home() / ".android" / "avd" / f"{TV_AVD_NAME}.avd" / "config.ini"
+    if not cfg.exists():
+        LOG.warning("AD_tv config.ini not found at %s; skipping TV resize", cfg)
+        return
+    lines = cfg.read_text().splitlines()
+    keys_seen = set()
+    out = []
+    for line in lines:
+        key = line.split("=")[0].strip()
+        if key in TV_LCD_CONFIG:
+            out.append(f"{key}={TV_LCD_CONFIG[key]}")
+            keys_seen.add(key)
+        else:
+            out.append(line)
+    for key, value in TV_LCD_CONFIG.items():
+        if key not in keys_seen:
+            out.append(f"{key}={value}")
+    cfg.write_text("\n".join(out) + "\n")
+    LOG.info("Patched %s to %sx%s @ %sdpi", TV_AVD_NAME,
+             TV_LCD_CONFIG["hw.lcd.width"], TV_LCD_CONFIG["hw.lcd.height"],
+             TV_LCD_CONFIG["hw.lcd.density"])
+
+
+def boot_android(name, port):
+    """Launch an AVD on a fixed console port and wait for it to finish
+    booting. Returns its adb serial.
+
+    The port is pinned so the serial is deterministic (emulator-<port>) and
+    every adb call can use `-s` — the previous bare `adb get-serialno` /
+    `adb shell` calls broke with "more than one device/emulator" whenever any
+    other emulator or device happened to be connected."""
     emulator = android_tool("emulator", "emulator")
     adb = android_tool("platform-tools", "adb")
-    LOG.info("Booting emulator: %s", name)
+    serial = f"emulator-{port}"
+    LOG.info("Booting emulator: %s (%s)", name, serial)
     subprocess.Popen(
-        [str(emulator), "-avd", name, "-no-boot-anim", "-no-snapshot"],
+        [str(emulator), "-avd", name, "-port", str(port), "-no-boot-anim",
+         "-no-snapshot"],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
-    run([adb, "wait-for-device"])
+    run([adb, "-s", serial, "wait-for-device"])
     for _ in range(150):
         done = run(
-            [adb, "shell", "getprop", "sys.boot_completed"],
+            [adb, "-s", serial, "shell", "getprop", "sys.boot_completed"],
             capture=True,
             check=False,
         ).stdout.strip()
         if done == "1":
             time.sleep(2)
-            return run([adb, "get-serialno"], capture=True).stdout.strip()
+            return serial
         time.sleep(2)
     raise RuntimeError(f"emulator {name} did not finish booting")
 
 
-def kill_android():
+def kill_android(serial):
     adb = android_tool("platform-tools", "adb")
-    run([adb, "emu", "kill"], check=False)
+    run([adb, "-s", serial, "emu", "kill"], check=False)
 
 
 # --- Main -----------------------------------------------------------------
@@ -266,12 +315,14 @@ def main():
     if not args.ios_only:
         LOG.info("Preparing Android emulators")
         ensure_android_avds()
-        for name, _ in ANDROID_TARGETS:
-            serial = boot_android(name)
+        # High even ports well away from the default 5554 so a user-started
+        # emulator can't collide with ours.
+        for i, (name, _) in enumerate(ANDROID_TARGETS):
+            serial = boot_android(name, 5584 + i * 2)
             try:
                 drive(serial)
             finally:
-                kill_android()
+                kill_android(serial)
                 time.sleep(3)
 
     LOG.info("Done! Screenshots in %s", SCREENSHOTS_DIR)

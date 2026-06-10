@@ -276,5 +276,46 @@ void main() async {
 
     // Restore the default light mode.
     themeNotifier.value = ThemeMode.light;
+    await settle(tester);
+
+    // --- Landscape captures. The word page and the flashcards page have
+    // dedicated horizontal layouts that have historically broken without
+    // anyone noticing (no test or screenshot covered them), so capture
+    // them explicitly. Note: on iPads that support multitasking, iOS
+    // ignores setPreferredOrientations, so these may come out portrait
+    // there — the phone captures are the authoritative landscape record.
+    await SystemChrome.setPreferredOrientations(
+        [DeviceOrientation.landscapeLeft]);
+    // Give the OS rotation animation time to settle (real frames).
+    await letVideoLoad(tester);
+
+    // 12. Word page in landscape: video left, definitions right.
+    app.navigateToEntryPage(rootNavigatorKey.currentContext!, dog, true);
+    await letVideoLoad(tester);
+    await takeScreenshot(tester, binding, info, "wordPageLandscape");
+    rootNavigatorKey.currentState!.pop();
+    await settle(tester);
+
+    // 13. Flashcard front in landscape (the "what does this sign mean"
+    // prompt next to the controls).
+    await tester.tap(find.byIcon(Icons.style));
+    await settle(tester);
+    await tester.tap(find.byKey(const ValueKey("startButton")));
+    await letVideoLoad(tester);
+    await takeScreenshot(tester, binding, info, "flashcardFrontLandscape");
+
+    // 14. The same flashcard revealed: video left, word + rating buttons
+    // right.
+    await tester.tap(find.byKey(const ValueKey("revealButton")));
+    await letVideoLoad(tester);
+    await takeScreenshot(tester, binding, info, "flashcardRevealedLandscape");
+    await tester.tap(find.widgetWithIcon(IconButton, Icons.close));
+    await settle(tester);
+
+    // Restore portrait, then hand orientation control back to the OS.
+    await SystemChrome.setPreferredOrientations(
+        [DeviceOrientation.portraitUp]);
+    await settle(tester);
+    await SystemChrome.setPreferredOrientations([]);
   });
 }
