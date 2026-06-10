@@ -28,6 +28,10 @@ jobs:
         DATA: ${{ steps.filter.outputs.data }}
 
   build_android:
+    # The release step rewrites the "latest" tag + release assets, which
+    # needs write access — the default GITHUB_TOKEN is read-only.
+    permissions:
+      contents: write
     needs: [changes]
     if: needs.changes.outputs.android == 'true' || needs.changes.outputs.data == 'true'
     runs-on: ubuntu-latest
