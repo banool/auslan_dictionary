@@ -3,22 +3,32 @@ name: Deploy site to Cloudflare Pages
 on:
   push:
     branches: [master]
-    paths:
-      - 'site/**'
+    paths: ['site/**', '.github/workflows/pages.yaml']
   workflow_dispatch:
+
+# Single deployment at a time.
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      deployments: write
+    environment: production # manual approval gate
+    # Run from site/ so wrangler picks up site/wrangler.toml (project name +
+    # output dir) and the attach-domains script sits one dir down.
+    defaults: { run: { working-directory: site } }
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
+      - uses: actions/setup-node@v4
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy site/src --project-name=auslan-dictionary
+          node-version: 22
+      - name: Ensure Pages project exists
+        run: npx wrangler@latest pages project create auslan-dictionary --production-branch=master || true
+      - name: Deploy to Cloudflare Pages
+        run: npx wrangler@latest pages deploy --branch=master --commit-dirty=true
+      - name: Attach custom domains
+        run: bash scripts/attach-domains.sh

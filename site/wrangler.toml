@@ -1,0 +1,16 @@
+# Cloudflare Pages config for the auslandictionary.org info site (landing
+# page, privacy policy, terms of service). Having it here lets you run
+# `npx wrangler pages deploy` from this directory without repeating the
+# project name or the output dir on the command line; CI
+# (.github/workflows/pages.yaml) runs the same command from here.
+#
+# No build step and no secrets: the deployable output is the static `src/`
+# tree as-is. The deploy authenticates with the account-level
+# CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID.
+#
+# `pages_build_output_dir = "src"` — there's no build step; `src/` IS the
+# deployable output (resolved relative to this file).
+
+name = "auslan-dictionary"
+pages_build_output_dir = "src"
+compatibility_date = "2026-05-01"
