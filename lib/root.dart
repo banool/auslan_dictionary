@@ -110,10 +110,7 @@ class _RootAppState extends State<RootApp> {
     // location (search) is the base, so opening a shared list still leaves a
     // working back button instead of stranding the user on a rootless route.
     _deepLinkSub = sharing.deepLinks.payloads.listen((payload) {
-      final loc = payload.isInvite
-          ? '/share/${payload.listId}?invite=${Uri.encodeQueryComponent(payload.inviteToken!)}'
-          : '/share/${payload.listId}';
-      router.push(loc);
+      router.push(payload.toRouteLocation());
     });
   }
 

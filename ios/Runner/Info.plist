@@ -79,8 +79,15 @@
 	<false/>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<!-- Disable Flutter's built-in deep-link handling. We route deep links
+	     ourselves through the app_links package (see DeepLinkHandler in
+	     dictionarylib), which rewrites incoming share URLs to the GoRouter
+	     `/share/:listId` location. With this enabled too, Flutter would
+	     *also* hand the raw URI (e.g. `auslan://share/<id>?invite=<tok>`)
+	     straight to GoRouter, which has no matching route, throwing
+	     "GoException: no routes for location: auslan://share/...". -->
 	<key>FlutterDeepLinkingEnabled</key>
-	<true/>
+	<false/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>

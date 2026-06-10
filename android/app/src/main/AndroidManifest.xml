@@ -30,6 +30,17 @@
               android:name="io.flutter.embedding.android.SplashScreenDrawable"
               android:resource="@drawable/launch_background"
               />
+            <!-- Disable Flutter's built-in deep-link handling. Deep links are
+                 routed by the app_links package (DeepLinkHandler in
+                 dictionarylib), which rewrites incoming share URLs to the
+                 GoRouter `/share/:listId` location. If Flutter also handled
+                 them it would hand the raw URI (e.g.
+                 `auslan://share/<id>?invite=<tok>`) straight to GoRouter,
+                 which has no matching route, throwing a GoException. -->
+            <meta-data
+              android:name="flutter_deeplinking_enabled"
+              android:value="false"
+              />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
