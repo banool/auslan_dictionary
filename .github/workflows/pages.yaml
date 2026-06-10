@@ -20,7 +20,11 @@ jobs:
     defaults: { run: { working-directory: site } }
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      # The account id is not a credential (it appears in dashboard URLs);
+      # the repo has no CLOUDFLARE_ACCOUNT_ID secret, and wrangler used to
+      # pick the id up from the since-untracked site/.wrangler cache, so it
+      # lives here as a literal fallback. A repo secret, if added, wins.
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || '47989fc190166b22bc15768dc41e8693' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
