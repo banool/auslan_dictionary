@@ -4,6 +4,8 @@ ios/fastlane/report.xml
 ios/Runner.ipa
 ios/Runner.app.*
 .vscode
+# Wrangler's local dev cache (e.g. site/.wrangler) — mirrors dictionarylib.
+.wrangler
 ios/*.cer
 ios/fastlane/screenshots
 ios/fastlane/Preview.html

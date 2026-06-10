@@ -86,8 +86,12 @@ class _RootAppState extends State<RootApp> {
   void initState() {
     super.initState();
     locale = widget.startingLocale;
+    // Default to following the OS light/dark setting; the user can pin
+    // light or dark explicitly in settings. The native splash also
+    // follows the OS appearance, so a fresh install gets a consistent
+    // splash → first frame in both modes.
     themeNotifier.value = ThemeMode.values[
-        sharedPreferences.getInt(KEY_THEME_MODE) ?? ThemeMode.light.index];
+        sharedPreferences.getInt(KEY_THEME_MODE) ?? DEFAULT_THEME_MODE];
     themeVariantNotifier.value =
         appThemeVariantFromName(sharedPreferences.getString(KEY_THEME_VARIANT));
     // Debug-only theme overrides (see _kDebug* consts above). No-ops in release
@@ -125,6 +129,17 @@ class _RootAppState extends State<RootApp> {
       initialLocation: kDebugMode && _kDebugInitialLocation.isNotEmpty
           ? _kDebugInitialLocation
           : SEARCH_ROUTE,
+      // An unknown location (a stale deep-link, a typo'd path, a malformed
+      // share link that didn't match `/share/:listId`) should drop the user
+      // on the search screen rather than a bare error page — search is the
+      // app's home and always safe to render. A malformed `/share/<id>` that
+      // *does* match the route is handled gracefully by the landing page's
+      // own error branch (it surfaces an "expired / unknown list" state).
+      errorBuilder: (context, state) => SearchPage(
+        navigateToEntryPage: navigateToEntryPage,
+        includeEntryTypeButton: false,
+        entryDefinitionPreview: auslanDefinitionPreview,
+      ),
       routes: [
         GoRoute(
           path: "/",
@@ -137,8 +152,11 @@ class _RootAppState extends State<RootApp> {
               bool navigateToFirstMatch =
                   state.uri.queryParameters["navigate_to_first_match"] ==
                       "true";
+              // No per-rebuild key: a `UniqueKey()` here forced the whole
+              // SearchPage to be torn down and rebuilt from scratch (losing
+              // search state) on every router rebuild — the other tabs don't
+              // do this. The route path already keys the page.
               return NoTransitionPage(
-                key: UniqueKey(),
                 child: SearchPage(
                   navigateToEntryPage: navigateToEntryPage,
                   initialQuery: initialQuery,
