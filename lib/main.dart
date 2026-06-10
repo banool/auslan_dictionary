@@ -76,21 +76,19 @@ Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
       // each platform expects its own identifier.
       appleBundleId: 'com.banool.auslanDictionary',
       // Apple Services ID (Web auth) used by the Android Sign in with
-      // Apple flow. The Android Apple flow is disabled until the
-      // Services ID is provisioned in Apple Developer Portal →
-      // Identifiers → Services IDs and verified end-to-end. Set both
-      // appleServicesId and appleRedirectUri together once ready;
-      // until then the Android Apple button errors out gracefully
-      // with a localised "not configured" message rather than
-      // hitting an unprovisioned endpoint.
-      //
-      // appleRedirectUri is the URL Apple POSTs the form_post response
-      // to. It must match the Return URL registered with the Services
-      // ID. The Worker handles the POST and 302s to
+      // Apple flow. Must match the Services ID registered in Apple
+      // Developer Portal → Identifiers → Services IDs and the value in
+      // the Worker's APPLE_AUDIENCES. Until that Services ID is
+      // configured (Primary App ID + Domains + Return URLs), the
+      // Android Apple button errors out with a localised "not
+      // configured" message rather than completing.
+      appleServicesId: 'com.banool.auslandictionarysignin',
+      // The URL Apple POSTs the form_post response to. Must exactly
+      // match the Return URL registered with the Services ID. The
+      // Worker handles the POST and 302s to
       // https://share.auslandictionary.org/apple-callback?id_token=…
       // which the AndroidManifest intent filter catches as an App Link.
-      appleServicesId: null,
-      appleRedirectUri: null,
+      appleRedirectUri: 'https://share.auslandictionary.org/v1/apple-callback',
       // Google OAuth **Web** client id. Required by `google_sign_in` v7
       // on Android (Credential Manager mints ID tokens with the Web
       // client as `aud`). Must appear in the Worker's
