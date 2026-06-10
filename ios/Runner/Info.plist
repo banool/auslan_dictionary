@@ -1,156 +1,156 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
-	<key>CFBundleExecutable</key>
-	<string>$(EXECUTABLE_NAME)</string>
-	<key>CFBundleIdentifier</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>Auslan Dictionary</string>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
-	<key>CFBundleShortVersionString</key>
-	<string>$(FLUTTER_BUILD_NAME)</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>auslan_dictionary.com</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>auslan</string>
-			</array>
-		</dict>
-		<!-- Google Sign In — reversed iOS client id (from
+	<dict>
+		<key>CADisableMinimumFrameDurationOnPhone</key>
+		<true/>
+		<key>CFBundleDevelopmentRegion</key>
+		<string>$(DEVELOPMENT_LANGUAGE)</string>
+		<key>CFBundleExecutable</key>
+		<string>$(EXECUTABLE_NAME)</string>
+		<key>CFBundleIdentifier</key>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+		<key>CFBundleInfoDictionaryVersion</key>
+		<string>6.0</string>
+		<key>CFBundleName</key>
+		<string>Auslan Dictionary</string>
+		<key>CFBundlePackageType</key>
+		<string>APPL</string>
+		<key>CFBundleShortVersionString</key>
+		<string>$(FLUTTER_BUILD_NAME)</string>
+		<key>CFBundleSignature</key>
+		<string>????</string>
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLName</key>
+				<string>auslan_dictionary.com</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>auslan</string>
+				</array>
+			</dict>
+			<!-- Google Sign In — reversed iOS client id (from
 		     GoogleService-Info.plist). REVERSED_CLIENT_ID value. -->
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>com.googleusercontent.apps</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>com.googleusercontent.apps.901039920141-ag39tbgmhje86jq3rtsdbnec8j3flrp6</string>
-			</array>
-		</dict>
-		<!-- Facebook login — fb<APP_ID> custom scheme. -->
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>facebook</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>fb1003244748751862</string>
-			</array>
-		</dict>
-	</array>
-	<!-- Google Sign In — iOS OAuth client id. Lets google_sign_in find
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLName</key>
+				<string>com.googleusercontent.apps</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.googleusercontent.apps.901039920141-ag39tbgmhje86jq3rtsdbnec8j3flrp6</string>
+				</array>
+			</dict>
+			<!-- Facebook login — fb<APP_ID> custom scheme. -->
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLName</key>
+				<string>facebook</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>fb1003244748751862</string>
+				</array>
+			</dict>
+		</array>
+		<!-- Google Sign In — iOS OAuth client id. Lets google_sign_in find
 	     the client without us having to wire GoogleService-Info.plist
 	     into the Xcode project. The reversed form is in CFBundleURLTypes
 	     above. -->
-	<key>GIDClientID</key>
-	<string>901039920141-ag39tbgmhje86jq3rtsdbnec8j3flrp6.apps.googleusercontent.com</string>
-	<!-- Facebook Limited Login plumbing. FacebookAppID/ClientToken/DisplayName
+		<key>GIDClientID</key>
+		<string>901039920141-ag39tbgmhje86jq3rtsdbnec8j3flrp6.apps.googleusercontent.com</string>
+		<!-- Facebook Limited Login plumbing. FacebookAppID/ClientToken/DisplayName
 	     must be set before the Facebook button is enabled in the sign-in
 	     dialog; ClientToken comes from Facebook's app dashboard. -->
-	<key>FacebookAppID</key>
-	<string>1003244748751862</string>
-	<key>FacebookClientToken</key>
-	<string>0e84e902c05b8d988138a40157a2f9fa</string>
-	<key>FacebookDisplayName</key>
-	<string>Auslan Dictionary</string>
-	<key>FacebookAutoInitEnabled</key>
-	<true/>
-	<key>FacebookAdvertiserIDCollectionEnabled</key>
-	<false/>
-	<key>FacebookAutoLogAppEventsEnabled</key>
-	<false/>
-	<key>CFBundleVersion</key>
-	<string>$(FLUTTER_BUILD_NUMBER)</string>
-	<!-- Disable Flutter's built-in deep-link handling. We route deep links
+		<key>FacebookAppID</key>
+		<string>1003244748751862</string>
+		<key>FacebookClientToken</key>
+		<string>0e84e902c05b8d988138a40157a2f9fa</string>
+		<key>FacebookDisplayName</key>
+		<string>Auslan Dictionary</string>
+		<key>FacebookAutoInitEnabled</key>
+		<true/>
+		<key>FacebookAdvertiserIDCollectionEnabled</key>
+		<false/>
+		<key>FacebookAutoLogAppEventsEnabled</key>
+		<false/>
+		<key>CFBundleVersion</key>
+		<string>$(FLUTTER_BUILD_NUMBER)</string>
+		<!-- Disable Flutter's built-in deep-link handling. We route deep links
 	     ourselves through the app_links package (see DeepLinkHandler in
 	     dictionarylib), which rewrites incoming share URLs to the GoRouter
 	     `/share/:listId` location. With this enabled too, Flutter would
 	     *also* hand the raw URI (e.g. `auslan://share/<id>?invite=<tok>`)
 	     straight to GoRouter, which has no matching route, throwing
 	     "GoException: no routes for location: auslan://share/...". -->
-	<key>FlutterDeepLinkingEnabled</key>
-	<false/>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<string>itms-beta</string>
-		<string>itms</string>
-		<!-- Facebook SDK probes these to decide between Facebook app vs
-		     web browser at sign-in time. -->
-		<string>fbapi</string>
-		<string>fb-messenger-share-api</string>
-		<string>fbauth2</string>
-		<string>fbshareextension</string>
-	</array>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
-	<key>UIApplicationSceneManifest</key>
-	<dict>
-		<key>UIApplicationSupportsMultipleScenes</key>
+		<key>FlutterDeepLinkingEnabled</key>
 		<false/>
-		<key>UISceneConfigurations</key>
+		<key>ITSAppUsesNonExemptEncryption</key>
+		<false/>
+		<key>LSApplicationQueriesSchemes</key>
+		<array>
+			<string>itms-beta</string>
+			<string>itms</string>
+			<!-- Facebook SDK probes these to decide between Facebook app vs
+		     web browser at sign-in time. -->
+			<string>fbapi</string>
+			<string>fb-messenger-share-api</string>
+			<string>fbauth2</string>
+			<string>fbshareextension</string>
+		</array>
+		<key>LSRequiresIPhoneOS</key>
+		<true/>
+		<key>NSAppTransportSecurity</key>
 		<dict>
-			<key>UIWindowSceneSessionRoleApplication</key>
-			<array>
-				<dict>
-					<key>UISceneClassName</key>
-					<string>UIWindowScene</string>
-					<key>UISceneConfigurationName</key>
-					<string>flutter</string>
-					<key>UISceneDelegateClassName</key>
-					<string>FlutterSceneDelegate</string>
-					<key>UISceneStoryboardFile</key>
-					<string>Main</string>
-				</dict>
-			</array>
+			<key>NSAllowsArbitraryLoads</key>
+			<true/>
 		</dict>
+		<key>UIApplicationSceneManifest</key>
+		<dict>
+			<key>UIApplicationSupportsMultipleScenes</key>
+			<false/>
+			<key>UISceneConfigurations</key>
+			<dict>
+				<key>UIWindowSceneSessionRoleApplication</key>
+				<array>
+					<dict>
+						<key>UISceneClassName</key>
+						<string>UIWindowScene</string>
+						<key>UISceneConfigurationName</key>
+						<string>flutter</string>
+						<key>UISceneDelegateClassName</key>
+						<string>FlutterSceneDelegate</string>
+						<key>UISceneStoryboardFile</key>
+						<string>Main</string>
+					</dict>
+				</array>
+			</dict>
+		</dict>
+		<key>UIApplicationSupportsIndirectInputEvents</key>
+		<true/>
+		<key>UILaunchStoryboardName</key>
+		<string>LaunchScreen</string>
+		<key>UIMainStoryboardFile</key>
+		<string>Main</string>
+		<key>UIStatusBarHidden</key>
+		<false/>
+		<key>UISupportedInterfaceOrientations</key>
+		<array>
+			<string>UIInterfaceOrientationPortrait</string>
+			<string>UIInterfaceOrientationLandscapeLeft</string>
+			<string>UIInterfaceOrientationLandscapeRight</string>
+		</array>
+		<key>UISupportedInterfaceOrientations~ipad</key>
+		<array>
+			<string>UIInterfaceOrientationPortrait</string>
+			<string>UIInterfaceOrientationPortraitUpsideDown</string>
+			<string>UIInterfaceOrientationLandscapeLeft</string>
+			<string>UIInterfaceOrientationLandscapeRight</string>
+		</array>
+		<key>UIViewControllerBasedStatusBarAppearance</key>
+		<false/>
 	</dict>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>UIMainStoryboardFile</key>
-	<string>Main</string>
-	<key>UIStatusBarHidden</key>
-	<false/>
-	<key>UISupportedInterfaceOrientations</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<false/>
-</dict>
 </plist>
