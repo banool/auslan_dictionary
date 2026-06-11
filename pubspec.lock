@@ -271,7 +271,7 @@ packages:
       path: "../dictionarylib"
       relative: true
     source: path
-    version: "0.3.37"
+    version: "0.3.38"
   dolphinsr_dart:
     dependency: "direct main"
     description:
