@@ -61,7 +61,8 @@ Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
   //                    where the App Link / Universal Link manifests live)
   //   auth           — OAuth client ids per provider. Each must match the
   //                    corresponding Worker env (`APPLE_AUDIENCES`,
-  //                    `GOOGLE_AUDIENCES`, `FACEBOOK_APP_ID`). See
+  //                    `GOOGLE_AUDIENCES`, `FACEBOOK_APP_ID`,
+  //                    `MICROSOFT_CLIENT_ID`). See
   //                    dictionarylib/lists/MANUAL_SETUP.md.
   await setupSharing(const SharingConfig(
     appId: 'auslan',
@@ -104,6 +105,28 @@ Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
           '901039920141-ag39tbgmhje86jq3rtsdbnec8j3flrp6.apps.googleusercontent.com',
       // Facebook app id from developers.facebook.com → My Apps → App ID.
       facebookAppId: '1003244748751862',
+      // Microsoft Entra (Azure AD) application (client) id from the Azure
+      // Portal app registration. Must match the Worker's
+      // `MICROSOFT_CLIENT_ID`. One id covers iOS + Android. See
+      // dictionarylib/lists/MANUAL_SETUP.md §4.
+      microsoftClientId: '9001429b-4197-45e2-8f22-1b4a6c915b46',
+      // Android MSAL redirect URI: msauth://<package>/<url-encoded base64
+      // SHA-1 of the signing cert>. iOS derives its own from the bundle id,
+      // so this is Android-only.
+      //
+      // The release value is the PLAY APP SIGNING key — store builds run
+      // under Google's app-signing key (it re-signs the uploaded AAB),
+      // which is what users actually have, so this is the production-correct
+      // value. MSAL checks it against the running app's real signature.
+      //
+      // Debug builds are signed with the local debug keystore, so a separate
+      // hash applies; the wrapper auto-selects the debug URI in kDebugMode.
+      // Get either with android/get-sha1.sh. Both must be registered as
+      // redirect URIs in Azure and as <data> entries in AndroidManifest.xml.
+      microsoftAndroidRedirectUri:
+          'msauth://com.banool.auslan_dictionary/tnPupvWBIsfs5VUhZbUCXxyL8%2FQ%3D',
+      microsoftAndroidDebugRedirectUri:
+          'msauth://com.banool.auslan_dictionary/mLnUCgy8ygvZ%2B2jXJtHai%2FNmrCw%3D',
     ),
     // Debug-only "Sign in as test user" button. Visible only in
     // kDebugMode AND when testAuthToken is non-empty. Token must be

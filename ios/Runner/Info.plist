@@ -55,6 +55,19 @@
 					<string>fb1003244748751862</string>
 				</array>
 			</dict>
+			<!-- Microsoft sign-in (MSAL) — msauth.<bundle-id> redirect scheme.
+			     MSAL derives the iOS redirect URI from the bundle id, so no
+			     hash/Dart config is needed on iOS. -->
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLName</key>
+				<string>msauth</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>msauth.$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+				</array>
+			</dict>
 		</array>
 		<!-- Google Sign In — iOS OAuth client id. Lets google_sign_in find
 	     the client without us having to wire GoogleService-Info.plist
@@ -100,6 +113,10 @@
 			<string>fb-messenger-share-api</string>
 			<string>fbauth2</string>
 			<string>fbshareextension</string>
+			<!-- MSAL probes these to hand off to the Microsoft Authenticator
+		     app when it's installed (falls back to Safari otherwise). -->
+			<string>msauthv2</string>
+			<string>msauthv3</string>
 		</array>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>

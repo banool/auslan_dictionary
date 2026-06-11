@@ -271,7 +271,7 @@ packages:
       path: "../dictionarylib"
       relative: true
     source: path
-    version: "0.3.38"
+    version: "0.3.40"
   dolphinsr_dart:
     dependency: "direct main"
     description:
@@ -821,6 +821,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  msal_auth:
+    dependency: transitive
+    description:
+      name: msal_auth
+      sha256: bc860fb1403e8d8975cd047a1610661acc0b7e540338a9d47589b17f08b637ac
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.5.0"
   objective_c:
     dependency: transitive
     description:

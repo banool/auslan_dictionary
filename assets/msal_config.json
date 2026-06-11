@@ -1,0 +1,19 @@
+{
+  "account_mode": "SINGLE",
+  "broker_redirect_uri_registered": false,
+  "authorization_user_agent": "DEFAULT",
+  "authorities": [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADandPersonalMicrosoftAccount",
+        "tenant_id": "common"
+      },
+      "default": true
+    }
+  ],
+  "logging": {
+    "pii_enabled": false,
+    "log_level": "WARNING"
+  }
+}

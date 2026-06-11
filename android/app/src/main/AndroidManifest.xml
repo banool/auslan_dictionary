@@ -114,6 +114,40 @@
                 <data android:scheme="@string/fb_login_protocol_scheme" />
             </intent-filter>
         </activity>
+        <!-- Microsoft sign-in (MSAL via msal_auth). The browser-delegated
+             auth flow redirects back to msauth://<package>/<sig-hash>, which
+             this BrowserTabActivity catches. One data element per signing
+             key the app may run under so the redirect resolves in every
+             build (generate with android/get-sha1.sh): the release/upload
+             key and the local debug key are listed below. The hashes are
+             the URL-encoded base64 SHA-1 of each cert.
+             NOTE: Play App Signing re-signs the uploaded artifact, so the
+             store build runs under Google's app-signing key, NOT the upload
+             key. Add that key's hash here (and in Azure) too; get its
+             base64 SHA-1 from Play Console, App integrity, App signing key
+             certificate. Keep in sync with microsoftAndroidRedirectUri in
+             lib/main.dart and the Azure app registration. -->
+        <activity
+            android:name="com.microsoft.identity.client.BrowserTabActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Play App Signing key (production / store builds) -->
+                <data android:scheme="msauth"
+                      android:host="com.banool.auslan_dictionary"
+                      android:path="/tnPupvWBIsfs5VUhZbUCXxyL8%2FQ%3D" />
+                <!-- release / upload key (locally-signed release builds) -->
+                <data android:scheme="msauth"
+                      android:host="com.banool.auslan_dictionary"
+                      android:path="/uJIuQL8qD443LNaG3%2B5OF%2BzMYB4%3D" />
+                <!-- local debug key -->
+                <data android:scheme="msauth"
+                      android:host="com.banool.auslan_dictionary"
+                      android:path="/mLnUCgy8ygvZ%2B2jXJtHai%2FNmrCw%3D" />
+            </intent-filter>
+        </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
@@ -121,6 +155,8 @@
             android:value="2" />
     </application>
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- MSAL browser-delegated auth needs network-state visibility. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <!-- Facebook SDK probes for the Facebook app. Required on Android
          11+ due to package visibility restrictions. -->
     <queries>

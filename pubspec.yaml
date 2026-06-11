@@ -3,7 +3,7 @@ description: Free video dictionary of Auslan signs
 
 publish_to: 'none'
 
-version: 1.19.59+877
+version: 1.19.61+879
 
 environment:
   sdk: '>=2.18.0 <3.0.0'
@@ -15,7 +15,7 @@ dependencies:
   dictionarylib:
     git:
       url: https://github.com/banool/dictionarylib.git
-      ref: 706f0d9189d2296374f21cd0a1f8adabd3e71921 
+      ref: 8ec0954e20ecbb66c9b709e60e57eea96b51f586
   dolphinsr_dart:
     git:
       url: https://github.com/banool/dolphhinsr_dart.git
@@ -67,3 +67,9 @@ flutter_native_splash:
 
 flutter:
   uses-material-design: true
+  # MSAL Android config for Microsoft sign-in (msal_auth). The plugin reads
+  # this at app-creation time; client_id + redirect_uri are injected from
+  # SharingAuthConfig, so they're absent here. See
+  # dictionarylib/lists/MANUAL_SETUP.md section 4.
+  assets:
+    - assets/msal_config.json

@@ -10,5 +10,11 @@
 	<array>
 		<string>applinks:share.auslandictionary.org</string>
 	</array>
+	<!-- MSAL (Microsoft sign-in) stores tokens in this shared keychain
+	     group; without it acquireToken / signOut fail to find the account. -->
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)com.microsoft.adalcache</string>
+	</array>
 </dict>
 </plist>
