@@ -63,3 +63,6 @@ app.*.map.json
 # Local-only dev override (dictionarylib path dep); never commit it —
 # a committed override breaks CI and makes store builds unreproducible.
 pubspec_overrides.yaml
+
+# Screenshot poster cache (downloaded videos + extracted frames).
+screenshots/.posters/

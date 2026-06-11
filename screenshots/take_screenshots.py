@@ -23,16 +23,30 @@ magically start to work.
 """
 
 import argparse
+import json
 import logging
 import os
 import re
 import shutil
 import subprocess
 import time
+import urllib.request
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 SCREENSHOTS_DIR = PROJECT_ROOT / "screenshots"
+
+# First-frame posters for the videos the screenshot flow can display.
+# Android emulators cannot render mpv video at all (mpv's GL context
+# creation fails in the emulator's EGL), so the app is pointed at these
+# stills instead via SCREENSHOT_POSTERS_URL — the captures then contain a
+# real frame of the real video rather than a black pane. Served to the
+# emulator over host loopback (10.0.2.2) by a throwaway local HTTP server.
+POSTERS_DIR = SCREENSHOTS_DIR / ".posters"
+POSTERS_PORT = 8123
+# Must match the words screenshot_test.dart seeds into the Animals list
+# (any of their videos can appear on the flashcard screens).
+SEEDED_WORDS = ["kangaroo", "platypus", "echidna", "dog", "cat", "bird"]
 
 DRIVER = "test_driver/integration_driver.dart"
 TARGET = "integration_test/screenshot_test.dart"
@@ -127,9 +141,16 @@ def drive(device_id):
     (or whose files never reach disk) fails loudly rather than leaving a
     silently-partial set."""
     LOG.info("Capturing screenshots on %s", device_id)
+    cmd = ["flutter", "drive", f"--driver={DRIVER}", f"--target={TARGET}",
+           "-d", device_id]
+    if device_id.startswith("emulator-"):
+        # Android emulators cannot render mpv video (GL context creation
+        # fails), so point the app at first-frame posters served from the
+        # host — see POSTERS_DIR above. Real builds never set the define.
+        cmd.append(
+            f"--dart-define=SCREENSHOT_POSTERS_URL=http://10.0.2.2:{POSTERS_PORT}")
     res = run(
-        ["flutter", "drive", f"--driver={DRIVER}", f"--target={TARGET}",
-         "-d", device_id],
+        cmd,
         cwd=PROJECT_ROOT,
         check=False,
         capture=True,
@@ -153,6 +174,58 @@ def drive(device_id):
             "run — re-run with --clear-screenshots)"
         )
     LOG.info("Verified %d screenshots for %s", expected, prefix)
+
+
+# --- Video posters (Android emulators only) --------------------------------
+
+
+def poster_name(url):
+    """Poster filename for a video URL: its last two path segments joined
+    with '_'. Must match _posterUrlFor in dictionarylib's
+    video_player_screen.dart."""
+    segments = url.rstrip("/").split("/")
+    return f"{segments[-2]}_{segments[-1]}" if len(segments) >= 2 else segments[-1]
+
+
+def ensure_posters():
+    """Download each seeded word's videos and extract a first-frame PNG.
+    Both steps are cached in POSTERS_DIR, so reruns are instant."""
+    data = json.loads(
+        (PROJECT_ROOT / "assets" / "data" / "data.json").read_text())
+    urls = []
+    for entry in data["data"]:
+        if entry.get("entry_in_english") not in SEEDED_WORDS:
+            continue
+        for sub in entry.get("sub_entries") or []:
+            urls.extend(sub.get("video_links") or [])
+    POSTERS_DIR.mkdir(exist_ok=True)
+    ffmpeg = shutil.which("ffmpeg") or "/opt/homebrew/bin/ffmpeg"
+    for url in urls:
+        name = poster_name(url)
+        png = POSTERS_DIR / f"{name}.png"
+        if png.exists():
+            continue
+        mp4 = POSTERS_DIR / name
+        if not mp4.exists():
+            LOG.info("Downloading %s", url)
+            urllib.request.urlretrieve(url, mp4)
+        run([ffmpeg, "-y", "-loglevel", "error", "-i", mp4,
+             "-frames:v", "1", png])
+    count = len(list(POSTERS_DIR.glob("*.png")))
+    LOG.info("Posters ready: %d frames in %s", count, POSTERS_DIR)
+
+
+def serve_posters():
+    """Serve POSTERS_DIR on 0.0.0.0:POSTERS_PORT so emulators can reach it
+    at http://10.0.2.2:POSTERS_PORT. Returns the server process; caller
+    terminates it."""
+    import sys
+    return subprocess.Popen(
+        [sys.executable, "-m", "http.server", str(POSTERS_PORT),
+         "--bind", "0.0.0.0", "--directory", str(POSTERS_DIR)],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
 
 
 # --- iOS ------------------------------------------------------------------
@@ -339,15 +412,20 @@ def main():
     if not args.ios_only:
         LOG.info("Preparing Android emulators")
         ensure_android_avds()
-        # High even ports well away from the default 5554 so a user-started
-        # emulator can't collide with ours.
-        for i, (name, _) in enumerate(ANDROID_TARGETS):
-            serial = boot_android(name, 5584 + i * 2)
-            try:
-                drive(serial)
-            finally:
-                kill_android(serial)
-                time.sleep(3)
+        ensure_posters()
+        poster_server = serve_posters()
+        try:
+            # High even ports well away from the default 5554 so a
+            # user-started emulator can't collide with ours.
+            for i, (name, _) in enumerate(ANDROID_TARGETS):
+                serial = boot_android(name, 5584 + i * 2)
+                try:
+                    drive(serial)
+                finally:
+                    kill_android(serial)
+                    time.sleep(3)
+        finally:
+            poster_server.terminate()
 
     LOG.info("Done! Screenshots in %s", SCREENSHOTS_DIR)
 
