@@ -3,7 +3,7 @@ description: Free video dictionary of Auslan signs
 
 publish_to: 'none'
 
-version: 1.19.68+886
+version: 1.19.69+887
 
 environment:
   sdk: '>=2.18.0 <3.0.0'
@@ -15,7 +15,7 @@ dependencies:
   dictionarylib:
     git:
       url: https://github.com/banool/dictionarylib.git
-      ref: a8cdbf8fee242344b14d657083832949b6b71493
+      ref: 41240ee71ac00a57a23371b3c24927fdff1757a9
   dolphinsr_dart:
     git:
       url: https://github.com/banool/dolphhinsr_dart.git

@@ -189,7 +189,11 @@ def poster_name(url):
 
 def ensure_posters():
     """Download each seeded word's videos and extract a first-frame PNG.
-    Both steps are cached in POSTERS_DIR, so reruns are instant."""
+    Both steps are cached in POSTERS_DIR, so reruns are instant (delete the
+    cached *.png after changing extraction settings). The sources are tiny
+    (320-640px wide) while the panes they fill reach ~2400px, so frames are
+    upscaled here with Lanczos — far cleaner than leaving the whole stretch
+    to the renderer's bilinear filter."""
     data = json.loads(
         (PROJECT_ROOT / "assets" / "data" / "data.json").read_text())
     urls = []
@@ -210,7 +214,7 @@ def ensure_posters():
             LOG.info("Downloading %s", url)
             urllib.request.urlretrieve(url, mp4)
         run([ffmpeg, "-y", "-loglevel", "error", "-i", mp4,
-             "-frames:v", "1", png])
+             "-frames:v", "1", "-vf", "scale=1280:-2:flags=lanczos", png])
     count = len(list(POSTERS_DIR.glob("*.png")))
     LOG.info("Posters ready: %d frames in %s", count, POSTERS_DIR)
 
