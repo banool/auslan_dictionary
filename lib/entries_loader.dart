@@ -60,10 +60,10 @@ class MyEntryLoader extends EntryLoader {
 
   @override
   Set<MyEntry> loadEntriesInner(String data) {
-    dynamic raw = json.decode(data);
+    final raw = json.decode(data) as Map<String, dynamic>;
     Set<MyEntry> entries = {};
-    for (var entry in raw["data"]) {
-      entries.add(MyEntry.fromJson(entry));
+    for (final entry in raw["data"] as List<dynamic>) {
+      entries.add(MyEntry.fromJson(entry as Map<String, dynamic>));
     }
     printAndLog("Loaded ${entries.length} entries");
     return entries;

@@ -16,29 +16,30 @@ class MyEntry implements Entry {
       required this.entryType});
 
   // This should be an entry in the list under "data".
-  static MyEntry fromJson(dynamic data) {
+  static MyEntry fromJson(Map<String, dynamic> data) {
     if (data["entry_type"] != "WORD") {
       throw FormatException("Unexpected entry type ${data["entry_type"]}");
     }
 
-    var entryInEnglish = data["entry_in_english"];
+    final entryInEnglish = data["entry_in_english"] as String;
 
     List<MySubEntry> subEntriesList = [];
     // Necessary to know how to build the link to Auslan Signbank.
     int index = 0;
-    (data["sub_entries"] ?? []).forEach((subJson) {
-      MySubEntry subEntry = MySubEntry.fromJson(subJson, index);
+    for (final subJson in (data["sub_entries"] as List<dynamic>? ?? const [])) {
+      MySubEntry subEntry =
+          MySubEntry.fromJson(subJson as Map<String, dynamic>, index);
       if (subEntry.videoLinks.isNotEmpty) {
         subEntry.keywords.remove(entryInEnglish);
         subEntriesList.add(subEntry);
       }
       index += 1;
-    });
+    }
 
     return MyEntry(
         entryInEnglish: entryInEnglish,
         subEntries: subEntriesList,
-        categories: data["categories"].cast<String>(),
+        categories: (data["categories"] as List<dynamic>).cast<String>(),
         entryType: EntryType.WORD);
   }
 
@@ -110,8 +111,8 @@ class MySubEntry implements SubEntry {
     return out;
   }
 
-  MySubEntry.fromJson(dynamic wordJson, this.index) {
-    keywords = wordJson["keywords"].cast<String>();
+  MySubEntry.fromJson(Map<String, dynamic> wordJson, this.index) {
+    keywords = (wordJson["keywords"] as List<dynamic>).cast<String>();
 
     // In the past we made the assumption that all the videos came from the same
     // URL. Accordingly the scraper trimmed the host part of the URL and just
@@ -121,11 +122,11 @@ class MySubEntry implements SubEntry {
     // If the scheme + host is missing though, we prepend it like we did before.
     // This might happen if the user has updated their app but is somehow still
     // sitting on old data. We can remove this behavior eventually.
-    videoLinksInner = wordJson["video_links"].cast<String>();
+    videoLinksInner = (wordJson["video_links"] as List<dynamic>).cast<String>();
 
     List<Definition> definitions = [];
-    wordJson["definitions"].forEach((heading, value) {
-      List<String>? subdefinitions = value.cast<String>();
+    (wordJson["definitions"] as Map<String, dynamic>).forEach((heading, value) {
+      List<String>? subdefinitions = (value as List<dynamic>).cast<String>();
       definitions
           .add(Definition(heading: heading, subdefinitions: subdefinitions));
     });
@@ -134,10 +135,12 @@ class MySubEntry implements SubEntry {
     List<Region> regions;
     try {
       // Expected new data format with ints for Regions.
-      List<int> regionInts = wordJson["regions"].cast<int>();
+      List<int> regionInts =
+          (wordJson["regions"] as List<dynamic>).cast<int>();
       regions = regionInts.map((i) => Region.values[i]).toList();
     } catch (e) {
-      List<String> regionStrings = wordJson["regions"].cast<String>();
+      List<String> regionStrings =
+          (wordJson["regions"] as List<dynamic>).cast<String>();
       regions = regionStrings.map((v) => regionFromLegacyString(v)).toList();
     }
 
@@ -153,7 +156,7 @@ class MySubEntry implements SubEntry {
   // might use the same video).
   @override
   String getKey(Entry parentEntry) {
-    var videoLinks = List.from(videoLinksInner);
+    final videoLinks = List<String>.from(videoLinksInner);
     videoLinks.sort();
     String firstVideoLink;
     try {
