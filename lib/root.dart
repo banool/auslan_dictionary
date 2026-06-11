@@ -9,7 +9,9 @@ import 'package:dictionarylib/page_flashcards_landing.dart';
 import 'package:dictionarylib/page_search.dart';
 import 'package:dictionarylib/page_settings.dart';
 import 'package:dictionarylib/sharing/deep_link_handler.dart';
+import 'package:dictionarylib/sharing/engine_notification_listener.dart';
 import 'package:dictionarylib/sharing/shared_list_landing_page.dart';
+import 'package:dictionarylib/sharing/sync_engine.dart' show SyncNotification;
 import 'package:dictionarylib/theme.dart';
 import 'package:dictionarylib/top_level_scaffold.dart'
     show LISTS_ROUTE, REVISION_ROUTE, SEARCH_ROUTE, SETTINGS_ROUTE;
@@ -82,6 +84,7 @@ class _RootAppState extends State<RootApp> {
   }
 
   StreamSubscription<SharePayload>? _deepLinkSub;
+  StreamSubscription<SyncNotification>? _engineNotificationSub;
 
   @override
   void initState() {
@@ -117,11 +120,18 @@ class _RootAppState extends State<RootApp> {
     _deepLinkSub = sharing.deepLinks.payloads.listen((payload) {
       router.push(payload.toRouteLocation());
     });
+    // Surface engine one-shot events (session expired, removed as editor,
+    // snapshot catch-up) as snackbars from any page — the engine stream is
+    // a broadcast stream, so events without a live listener are lost.
+    if (sharing.isEnabled) {
+      _engineNotificationSub = installEngineNotificationSnackbars();
+    }
   }
 
   @override
   void dispose() {
     _deepLinkSub?.cancel();
+    _engineNotificationSub?.cancel();
     super.dispose();
   }
 
@@ -249,6 +259,7 @@ class _RootAppState extends State<RootApp> {
                 child: MaterialApp.router(
                   title: APP_NAME,
                   onGenerateTitle: (context) => APP_NAME,
+                  scaffoldMessengerKey: rootScaffoldMessengerKey,
                   localizationsDelegates:
                       DictLibLocalizations.localizationsDelegates,
                   supportedLocales: LANGUAGE_CODE_TO_LOCALE.values,
