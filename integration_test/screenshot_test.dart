@@ -199,6 +199,13 @@ void main() async {
     await tester.pumpAndSettle(const Duration(seconds: 5));
     final info = await ScreenshotNameInfo.buildScreenshotNameInfo();
 
+    // Pin the theme. The app follows the OS by default, and emulators can
+    // boot with dark mode active (battery-saver forces it), which would
+    // silently flip the entire light-mode set. Shot 11 switches to dark
+    // explicitly and back.
+    themeNotifier.value = ThemeMode.light;
+    await settle(tester);
+
     // 1. Search screen — the productive empty state (sign of the day, recents).
     await takeScreenshot(tester, binding, info, "search");
 
