@@ -33,7 +33,7 @@ void main() {
 
     // Fresh install: recover the editor membership from the server. This
     // must work without the (already consumed) invite token.
-    final result = await listsService.importOwnedLists();
+    final result = await listsService.importEditableLists();
     expect(result.imported, greaterThanOrEqualTo(1),
         reason: 'the editor should recover their editable list');
     final mirror = sharing.lists.editableLists

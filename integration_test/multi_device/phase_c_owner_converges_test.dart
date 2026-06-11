@@ -36,7 +36,7 @@ void main() {
 
     // Fresh install: nothing local yet. Recover from the server the way
     // the post-sign-in import flow does.
-    final result = await listsService.importOwnedLists();
+    final result = await listsService.importEditableLists();
     expect(result.imported, greaterThanOrEqualTo(1),
         reason: 'the owner should recover at least the shared list');
     final mirror = sharing.lists.editableLists
