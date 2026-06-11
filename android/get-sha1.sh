@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 #
 # Print the MSAL Android signature hash (base64-encoded SHA-1 of the signing
-# certificate) for the debug or release keystore, plus the matching
-# `msauth://` redirect URI. Register the hash in the Azure app registration
-# (Authentication -> Add a platform -> Android) and paste the redirect URI
-# into `microsoftAndroidRedirectUri` in the app's main.dart. See
-# dictionarylib/lists/MANUAL_SETUP.md section 4.
+# certificate) for the debug or release keystore, in BOTH forms it is needed:
+#   raw base64     -> the AndroidManifest.xml BrowserTabActivity android:path
+#                     (Android matches the percent-DECODED path, so the raw
+#                     form goes in the manifest).
+#   URL-encoded    -> the msauth:// redirect URI for main.dart and the Azure
+#                     app registration (Authentication -> Android).
+# See dictionarylib/lists/MANUAL_SETUP.md section 4.
 #
 # Usage:
 #   ./get-sha1.sh --env debug
@@ -81,16 +83,18 @@ if [[ ! -f "$keystore" ]]; then
   exit 1
 fi
 
+# `|| true` so a keytool failure reaches the friendly message below instead
+# of tripping set -e mid-pipeline.
 hash="$(keytool -exportcert -alias "$alias" -keystore "$keystore" \
   -storepass "$storepass" -keypass "$keypass" 2>/dev/null \
-  | openssl sha1 -binary | openssl base64)"
+  | openssl sha1 -binary | openssl base64)" || true
 
 if [[ -z "$hash" ]]; then
   echo "error: failed to compute signature hash (wrong alias or password?)" >&2
   exit 1
 fi
 
-# URL-encode the base64 for use in the redirect URI / manifest path. Only
+# URL-encode the base64 for the redirect-URI form (main.dart / Azure). Only
 # '+', '/' and '=' can appear in base64; encode '%' first for safety.
 encoded="${hash//%/%25}"
 encoded="${encoded//+/%2B}"
@@ -100,9 +104,11 @@ encoded="${encoded//=/%3D}"
 package="$(grep -E 'applicationId' "$SCRIPT_DIR/app/build.gradle" \
   | head -n1 | sed -E 's/.*"([^"]+)".*/\1/')"
 
-echo "env:            $environment"
-echo "keystore:       $keystore"
-echo "signature hash: $hash"
+echo "env:                  $environment"
+echo "keystore:             $keystore"
+echo "signature hash (raw): $hash"
+echo "  -> use in AndroidManifest.xml:  android:path=\"/$hash\""
 if [[ -n "$package" ]]; then
-  echo "redirect URI:   msauth://$package/$encoded"
+  echo "redirect URI (URL-encoded hash): msauth://$package/$encoded"
+  echo "  -> use in main.dart (microsoftAndroid*RedirectUri) and Azure"
 fi

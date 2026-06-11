@@ -5,6 +5,7 @@ import 'package:dictionarylib/flashcards_logic.dart';
 import 'package:dictionarylib/globals.dart';
 import 'package:dictionarylib/hearth.dart';
 import 'package:dictionarylib/revision.dart';
+import 'package:dictionarylib/theme.dart' show constrainContentWidth;
 import 'package:dictionarylib/video_player_screen.dart';
 import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 import 'package:flutter/material.dart';
@@ -596,21 +597,26 @@ class FlashcardsPageState extends State<FlashcardsPage> {
         behavior: HitTestBehavior.opaque,
         onTap: onCardTap,
         child: SizedBox.expand(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              topWidget,
-              const SizedBox(height: 28),
-              bottomWidget,
-              if (revealed) ...openDictionaryEntryWidgets,
-              Expanded(child: Container()),
-              const Padding(padding: EdgeInsets.only(bottom: 10)),
-              if (revealed) ratingButtonsRow! else _revealButton(),
-              regionWithArrows,
-              const Padding(padding: EdgeInsets.only(bottom: 28)),
-            ],
+          // Centred at the shared readable measure on tablets (the card and
+          // its controls otherwise stretch edge to edge); no-op on phones.
+          child: constrainContentWidth(
+            context,
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                topWidget,
+                const SizedBox(height: 28),
+                bottomWidget,
+                if (revealed) ...openDictionaryEntryWidgets,
+                Expanded(child: Container()),
+                const Padding(padding: EdgeInsets.only(bottom: 10)),
+                if (revealed) ratingButtonsRow! else _revealButton(),
+                regionWithArrows,
+                const Padding(padding: EdgeInsets.only(bottom: 28)),
+              ],
+            ),
           ),
         ),
       );
@@ -630,16 +636,25 @@ class FlashcardsPageState extends State<FlashcardsPage> {
               Expanded(flex: 5, child: Center(child: topWidget)),
               Expanded(
                 flex: 4,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    bottomWidget,
-                    if (revealed) ...openDictionaryEntryWidgets,
-                    const SizedBox(height: 22),
-                    if (revealed) ratingButtonsRow! else _revealButton(),
-                    regionWithArrows,
-                  ],
+                // Cap the control column at a button-friendly measure: on a
+                // TV / landscape tablet this half-pane is enormous and the
+                // reveal/rating buttons would otherwise span all of it. A
+                // phone's landscape half is narrower than the cap already.
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 440),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        bottomWidget,
+                        if (revealed) ...openDictionaryEntryWidgets,
+                        const SizedBox(height: 22),
+                        if (revealed) ratingButtonsRow! else _revealButton(),
+                        regionWithArrows,
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],

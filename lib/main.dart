@@ -90,19 +90,16 @@ Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
       // https://share.auslandictionary.org/apple-callback?id_token=…
       // which the AndroidManifest intent filter catches as an App Link.
       appleRedirectUri: 'https://share.auslandictionary.org/v1/apple-callback',
-      // Google OAuth **Web** client id. Required by `google_sign_in` v7
-      // on Android (Credential Manager mints ID tokens with the Web
-      // client as `aud`). Must appear in the Worker's
-      // `GOOGLE_AUDIENCES`. See dictionarylib/lists/MANUAL_SETUP.md §2.
-      //
-      // TODO: The value below is currently the same as the iOS client
-      // id (`GIDClientID` in ios/Runner/Info.plist + the reversed-
-      // client-id URL scheme on line ~44). If Google strictly enforces
-      // distinct client ids per platform, Android sign-in will fail
-      // at runtime — replace with the dedicated **Web** client id
-      // from Google Cloud Console before shipping Android.
+      // Google OAuth **Web** client id (created 2026-06-11). Required by
+      // `google_sign_in` v7 on Android: Credential Manager mints ID
+      // tokens with this Web client as `aud`, so it must appear in the
+      // Worker's `GOOGLE_AUDIENCES`. iOS signs in via `GIDClientID` in
+      // Info.plist (the iOS client) and only uses this as the server
+      // audience. The client's secret is unused — verification is
+      // offline against Google's JWKS. See
+      // dictionarylib/lists/MANUAL_SETUP.md §2.
       googleServerClientId:
-          '901039920141-ag39tbgmhje86jq3rtsdbnec8j3flrp6.apps.googleusercontent.com',
+          '901039920141-fq7ln7rltv705srdtruuafm48d2mv38d.apps.googleusercontent.com',
       // Facebook app id from developers.facebook.com → My Apps → App ID.
       facebookAppId: '1003244748751862',
       // Microsoft Entra (Azure AD) application (client) id from the Azure
@@ -110,21 +107,16 @@ Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
       // `MICROSOFT_CLIENT_ID`. One id covers iOS + Android. See
       // dictionarylib/lists/MANUAL_SETUP.md §4.
       microsoftClientId: '9001429b-4197-45e2-8f22-1b4a6c915b46',
-      // Android MSAL redirect URI: msauth://<package>/<url-encoded base64
-      // SHA-1 of the signing cert>. iOS derives its own from the bundle id,
-      // so this is Android-only.
-      //
-      // The release value is the PLAY APP SIGNING key — store builds run
-      // under Google's app-signing key (it re-signs the uploaded AAB),
-      // which is what users actually have, so this is the production-correct
-      // value. MSAL checks it against the running app's real signature.
-      //
-      // Debug builds are signed with the local debug keystore, so a separate
-      // hash applies; the wrapper auto-selects the debug URI in kDebugMode.
-      // Get either with android/get-sha1.sh. Both must be registered as
-      // redirect URIs in Azure and as <data> entries in AndroidManifest.xml.
+      // Android MSAL redirect URIs, one per signing cert (Play App
+      // Signing key, upload key, debug keystore); the wrapper picks
+      // whichever matches the running build's real signature. Generate
+      // with android/get-sha1.sh; every hash must also be registered in
+      // Azure and as a <data> entry in AndroidManifest.xml. Details:
+      // dictionarylib/lists/MANUAL_SETUP.md §4.
       microsoftAndroidRedirectUri:
           'msauth://com.banool.auslan_dictionary/tnPupvWBIsfs5VUhZbUCXxyL8%2FQ%3D',
+      microsoftAndroidUploadRedirectUri:
+          'msauth://com.banool.auslan_dictionary/uJIuQL8qD443LNaG3%2B5OF%2BzMYB4%3D',
       microsoftAndroidDebugRedirectUri:
           'msauth://com.banool.auslan_dictionary/mLnUCgy8ygvZ%2B2jXJtHai%2FNmrCw%3D',
     ),

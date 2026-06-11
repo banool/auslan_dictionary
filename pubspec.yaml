@@ -3,7 +3,7 @@ description: Free video dictionary of Auslan signs
 
 publish_to: 'none'
 
-version: 1.19.61+879
+version: 1.19.62+880
 
 environment:
   sdk: '>=2.18.0 <3.0.0'
@@ -51,7 +51,7 @@ flutter_native_splash:
   # Transparent-background variants of the logo (the original 01-okay.png has
   # an opaque white box that clashes with the Hearth splash colours): black
   # hands for the light splash, white hands for the dark one. Derived from
-  # 01-okay.png; see dict-fixes-2026-06-10.md.
+  # 01-okay.png.
   image: "assets/icon/01-okay-splash.png"
   image_dark: "assets/icon/01-okay-splash-dark.png"
   # Android 12+ takes its splash background from this block, not the top-level

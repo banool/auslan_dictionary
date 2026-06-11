@@ -2,9 +2,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.banool.auslan_dictionary">
     <!-- The Facebook SDK injects the advertising-id permission, but the app
-         never uses advertising IDs (and Facebook sign-in is iOS-only) — the
-         Play Console declaration says so, and Play rejects uploads carrying
-         the permission. Strip it at manifest-merge time. -->
+         never uses advertising IDs (and Facebook sign-in is currently
+         switched off entirely) — the Play Console declaration says so, and
+         Play rejects uploads carrying the permission. Strip it at
+         manifest-merge time. -->
     <uses-permission
         android:name="com.google.android.gms.permission.AD_ID"
         tools:node="remove" />
@@ -119,8 +120,11 @@
              this BrowserTabActivity catches. One data element per signing
              key the app may run under so the redirect resolves in every
              build (generate with android/get-sha1.sh): the release/upload
-             key and the local debug key are listed below. The hashes are
-             the URL-encoded base64 SHA-1 of each cert.
+             key and the local debug key are listed below. The hashes here
+             are the RAW base64 SHA-1 of each cert — Android matches
+             intent-filter paths against the percent-DECODED URI path, so
+             the URL-encoded form (which is correct in main.dart and Azure)
+             would never match here.
              NOTE: Play App Signing re-signs the uploaded artifact, so the
              store build runs under Google's app-signing key, NOT the upload
              key. Add that key's hash here (and in Azure) too; get its
@@ -137,15 +141,15 @@
                 <!-- Play App Signing key (production / store builds) -->
                 <data android:scheme="msauth"
                       android:host="com.banool.auslan_dictionary"
-                      android:path="/tnPupvWBIsfs5VUhZbUCXxyL8%2FQ%3D" />
+                      android:path="/tnPupvWBIsfs5VUhZbUCXxyL8/Q=" />
                 <!-- release / upload key (locally-signed release builds) -->
                 <data android:scheme="msauth"
                       android:host="com.banool.auslan_dictionary"
-                      android:path="/uJIuQL8qD443LNaG3%2B5OF%2BzMYB4%3D" />
+                      android:path="/uJIuQL8qD443LNaG3+5OF+zMYB4=" />
                 <!-- local debug key -->
                 <data android:scheme="msauth"
                       android:host="com.banool.auslan_dictionary"
-                      android:path="/mLnUCgy8ygvZ%2B2jXJtHai%2FNmrCw%3D" />
+                      android:path="/mLnUCgy8ygvZ+2jXJtHai/NmrCw=" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

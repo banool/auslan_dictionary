@@ -281,41 +281,60 @@ void main() async {
     // --- Landscape captures. The word page and the flashcards page have
     // dedicated horizontal layouts that have historically broken without
     // anyone noticing (no test or screenshot covered them), so capture
-    // them explicitly. Note: on iPads that support multitasking, iOS
-    // ignores setPreferredOrientations, so these may come out portrait
-    // there — the phone captures are the authoritative landscape record.
-    await SystemChrome.setPreferredOrientations(
-        [DeviceOrientation.landscapeLeft]);
-    // Give the OS rotation animation time to settle (real frames).
-    await letVideoLoad(tester);
+    // them explicitly — but only where rotating actually changes anything.
+    // On landscape-natural panels (the touch-TV target) the app is already
+    // landscape, and on multitasking iPads iOS ignores
+    // setPreferredOrientations, so shots 12-14 would just duplicate 03/08/09
+    // as dead repo bytes — skip them there. The phone captures are the
+    // authoritative landscape record.
+    final logicalSize =
+        tester.view.physicalSize / tester.view.devicePixelRatio;
+    final rotationIsNoOp = logicalSize.width > logicalSize.height ||
+        (Platform.isIOS && logicalSize.shortestSide >= 600);
+    if (rotationIsNoOp) {
+      print("Skipping landscape captures: rotation is a no-op here");
+    } else {
+      await SystemChrome.setPreferredOrientations(
+          [DeviceOrientation.landscapeLeft]);
+      // Give the OS rotation animation time to settle (real frames).
+      await letVideoLoad(tester);
 
-    // 12. Word page in landscape: video left, definitions right.
-    app.navigateToEntryPage(rootNavigatorKey.currentContext!, dog, true);
-    await letVideoLoad(tester);
-    await takeScreenshot(tester, binding, info, "wordPageLandscape");
-    rootNavigatorKey.currentState!.pop();
-    await settle(tester);
+      // 12. Word page in landscape: video left, definitions right.
+      app.navigateToEntryPage(rootNavigatorKey.currentContext!, dog, true);
+      await letVideoLoad(tester);
+      await takeScreenshot(tester, binding, info, "wordPageLandscape");
+      rootNavigatorKey.currentState!.pop();
+      await settle(tester);
 
-    // 13. Flashcard front in landscape (the "what does this sign mean"
-    // prompt next to the controls).
-    await tester.tap(find.byIcon(Icons.style));
-    await settle(tester);
-    await tester.tap(find.byKey(const ValueKey("startButton")));
-    await letVideoLoad(tester);
-    await takeScreenshot(tester, binding, info, "flashcardFrontLandscape");
+      // 13. Flashcard front in landscape (the "what does this sign mean"
+      // prompt next to the controls).
+      await tester.tap(find.byIcon(Icons.style));
+      await settle(tester);
+      await tester.tap(find.byKey(const ValueKey("startButton")));
+      await letVideoLoad(tester);
+      await takeScreenshot(tester, binding, info, "flashcardFrontLandscape");
 
-    // 14. The same flashcard revealed: video left, word + rating buttons
-    // right.
-    await tester.tap(find.byKey(const ValueKey("revealButton")));
-    await letVideoLoad(tester);
-    await takeScreenshot(tester, binding, info, "flashcardRevealedLandscape");
-    await tester.tap(find.widgetWithIcon(IconButton, Icons.close));
-    await settle(tester);
+      // 14. The same flashcard revealed: video left, word + rating buttons
+      // right.
+      await tester.tap(find.byKey(const ValueKey("revealButton")));
+      await letVideoLoad(tester);
+      await takeScreenshot(
+          tester, binding, info, "flashcardRevealedLandscape");
+      await tester.tap(find.widgetWithIcon(IconButton, Icons.close));
+      await settle(tester);
 
-    // Restore portrait, then hand orientation control back to the OS.
-    await SystemChrome.setPreferredOrientations(
-        [DeviceOrientation.portraitUp]);
-    await settle(tester);
-    await SystemChrome.setPreferredOrientations([]);
+      // Restore portrait, then hand orientation control back to the OS.
+      await SystemChrome.setPreferredOrientations(
+          [DeviceOrientation.portraitUp]);
+      await settle(tester);
+      await SystemChrome.setPreferredOrientations([]);
+    }
+
+    // Machine-readable completion marker for take_screenshots.py: it
+    // verifies this many files with this prefix actually landed on disk,
+    // so a drive that dies partway can't pass silently.
+    print("SCREENSHOTS_COMPLETE count=${info.counter - 1} "
+        "prefix=${info.platformName}/en-AU/"
+        "${info.deviceName}-${info.physicalScreenSize}");
   });
 }

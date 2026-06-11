@@ -119,16 +119,40 @@ def run(cmd, *, cwd=None, check=True, capture=False, stdin=None):
 
 
 def drive(device_id):
-    """Run the screenshot integration test on one device via flutter_driver.
-    Not fatal on failure: the drive sometimes crashes at the very end but the
-    screenshots are still written."""
+    """Run the screenshot integration test on one device via flutter_driver,
+    then verify the captures actually landed. The drive's exit code is
+    deliberately ignored (it sometimes crashes at the very end after every
+    screenshot has been written); completeness is checked instead via the
+    SCREENSHOTS_COMPLETE marker the test prints — a drive that dies partway
+    (or whose files never reach disk) fails loudly rather than leaving a
+    silently-partial set."""
     LOG.info("Capturing screenshots on %s", device_id)
-    run(
+    res = run(
         ["flutter", "drive", f"--driver={DRIVER}", f"--target={TARGET}",
          "-d", device_id],
         cwd=PROJECT_ROOT,
         check=False,
+        capture=True,
     )
+    output = (res.stdout or "") + (res.stderr or "")
+    LOG.debug("drive output for %s:\n%s", device_id, output)
+    m = re.search(r"SCREENSHOTS_COMPLETE count=(\d+) prefix=(\S+)", output)
+    if not m:
+        raise RuntimeError(
+            f"drive on {device_id} never reached the completion marker — it "
+            f"died partway through the captures. Full output:\n{output}"
+        )
+    expected, prefix = int(m.group(1)), m.group(2)
+    actual = sorted(SCREENSHOTS_DIR.glob(f"{prefix}-*.png"))
+    if len(actual) != expected:
+        names = "\n".join(f"  {p.relative_to(SCREENSHOTS_DIR)}" for p in actual)
+        raise RuntimeError(
+            f"drive on {device_id} reported {expected} screenshots but "
+            f"{len(actual)} matching {prefix}-*.png are on disk:\n{names}\n"
+            "(more than expected usually means stale files from a previous "
+            "run — re-run with --clear-screenshots)"
+        )
+    LOG.info("Verified %d screenshots for %s", expected, prefix)
 
 
 # --- iOS ------------------------------------------------------------------
