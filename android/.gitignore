@@ -2,6 +2,8 @@
 # See https://flutter.dev/docs/deployment/android#reference-the-keystore-from-the-app
 key.properties
 *.jks
+# Service account key used by screenshots/upload_screenshots.py.
+play_service_account.json
 .kotlin
 
 gradle-wrapper.jar
