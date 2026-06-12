@@ -157,13 +157,15 @@ def drive(device_id):
     )
     output = (res.stdout or "") + (res.stderr or "")
     LOG.debug("drive output for %s:\n%s", device_id, output)
-    m = re.search(r"SCREENSHOTS_COMPLETE count=(\d+) prefix=(\S+)", output)
+    # The prefix runs to the end of the line, NOT \S+: iOS simulator names
+    # (and so the prefix) contain spaces, e.g. "ios/en-AU/iPhone 17-...".
+    m = re.search(r"SCREENSHOTS_COMPLETE count=(\d+) prefix=(.+)", output)
     if not m:
         raise RuntimeError(
             f"drive on {device_id} never reached the completion marker — it "
             f"died partway through the captures. Full output:\n{output}"
         )
-    expected, prefix = int(m.group(1)), m.group(2)
+    expected, prefix = int(m.group(1)), m.group(2).strip()
     actual = sorted(SCREENSHOTS_DIR.glob(f"{prefix}-*.png"))
     if len(actual) != expected:
         names = "\n".join(f"  {p.relative_to(SCREENSHOTS_DIR)}" for p in actual)
