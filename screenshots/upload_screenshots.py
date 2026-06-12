@@ -183,11 +183,22 @@ def http(method, url, *, headers=None, body=None):
 
 
 def png_dimensions(path):
-    """Width and height from a PNG's IHDR header."""
+    """Width and height from a PNG's IHDR header. Also rejects PNGs with an
+    alpha channel up front: both stores refuse those (App Store Connect
+    fails them with IMAGE_ALPHA_NOT_ALLOWED after upload), and
+    take_screenshots.py flattens its captures, so alpha here means the file
+    predates that and needs regenerating."""
     with open(path, "rb") as f:
-        head = f.read(24)
+        head = f.read(26)
     if head[:8] != b"\x89PNG\r\n\x1a\n" or head[12:16] != b"IHDR":
         raise RuntimeError(f"{path} is not a PNG")
+    colour_type = head[25]
+    if colour_type in (4, 6):  # Greyscale+alpha / RGBA.
+        raise RuntimeError(
+            f"{path} has an alpha channel, which the stores reject — "
+            "regenerate it with take_screenshots.py (which now flattens "
+            "captures to 24-bit RGB)"
+        )
     return struct.unpack(">II", head[16:24])
 
 

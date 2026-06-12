@@ -175,7 +175,21 @@ def drive(device_id):
             "(more than expected usually means stale files from a previous "
             "run — re-run with --clear-screenshots)"
         )
+    strip_alpha(actual)
     LOG.info("Verified %d screenshots for %s", expected, prefix)
+
+
+def strip_alpha(paths):
+    """Flatten captures to 24-bit RGB in place. Flutter's takeScreenshot
+    writes RGBA PNGs, but App Store Connect rejects screenshots that have an
+    alpha channel (IMAGE_ALPHA_NOT_ALLOWED) and Google Play wants "24-bit
+    PNG (no alpha)" too."""
+    ffmpeg = shutil.which("ffmpeg") or "/opt/homebrew/bin/ffmpeg"
+    for png in paths:
+        tmp = png.with_suffix(".rgb24.png")
+        run([ffmpeg, "-y", "-loglevel", "error", "-i", png,
+             "-pix_fmt", "rgb24", tmp])
+        tmp.replace(png)
 
 
 # --- Video posters (Android emulators only) --------------------------------
