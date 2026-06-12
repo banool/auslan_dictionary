@@ -8,17 +8,32 @@ allprojects {
 // https://stackoverflow.com/a/79005558/3846032
 subprojects {
     afterEvaluate { project ->
+        // Derived from https://stackoverflow.com/a/78865504/3846032.
         if (project.hasProperty('android')) {
             project.android {
                 if (namespace == null) {
                     namespace project.group
                 }
+                compileSdkVersion 36
+                buildToolsVersion "36.0.0"
+                // Many plugins still default to Java 8, which javac now warns
+                // is obsolete. Pull every plugin module up to Java 17 — not
+                // obsolete, and high enough for plugins that already use 17-only
+                // syntax (e.g. flutter_secure_storage's switch expressions and
+                // instanceof patterns). Keep Kotlin's jvmTarget in lockstep —
+                // AGP/KGP fail the build on a Java/Kotlin target mismatch —
+                // guarding on the extension since pure-Java modules don't have
+                // kotlinOptions.
+                compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_17
+                    targetCompatibility JavaVersion.VERSION_17
+                }
+                if (project.android.hasProperty('kotlinOptions')) {
+                    project.android.kotlinOptions {
+                        jvmTarget = "17"
+                    }
+                }
             }
-        }
-        // Derived from https://stackoverflow.com/a/78865504/3846032.
-        project.android {
-            compileSdkVersion 36
-            buildToolsVersion "36.0.0"
         }
     }
 }
