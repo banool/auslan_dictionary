@@ -65,7 +65,7 @@ const String mdRenamedListName = 'Animals2';
 /// with [LOCALE_ENGLISH].
 final DictLibLocalizationsEn mdL10n = DictLibLocalizationsEn();
 
-/// Must match the worker dev env's APP_ID (lists/workers/wrangler.toml).
+/// Must match the worker dev env's APP_ID (the backend repo's workers/wrangler.toml).
 const String _appId = 'auslan';
 
 /// Mirrors `setup()` in lib/main.dart, with two test-only differences:
@@ -243,7 +243,7 @@ Future<void> mdRequireServer() async {
     }
   } catch (e) {
     fail('no worker reachable at $mdApiBaseUrl — start one with: '
-        "bash -c 'cd dictionarylib/lists/workers && bunx wrangler dev --env dev' "
+        "bash -c 'cd dictionary_backend/workers && bunx wrangler dev --env dev' "
         '($e)');
   } finally {
     client.close(force: true);

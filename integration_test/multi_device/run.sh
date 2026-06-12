@@ -10,7 +10,7 @@
 #                       invite and sees the rename; full convergence.
 #
 # Prereqs:
-#   - A local worker:  cd dictionarylib/lists/workers && bunx wrangler dev --env dev
+#   - A local worker:  cd ../dictionary_backend/workers && bunx wrangler dev --env dev
 #   - Two booted devices (iOS simulators and/or Android emulators).
 #
 # Usage:
@@ -38,7 +38,7 @@ if [[ "${1:-}" == "--fresh" ]]; then FRESH=1; shift; fi
 # --- Worker health -----------------------------------------------------------
 if ! curl -fsS -m 5 "$API_BASE/v1/health" >/dev/null 2>&1; then
   echo "error: no worker at $API_BASE. Start one with:" >&2
-  echo "  cd ../dictionarylib/lists/workers && bunx wrangler dev --env dev" >&2
+  echo "  cd ../dictionary_backend/workers && bunx wrangler dev --env dev" >&2
   exit 1
 fi
 

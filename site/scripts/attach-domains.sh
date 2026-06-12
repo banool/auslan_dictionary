@@ -14,9 +14,9 @@
 # placeholder; attaching a custom domain on top of it isn't enough, because
 # the hostname keeps resolving to the stale record until it's deleted. This
 # reconciles the record and the binding in one idempotent step. It mirrors
-# dictionarylib/lists/scripts/attach-domains.sh, which does the same for the
+# dictionary_backend/scripts/attach-domains.sh, which does the same for the
 # shared-lists api.* / share.* hosts — the split is deliberate: this repo
-# owns the apex site, dictionarylib owns the lists backend.
+# owns the apex site, the private backend repo owns the lists backend.
 #
 # Requires CLOUDFLARE_ACCOUNT_ID and a CLOUDFLARE_API_TOKEN with:
 #   Account → Cloudflare Pages: Edit   — read the project, attach the domains.
@@ -83,7 +83,7 @@ sys.exit(0 if isinstance(d, dict) and d.get("success") else 1)'
 }
 
 # NOTE: reconcile_dns is duplicated verbatim in the sibling copy of this
-# script (dictionarylib/lists/scripts/attach-domains.sh and
+# script (dictionary_backend/scripts/attach-domains.sh and
 # auslan_dictionary/site/scripts/attach-domains.sh). The split is deliberate,
 # but any change here must be mirrored into the other copy or the two will
 # drift.

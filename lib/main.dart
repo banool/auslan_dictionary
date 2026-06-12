@@ -63,7 +63,7 @@ Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
   //                    corresponding Worker env (`APPLE_AUDIENCES`,
   //                    `GOOGLE_AUDIENCES`, `FACEBOOK_APP_ID`,
   //                    `MICROSOFT_CLIENT_ID`). See
-  //                    dictionarylib/lists/MANUAL_SETUP.md.
+  //                    MANUAL_SETUP.md in the private backend repo.
   await setupSharing(const SharingConfig(
     appId: 'auslan',
     appName: 'Auslan Dictionary',
@@ -97,7 +97,7 @@ Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
       // Info.plist (the iOS client) and only uses this as the server
       // audience. The client's secret is unused — verification is
       // offline against Google's JWKS. See
-      // dictionarylib/lists/MANUAL_SETUP.md §2.
+      // MANUAL_SETUP.md in the private backend repo §2.
       googleServerClientId:
           '901039920141-fq7ln7rltv705srdtruuafm48d2mv38d.apps.googleusercontent.com',
       // Facebook app id from developers.facebook.com → My Apps → App ID.
@@ -105,14 +105,14 @@ Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
       // Microsoft Entra (Azure AD) application (client) id from the Azure
       // Portal app registration. Must match the Worker's
       // `MICROSOFT_CLIENT_ID`. One id covers iOS + Android. See
-      // dictionarylib/lists/MANUAL_SETUP.md §4.
+      // MANUAL_SETUP.md in the private backend repo §4.
       microsoftClientId: '9001429b-4197-45e2-8f22-1b4a6c915b46',
       // Android MSAL redirect URIs, one per signing cert (Play App
       // Signing key, upload key, debug keystore); the wrapper picks
       // whichever matches the running build's real signature. Generate
       // with android/get-sha1.sh; every hash must also be registered in
       // Azure and as a <data> entry in AndroidManifest.xml. Details:
-      // dictionarylib/lists/MANUAL_SETUP.md §4.
+      // MANUAL_SETUP.md in the private backend repo §4.
       microsoftAndroidRedirectUri:
           'msauth://com.banool.auslan_dictionary/tnPupvWBIsfs5VUhZbUCXxyL8%2FQ%3D',
       microsoftAndroidUploadRedirectUri:

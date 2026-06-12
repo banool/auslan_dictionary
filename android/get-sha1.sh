@@ -7,7 +7,7 @@
 #                     form goes in the manifest).
 #   URL-encoded    -> the msauth:// redirect URI for main.dart and the Azure
 #                     app registration (Authentication -> Android).
-# See dictionarylib/lists/MANUAL_SETUP.md section 4.
+# See MANUAL_SETUP.md section 4 in the private backend repo.
 #
 # Usage:
 #   ./get-sha1.sh --env debug

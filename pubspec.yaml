@@ -3,7 +3,7 @@ description: Free video dictionary of Auslan signs
 
 publish_to: 'none'
 
-version: 1.19.78+896
+version: 1.19.79+897
 
 environment:
   sdk: '>=2.18.0 <3.0.0'
@@ -70,6 +70,6 @@ flutter:
   # MSAL Android config for Microsoft sign-in (msal_auth). The plugin reads
   # this at app-creation time; client_id + redirect_uri are injected from
   # SharingAuthConfig, so they're absent here. See
-  # dictionarylib/lists/MANUAL_SETUP.md section 4.
+  # the private backend repo's MANUAL_SETUP.md section 4.
   assets:
     - assets/msal_config.json
