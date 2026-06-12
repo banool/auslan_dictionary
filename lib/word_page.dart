@@ -308,15 +308,18 @@ class SubEntryPageState extends State<SubEntryPage>
   }
 
   /// Inner tier: which video *within* this variation you're on. Subdued, muted
-  /// dots directly under the video. Null when there's only one recording.
+  /// dots directly under the video. Null when there's only one recording —
+  /// unless [reserveSpace] is set, in which case a single-recording page gets
+  /// an invisible, same-height placeholder so the video and save button sit at
+  /// exactly the same spot as on multi-video pages instead of shifting.
   /// Shared by the vertical and horizontal layouts so tablets/TVs get it too.
-  Widget? _videoIndicator(BuildContext context) {
+  Widget? _videoIndicator(BuildContext context, {bool reserveSpace = false}) {
     final videoCount = widget.subEntry.videoLinks.length;
-    if (videoCount <= 1) return null;
+    if (videoCount == 0 || (videoCount == 1 && !reserveSpace)) return null;
     final cs = Theme.of(context).colorScheme;
     final l = DictLibLocalizations.of(context)!;
     final currentVideo = _currentVideo.clamp(0, videoCount - 1);
-    return Padding(
+    final indicator = Padding(
       padding: const EdgeInsets.only(top: 8, bottom: 2),
       child: SizedBox(
         width: double.infinity,
@@ -338,6 +341,16 @@ class SubEntryPageState extends State<SubEntryPage>
         ),
       ),
     );
+    if (videoCount == 1) {
+      return Visibility(
+        visible: false,
+        maintainSize: true,
+        maintainAnimation: true,
+        maintainState: true,
+        child: indicator,
+      );
+    }
+    return indicator;
   }
 
   /// Outer tier: which variation of the word you're on. Prominent clay dots +
@@ -398,8 +411,9 @@ class SubEntryPageState extends State<SubEntryPage>
     Widget? keywordsWidget = getRelatedEntriesWidget(
         context, widget.subEntry, shouldUseHorizontalDisplay);
 
-    // The within-variation video dots and the variation dots — shared by both
-    // layouts (each null when there's only one video / one variation).
+    // The variation dots, shared by both layouts; the vertical layout's
+    // within-variation video dots (the horizontal layout builds its own
+    // space-reserving variant below).
     final videoIndicator = _videoIndicator(context);
     final variationIndicator = _variationIndicator(context);
 
@@ -423,25 +437,51 @@ class SubEntryPageState extends State<SubEntryPage>
         children: children,
       );
     } else {
-      // Landscape / wide: the video sits on the left, and everything else —
-      // the indicators, save button, definitions, "see also" and region — goes
-      // in a scrollable panel on the right so nothing is ever clipped. SafeArea
-      // keeps it clear of the notch / rounded corners.
+      // Landscape / wide: the video — with the save button and video dots
+      // under it, in the same order as the vertical layout — sits on the
+      // left, and the definitions, "see also" and region go in a scrollable
+      // panel on the right so nothing is ever clipped. The indicator slot
+      // reserves its height even for single-video pages so the video and
+      // save button never shift between pages. SafeArea keeps it all clear
+      // of the notch / rounded corners.
+      final videoIndicatorSlot =
+          _videoIndicator(context, reserveSpace: true);
       return SafeArea(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
               flex: 5,
-              child: Center(child: tappableVideo),
+              child: LayoutBuilder(builder: (context, pane) {
+                // VideoPlayerScreen expands to fill whatever bounded height
+                // it's given (centring the video inside), so cap its box at
+                // the height of a 16:9 video and let Flexible shrink it when
+                // a cramped landscape phone can't fit that plus the controls.
+                // The constant-height box also keeps the save button and
+                // dots at the same spot on every page, whatever each video's
+                // aspect ratio and however many recordings it has (the
+                // indicator slot below reserves its space when there's one).
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      child: ConstrainedBox(
+                        constraints:
+                            BoxConstraints(maxHeight: pane.maxWidth * 9 / 16),
+                        child: tappableVideo,
+                      ),
+                    ),
+                    if (bookmarkRow != null) bookmarkRow,
+                    if (videoIndicatorSlot != null) videoIndicatorSlot,
+                  ],
+                );
+              }),
             ),
             Expanded(
               flex: 4,
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 children: [
-                  if (videoIndicator != null) Center(child: videoIndicator),
-                  if (bookmarkRow != null) bookmarkRow,
                   ...widget.subEntry.definitions
                       .map((d) => definition(context, d)),
                   buildWordFooter(context, widget.subEntry, keywordsWidget),
