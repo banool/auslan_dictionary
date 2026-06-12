@@ -79,6 +79,12 @@ IOS_DISPLAY_TYPES = {
 # the API and scales as needed). The 1920x1080 touch-TV captures have no
 # Play slot at all — tvScreenshots is for Android TV releases, which this
 # app doesn't ship — so they stay local-only.
+#
+# The capture directories are named after the app locale used at capture
+# time (en-AU), but the Play store listing has only ever had an en-US
+# language entry, so map onto that. (App Store Connect's listing really is
+# en-AU; no mapping needed there.)
+PLAY_LOCALE_MAP = {"en-AU": "en-US"}
 ANDROID_IMAGE_TYPES = {
     "1080x2400": ["phoneScreenshots"],
     "2560x1600": ["sevenInchScreenshots", "tenInchScreenshots"],
@@ -713,17 +719,20 @@ def upload_android(plan):
     listings = api("GET", f"/edits/{edit_id}/listings").get("listings") or []
     languages = {l["language"] for l in listings}
     for locale, groups in plan.items():
-        if locale not in languages:
+        language = PLAY_LOCALE_MAP.get(locale, locale)
+        if language not in languages:
             raise RuntimeError(
-                f"the Play listing has no {locale} language (has: "
-                f"{sorted(languages)}) — add it in the Play Console. (The "
-                "images API silently no-ops on unknown languages, so this "
-                "is checked up front.)"
+                f"the Play listing has no {language} language (has: "
+                f"{sorted(languages)}) — add it in the Play Console or "
+                "adjust PLAY_LOCALE_MAP. (The images API silently no-ops "
+                "on unknown languages, so this is checked up front.)"
             )
         for res, files in groups:
             for image_type in ANDROID_IMAGE_TYPES[res]:
-                slot_path = f"/edits/{edit_id}/listings/{locale}/{image_type}"
-                LOG.info("Replacing Play slot %s/%s", locale, image_type)
+                slot_path = (
+                    f"/edits/{edit_id}/listings/{language}/{image_type}"
+                )
+                LOG.info("Replacing Play slot %s/%s", language, image_type)
                 deleted = api("DELETE", slot_path) or {}
                 LOG.info(
                     "  Cleared %d existing", len(deleted.get("deleted") or [])
