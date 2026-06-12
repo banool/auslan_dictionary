@@ -239,10 +239,7 @@ class FlashcardsPageState extends State<FlashcardsPage> {
     return answers.values.length;
   }
 
-  void completeCard(DRCard card,
-      {Rating rating = Rating.Good,
-      DateTime? when,
-      bool forceUseTimer = false}) {
+  void completeCard(DRCard card, {Rating rating = Rating.Good, DateTime? when}) {
     // Don't ack second taps if a timer is running.
     if (nextCardTimer != null) {
       return;
@@ -278,12 +275,15 @@ class FlashcardsPageState extends State<FlashcardsPage> {
       }
     });
     if (shouldNavigate) {
-      if (forceUseTimer ||
-          (previousRating != null && previousRating != review.rating)) {
-        // If we're navigating to the next card because the user changed the
-        // rating from the default ("remembered") to something else ("forgot"),
-        // start a timer for nextCard, so they can see the feedback for hitting
-        // forgot momentarily.
+      // The pause before advancing exists purely as feedback for "Forgot" in
+      // spaced repetition: the button fills red for a moment so the user sees
+      // the changed rating registered. Every other press — "Got it!", and the
+      // Next button in random mode — proceeds immediately, matching a tap on
+      // the card itself.
+      final saidForgot =
+          review.rating == Rating.Hard && previousRating != review.rating;
+      if (widget.revisionStrategy == RevisionStrategy.SpacedRepetition &&
+          saidForgot) {
         setState(() {
           nextCardTimer = Timer(const Duration(milliseconds: 750), () {
             if (mounted) {
@@ -323,7 +323,7 @@ class FlashcardsPageState extends State<FlashcardsPage> {
         default:
           throw UnsupportedError("Rating $rating not supported yet");
       }
-      completeCard(currentCard!, rating: rating, forceUseTimer: isNext);
+      completeCard(currentCard!, rating: rating);
     }
 
     if (rating == Rating.Easy && isNext) {

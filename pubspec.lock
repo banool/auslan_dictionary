@@ -268,11 +268,9 @@ packages:
   dictionarylib:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "41240ee71ac00a57a23371b3c24927fdff1757a9"
-      resolved-ref: "41240ee71ac00a57a23371b3c24927fdff1757a9"
-      url: "https://github.com/banool/dictionarylib.git"
-    source: git
+      path: "../dictionarylib"
+      relative: true
+    source: path
     version: "0.3.47"
   dolphinsr_dart:
     dependency: "direct main"
