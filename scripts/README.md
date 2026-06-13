@@ -139,6 +139,30 @@ Moves scraped data into place and updates `latest_version`:
 ./move_data.sh
 ```
 
+### backup_videos.py
+
+Downloads every sign video referenced by `assets/data/data.json` into a local directory tree, for an offline backup that doubles as a drop-in mirror. `--dest` is required.
+
+```bash
+# Back up everything (long-running: ~5.5k unique files, several GB).
+uv run python backup_videos.py --dest /path/to/backup
+
+# Quick test against the first 20 unique videos.
+uv run python backup_videos.py --dest /tmp/auslan_test --limit 20
+
+# Re-check sizes of already-downloaded files and repair any mismatches.
+uv run python backup_videos.py --dest /path/to/backup --verify
+```
+
+Key behaviours:
+
+- **Idempotent.** Re-running only fetches what's missing; existing files are skipped (use `--verify` to also re-check sizes via a HEAD request and repair mismatches). Downloads land in a `.part` file that is atomically renamed on completion, so an interrupted run never leaves a complete-looking partial behind.
+- **Faithful layout.** Files are stored under `<dest>/<url-path>`, preserving the exact names and directory structure from the source (e.g. `<dest>/v1/AUTH_.../staticauslanorgau/mp4video/11/11450.mp4`). Each file's mtime is set from the server's `Last-Modified` header.
+- **Resilient.** The source object store is slow and flaky, so each request retries with exponential backoff (12 tries, capped at 120s) and honours `Retry-After` on `429`/`503` responses. A `404` is recorded as `missing` and the run continues.
+- **Manifest.** Writes `<dest>/backup_manifest.json` summarising every URL (`ok`/`skipped`/`missing`/`failed`) plus totals.
+
+To operate it as a mirror, point a static file server at `<dest>` and replace `https://object-store.rc.nectar.org.au` with your mirror's host in the video URLs (the path after the host is unchanged). If `--dest` points inside the repo, add it to `.gitignore` so the multi-GB blob is never committed.
+
 ## Progress Files
 
 The scraper creates several files to track progress:
