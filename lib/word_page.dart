@@ -180,8 +180,19 @@ class _EntryPageState extends State<EntryPage> {
     return InheritedPlaybackSpeed(
         playbackSpeed: playbackSpeed,
         child: Scaffold(
-          appBar:
-              AppBar(title: Text(word), actions: buildActionButtons(actions)),
+          appBar: AppBar(
+            title: Text(word),
+            actions: buildActionButtons(actions),
+            // A cold-start web deep link to /word/<key> is the navigation root
+            // with nothing to pop back to; give it an explicit way back to the
+            // dictionary. Normal in-app navigation keeps the default back arrow.
+            leading: kIsWeb && !Navigator.of(context).canPop()
+                ? IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => context.go('/'),
+                  )
+                : null,
+          ),
           // On web, wrap so a mouse can drag-swipe between variations (Flutter
           // disables mouse-drag scrolling by default, freezing the swipe).
           // Native uses its default behaviour.
