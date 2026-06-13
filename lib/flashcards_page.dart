@@ -823,10 +823,12 @@ class FlashcardsPageState extends State<FlashcardsPage> {
     }
 
     // Swiping back does nothing: card navigation is via the on-screen arrows,
-    // and leaving revision is via the close (×) button (which writes the
-    // reviews). Disabling the gesture avoids an accidental swipe dumping the
-    // user out mid-session. The × button uses Navigator.pop() directly, which
-    // isn't gated by canPop.
+    // and leaving revision is via the close (×) button. Disabling the gesture
+    // avoids an accidental swipe dumping the user out mid-session. Mid-session
+    // the × ends the session early and shows the summary (the answers so far
+    // are persisted either way, so this matches finishing start-to-finish);
+    // from the summary it pops back to the landing page via Navigator.pop(),
+    // which isn't gated by canPop.
     return PopScope(
         canPop: false,
         onPopInvokedWithResult: (didPop, result) {},
@@ -841,6 +843,23 @@ class FlashcardsPageState extends State<FlashcardsPage> {
               leading: IconButton(
                   icon: const Icon(Icons.close),
                   onPressed: () async {
+                    // Mid-session the × ends the session early. The answers so
+                    // far are persisted just the same, so show the summary
+                    // first — identical to finishing start-to-finish — rather
+                    // than dropping back to the landing page. _finishSession()
+                    // writes the reviews (and raises the retry banner on
+                    // failure), exactly as the normal session-end path does.
+                    // With nothing answered yet there's nothing to summarise, so
+                    // fall through and just leave.
+                    if (currentCard != null && answers.isNotEmpty) {
+                      nextCardTimer?.cancel();
+                      nextCardTimer = null;
+                      setState(() {
+                        currentCard = null;
+                      });
+                      _finishSession();
+                      return;
+                    }
                     final navigator = Navigator.of(context);
                     final ok = await beforePop();
                     if (!mounted) return;
