@@ -1,6 +1,5 @@
 import 'package:dictionarylib/dictionarylib.dart';
 import 'package:dictionarylib/page_force_upgrade.dart';
-import 'package:dictionarylib/startup_loading_screen.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -157,14 +156,16 @@ Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
 Future<void> main() async {
   // Clean web URLs (e.g. /share/<id>) instead of the default hash routing, so
   // the share-link deep routes resolve. No-op on mobile.
+  //
+  // Deliberately a single runApp() below — NOT an early runApp() with a loading
+  // screen here. A first runApp() before setup() makes Flutter's web engine
+  // normalise the browser URL to "/" and clear the title before go_router and
+  // MaterialApp.title read them, which dropped /share/<id> deep links onto the
+  // home tab and left the tab title showing the bare URL. The web boot/loading
+  // indication lives in web/index.html instead, which Flutter replaces on its
+  // first frame without touching routing.
   if (kIsWeb) {
     usePathUrlStrategy();
-    // Web has no native splash, so without this the page is blank for the few
-    // seconds setup() spends loading the dictionary + first network calls.
-    // Show a lightweight branded loading screen immediately; the real app
-    // replaces it once setup() completes. Native keeps its native splash, so
-    // this early frame would only undermine that — hence web-only.
-    runApp(const StartupLoadingScreen(appName: APP_NAME));
   }
   printAndLog("Start of main");
   try {

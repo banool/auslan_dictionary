@@ -31,16 +31,44 @@
 
   <title>Auslan Dictionary</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Boot/loading screen shown until Flutter's first frame renders over it.
+       Lives here (HTML) rather than as an early runApp() so it never touches
+       the initial route or document title — see lib/main.dart. -->
+  <style>
+    body { margin: 0; }
+    #loading {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #FBF5EE;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    #loading .title {
+      color: #2A201A;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 24px;
+    }
+    #loading .spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid #e7d8c9;
+      border-top-color: #bf5c36;
+      border-radius: 50%;
+      animation: loading-spin 0.8s linear infinite;
+    }
+    @keyframes loading-spin { to { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
-
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+  <div id="loading">
+    <div class="title">Auslan Dictionary</div>
+    <div class="spinner"></div>
+  </div>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
