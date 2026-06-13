@@ -1,0 +1,5 @@
+# SPA fallback for Cloudflare Pages: serve the Flutter app for every path so
+# deep routes (e.g. /share/<id>, opened from a share link) load index.html and
+# let the in-app router take over, instead of 404ing. Real asset files are
+# served directly; only unmatched paths fall through to this rule.
+/*    /index.html    200

@@ -1,7 +1,10 @@
 import 'package:dictionarylib/dictionarylib.dart';
 import 'package:dictionarylib/page_force_upgrade.dart';
+import 'package:dictionarylib/startup_loading_screen.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:media_kit/media_kit.dart';
 
 import 'common.dart';
@@ -14,11 +17,17 @@ const String KNOBS_URL_BASE =
 Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
   var widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize media_kit for video playback.
-  MediaKit.ensureInitialized();
+  // Initialize media_kit for video playback (native only; web plays via the
+  // HTML5 video_player path — see VideoSurface in dictionarylib).
+  if (!kIsWeb) {
+    MediaKit.ensureInitialized();
+  }
 
-  // Preserve the splash screen while the app initializes.
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  // Preserve the splash screen while the app initializes. Native only —
+  // there's no web splash configured, so calling this on web throws.
+  if (!kIsWeb) {
+    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  }
 
   await setupPhaseOne();
 
@@ -136,14 +145,27 @@ Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
     ),
   ));
 
-  // Remove the splash screen.
-  FlutterNativeSplash.remove();
+  // Remove the splash screen (native only; see preserve above).
+  if (!kIsWeb) {
+    FlutterNativeSplash.remove();
+  }
 
   // Finally run the app.
   printAndLog("Setup complete, running app");
 }
 
 Future<void> main() async {
+  // Clean web URLs (e.g. /share/<id>) instead of the default hash routing, so
+  // the share-link deep routes resolve. No-op on mobile.
+  if (kIsWeb) {
+    usePathUrlStrategy();
+    // Web has no native splash, so without this the page is blank for the few
+    // seconds setup() spends loading the dictionary + first network calls.
+    // Show a lightweight branded loading screen immediately; the real app
+    // replaces it once setup() completes. Native keeps its native splash, so
+    // this early frame would only undermine that — hence web-only.
+    runApp(const StartupLoadingScreen(appName: APP_NAME));
+  }
   printAndLog("Start of main");
   try {
     await setup();
