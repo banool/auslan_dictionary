@@ -34,5 +34,9 @@ jobs:
         run: npx wrangler@latest pages project create auslan-dictionary --production-branch=master || true
       - name: Deploy to Cloudflare Pages
         run: npx wrangler@latest pages deploy --branch=master --commit-dirty=true
-      - name: Attach custom domains
-        run: bash scripts/attach-domains.sh
+      # Custom-domain reconciliation (auslandictionary.org + www) is a
+      # one-time, idempotent setup, now owned by the private backend repo's
+      # Cloudflare CLI: `bun scripts/cf.ts apex`. It isn't run from this
+      # public CI because that can't reach the private script — and a deploy
+      # never detaches an already-attached domain, so there's nothing to do
+      # here on each push.

@@ -14,16 +14,18 @@ The project name and output dir come from `wrangler.toml`, so no flags are neede
 
 ## Wire up the domains
 
+Domain reconciliation for this apex site now lives in the private backend repo's consolidated Cloudflare CLI, so all the Cloudflare logic has one home. From a checkout of `dictionary_backend`:
+
 ```sh
-bash scripts/attach-domains.sh
+bun scripts/cf.ts apex
 ```
 
-Points `auslandictionary.org` and `www.auslandictionary.org` at the Pages project: it clears any stale DNS record, creates a proxied CNAME to the project's `*.pages.dev` target, and attaches each host as a Pages custom domain. It's idempotent, so it's safe to re-run. **Run it after the first deploy**, since it needs the project to already exist.
+It points `auslandictionary.org` and `www.auslandictionary.org` at the `auslan-dictionary` Pages project: clears any stale DNS record, creates a proxied CNAME to the project's `*.pages.dev` target, and attaches each host as a Pages custom domain. Idempotent, so it's safe to re-run. **Run it once after the first deploy** (it needs the project to already exist); a redeploy never detaches an attached domain, so it isn't part of CI here.
 
 ## Credentials
 
-Both commands need Cloudflare credentials. `attach-domains.sh` reads `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` from the environment, or from a gitignored `scripts/secrets.env` next to it (sourced automatically — one `KEY=value` per line). The token needs **Account → Cloudflare Pages: Edit**, **Zone → DNS: Edit**, and **Zone → Zone: Read**, with the zone permissions scoped to `auslandictionary.org`. The same two values are stored as GitHub Actions secrets so CI can deploy and attach domains too.
+The deploy command needs `CLOUDFLARE_API_TOKEN` (+ `CLOUDFLARE_ACCOUNT_ID`), stored as GitHub Actions secrets for CI. The `cf apex` domain step — run from the backend repo — needs a token with **Account → Cloudflare Pages: Edit**, **Zone → DNS: Edit**, and **Zone → Zone: Read**, scoped to `auslandictionary.org`; see that repo's `MANUAL_SETUP.md`.
 
 ## Why a script for the domains?
 
-The `auslandictionary.org` zone shipped with a dead `A → 2.31.150.138` placeholder record. Attaching a Pages custom domain on top of it isn't enough — the hostname keeps resolving to the stale record until it's deleted, so the site stays down. `attach-domains.sh` reconciles the record and the custom-domain binding in one idempotent step. This mirrors how the shared-lists backend handles its `api.*` / `share.*` hosts in the private backend repo (`scripts/attach-domains.sh`); that script owns the lists backend, this one owns the apex site.
+The `auslandictionary.org` zone shipped with a dead `A → 2.31.150.138` placeholder record. Attaching a Pages custom domain on top of it isn't enough — the hostname keeps resolving to the stale record until it's deleted, so the site stays down. The `cf apex` command reconciles the record and the custom-domain binding in one idempotent step, next to the shared-lists `api.*` / `share.*` reconciliation (`cf domains`) — every Cloudflare binding the account needs now lives in one typed CLI in the backend repo.
