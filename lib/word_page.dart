@@ -8,7 +8,9 @@ import 'package:dictionarylib/lists_service.dart';
 import 'package:dictionarylib/save_video_sheet.dart';
 import 'package:dictionarylib/saved_video.dart';
 import 'package:dictionarylib/video_player_screen.dart';
+import 'package:dictionarylib/web_drag_scroll_behavior.dart';
 import 'package:dictionarylib/dictionarylib.dart' show DictLibLocalizations;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -139,7 +141,10 @@ class _EntryPageState extends State<EntryPage> {
         child: Scaffold(
           appBar:
               AppBar(title: Text(word), actions: buildActionButtons(actions)),
-          body: PageView.builder(
+          // On web, wrap so a mouse can drag-swipe between variations (Flutter
+          // disables mouse-drag scrolling by default, freezing the swipe).
+          // Native uses its default behaviour.
+          body: _maybeWebDrag(PageView.builder(
             controller: _pageController,
             itemCount: subEntries.length,
             itemBuilder: (context, index) => SubEntryPage(
@@ -149,15 +154,35 @@ class _EntryPageState extends State<EntryPage> {
               subEntryCount: subEntries.length,
               initialVideoIndex:
                   index == currentPage ? _focusedVideoInitialIndex : null,
-              showSaveButton: widget.showFavouritesButton,
+              // No saving on web (no account / favourites there).
+              showSaveButton: widget.showFavouritesButton && !kIsWeb,
               saveToList: widget.saveToList,
               // Only the on-screen sub-entry's videos should play; kept-alive
               // off-screen pages pause via this flag (see VideoPlayerScreen).
               isActive: index == currentPage,
+              // Web-only nav arrows beside the variation label (no swipe
+              // affordance there); null on native so they never render.
+              onPrevVariation: kIsWeb
+                  ? () => _pageController.previousPage(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut)
+                  : null,
+              onNextVariation: kIsWeb
+                  ? () => _pageController.nextPage(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut)
+                  : null,
             ),
             onPageChanged: onPageChanged,
-          ),
+          )),
         ));
+  }
+
+  /// On web, allow a mouse to drag the variation pager. Native is unchanged.
+  Widget _maybeWebDrag(Widget child) {
+    if (!kIsWeb) return child;
+    return ScrollConfiguration(
+        behavior: const WebDragScrollBehavior(), child: child);
   }
 }
 
@@ -256,6 +281,8 @@ class SubEntryPage extends StatefulWidget {
     this.showSaveButton = true,
     this.saveToList,
     this.isActive = true,
+    this.onPrevVariation,
+    this.onNextVariation,
   });
 
   final Entry word;
@@ -283,6 +310,12 @@ class SubEntryPage extends StatefulWidget {
   /// [VideoPlayerScreen] so off-screen kept-alive pages pause their videos
   /// instead of looping in the background.
   final bool isActive;
+
+  /// Web-only: move to the previous / next variation. These drive the arrows
+  /// flanking the variation label, since web has no touch swipe affordance.
+  /// Null on native (you swipe there), so the arrows never render on mobile.
+  final VoidCallback? onPrevVariation;
+  final VoidCallback? onNextVariation;
 
   @override
   SubEntryPageState createState() => SubEntryPageState();
@@ -353,10 +386,33 @@ class SubEntryPageState extends State<SubEntryPage>
   }
 
   /// Outer tier: which variation of the word you're on. Prominent clay dots +
-  /// a "Variation n of m · swipe to compare" label.
+  /// a "Variation n of m · swipe to compare" label. On web the label is
+  /// flanked by prev/next arrows (no touch swipe affordance there).
   Widget? _variationIndicator(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final l = DictLibLocalizations.of(context)!;
+    final label = Text(
+      l.wordVariationWithHint(widget.subEntryIndex + 1, widget.subEntryCount),
+      textAlign: TextAlign.center,
+      style: TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant),
+    );
+    final Widget labelRow = (kIsWeb && widget.subEntryCount > 1)
+        ? Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Disabled at the ends for a clear "can't go further" cue.
+              _variationArrow(context, Icons.chevron_left,
+                  widget.subEntryIndex > 0 ? widget.onPrevVariation : null),
+              Flexible(child: label),
+              _variationArrow(
+                  context,
+                  Icons.chevron_right,
+                  widget.subEntryIndex < widget.subEntryCount - 1
+                      ? widget.onNextVariation
+                      : null),
+            ],
+          )
+        : label;
     return Padding(
       padding: const EdgeInsets.only(top: 6, bottom: 18),
       child: SizedBox(
@@ -367,15 +423,29 @@ class SubEntryPageState extends State<SubEntryPage>
             HearthDots(
                 count: widget.subEntryCount, index: widget.subEntryIndex),
             const SizedBox(height: 8),
-            Text(
-              l.wordVariationWithHint(
-                  widget.subEntryIndex + 1, widget.subEntryCount),
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant),
-            ),
+            labelRow,
           ],
         ),
       ),
+    );
+  }
+
+  /// Web-only compact arrow beside the variation label. `onTap` is null at the
+  /// first/last variation, which disables (greys out) the button.
+  Widget _variationArrow(
+      BuildContext context, IconData icon, VoidCallback? onTap) {
+    final cs = Theme.of(context).colorScheme;
+    final l = DictLibLocalizations.of(context)!;
+    return IconButton(
+      icon: Icon(icon),
+      iconSize: 20,
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      color: cs.onSurfaceVariant,
+      onPressed: onTap,
+      tooltip:
+          icon == Icons.chevron_left ? l.variationPrevious : l.variationNext,
     );
   }
 
