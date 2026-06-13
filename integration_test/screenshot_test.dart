@@ -294,8 +294,7 @@ void main() async {
     // setPreferredOrientations, so shots 12-14 would just duplicate 03/08/09
     // as dead repo bytes — skip them there. The phone captures are the
     // authoritative landscape record.
-    final logicalSize =
-        tester.view.physicalSize / tester.view.devicePixelRatio;
+    final logicalSize = tester.view.physicalSize / tester.view.devicePixelRatio;
     final rotationIsNoOp = logicalSize.width > logicalSize.height ||
         (Platform.isIOS && logicalSize.shortestSide >= 600);
     if (rotationIsNoOp) {
@@ -325,8 +324,7 @@ void main() async {
       // right.
       await tester.tap(find.byKey(const ValueKey("revealButton")));
       await letVideoLoad(tester);
-      await takeScreenshot(
-          tester, binding, info, "flashcardRevealedLandscape");
+      await takeScreenshot(tester, binding, info, "flashcardRevealedLandscape");
       await tester.tap(find.widgetWithIcon(IconButton, Icons.close));
       await settle(tester);
 

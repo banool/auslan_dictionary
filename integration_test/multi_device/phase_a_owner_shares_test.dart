@@ -69,8 +69,8 @@ void main() {
 
     // Sharing does a real network round-trip; wait for the share-link
     // dialog that follows it.
-    await mdWaitForUi(
-        tester, () => find.text(mdL10n.shareLinkDoneButton).evaluate().isNotEmpty,
+    await mdWaitForUi(tester,
+        () => find.text(mdL10n.shareLinkDoneButton).evaluate().isNotEmpty,
         reason: 'share-link dialog after sharing');
     await tester.tap(find.text(mdL10n.shareLinkDoneButton));
     await settle(tester);

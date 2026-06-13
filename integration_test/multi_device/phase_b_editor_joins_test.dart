@@ -42,24 +42,17 @@ void main() {
     await tester.tap(find.text(mdL10n.subscribeDialogSubscribeButton));
     await mdWaitForUi(
         tester,
-        () => find
-            .text(mdL10n.subscribeInviteAcceptButton)
-            .evaluate()
-            .isNotEmpty,
+        () =>
+            find.text(mdL10n.subscribeInviteAcceptButton).evaluate().isNotEmpty,
         reason: 'invite link should switch the dialog to accept-invite mode');
     await tester.tap(find.text(mdL10n.subscribeInviteAcceptButton));
 
     // Accepting round-trips the server, closes the dialog, and pushes the
     // list page over the tab shell.
-    await mdWaitForUi(
-        tester,
-        () => find
-            .text(mdL10n.subscribeInviteAcceptButton)
-            .evaluate()
-            .isEmpty,
-        reason: 'accept-invite dialog should close after accepting');
     await mdWaitForUi(tester,
-        () => find.text(mdListName).evaluate().isNotEmpty,
+        () => find.text(mdL10n.subscribeInviteAcceptButton).evaluate().isEmpty,
+        reason: 'accept-invite dialog should close after accepting');
+    await mdWaitForUi(tester, () => find.text(mdListName).evaluate().isNotEmpty,
         reason: 'accepted list page should open, titled $mdListName');
 
     // The editor mirror is installed with editor role.

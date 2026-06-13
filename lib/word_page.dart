@@ -126,8 +126,7 @@ class _EntryPageState extends State<EntryPage> {
           setState(() {
             playbackSpeed = p!;
           });
-          showSnack(
-              context,
+          showSnack(context,
               "${DictLibLocalizations.of(context)!.setPlaybackSpeedTo} ${getPlaybackSpeedString(p!)}",
               duration: const Duration(milliseconds: 1000));
         },
@@ -444,8 +443,7 @@ class SubEntryPageState extends State<SubEntryPage>
       // reserves its height even for single-video pages so the video and
       // save button never shift between pages. SafeArea keeps it all clear
       // of the notch / rounded corners.
-      final videoIndicatorSlot =
-          _videoIndicator(context, reserveSpace: true);
+      final videoIndicatorSlot = _videoIndicator(context, reserveSpace: true);
       return SafeArea(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -23,7 +23,8 @@ const String mdEditorKey = String.fromEnvironment('MD_EDITOR_KEY');
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('owner recovers the list on a fresh install, sees the edit, '
+  testWidgets(
+      'owner recovers the list on a fresh install, sees the edit, '
       'and renames', (WidgetTester tester) async {
     expect(mdListId, isNotEmpty,
         reason: 'phase C needs --dart-define=MD_LIST_ID from phase A');
@@ -46,8 +47,7 @@ void main() {
         reason: 'the import should reinstall the owner mirror');
 
     // The imported snapshot must already contain the editor's edit.
-    expect(
-        mirror.single.uniqueEntries.map((e) => e.getKey()),
+    expect(mirror.single.uniqueEntries.map((e) => e.getKey()),
         contains(mdEditorKey),
         reason: "the editor's entry should be in the recovered list");
 
@@ -58,8 +58,8 @@ void main() {
     await mdOpenOverviewTab(tester, mdL10n.listMyLists);
     await mdTapWhenVisible(tester, find.text(mdListName),
         reason: 'recovered list on the My Lists tab');
-    await mdWaitForUi(tester,
-        () => find.text(mdEditorKey).evaluate().isNotEmpty,
+    await mdWaitForUi(
+        tester, () => find.text(mdEditorKey).evaluate().isNotEmpty,
         reason: "the editor's word should be visible on the list page");
 
     // Rename through the overview's edit mode (the only rename surface).

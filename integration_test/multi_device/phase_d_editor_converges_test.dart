@@ -20,7 +20,8 @@ const String mdEditorKey = String.fromEnvironment('MD_EDITOR_KEY');
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('editor recovers the list on a fresh install and sees the '
+  testWidgets(
+      'editor recovers the list on a fresh install and sees the '
       'rename', (WidgetTester tester) async {
     expect(mdListId, isNotEmpty,
         reason: 'phase D needs --dart-define=MD_LIST_ID');
@@ -56,8 +57,8 @@ void main() {
     await mdOpenOverviewTab(tester, mdL10n.listSharedWithMeTab);
     await mdTapWhenVisible(tester, find.text(mdRenamedListName),
         reason: 'renamed list on the Shared with me tab');
-    await mdWaitForUi(tester,
-        () => find.text(mdEditorKey).evaluate().isNotEmpty,
+    await mdWaitForUi(
+        tester, () => find.text(mdEditorKey).evaluate().isNotEmpty,
         reason: "the editor's own word should be on the list page");
 
     // Server and local mirror agree on the final entry set.

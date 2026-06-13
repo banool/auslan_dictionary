@@ -1,0 +1,8 @@
+// Project Zed settings — keep editor-on-save formatting in lockstep with the
+// pre-commit hook + CI (all use `dart format`).
+{
+  "format_on_save": "on",
+  "languages": {
+    "Dart": { "formatter": "language_server" }
+  }
+}

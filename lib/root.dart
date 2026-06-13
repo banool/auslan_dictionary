@@ -50,7 +50,8 @@ String? auslanDefinitionPreview(Entry entry) {
 //   flutter run --dart-define=DEBUG_THEME_VARIANT=classic --dart-define=DEBUG_THEME_MODE=dark
 const String _kDebugInitialLocation =
     String.fromEnvironment('DEBUG_INITIAL_LOCATION');
-const String _kDebugThemeVariant = String.fromEnvironment('DEBUG_THEME_VARIANT');
+const String _kDebugThemeVariant =
+    String.fromEnvironment('DEBUG_THEME_VARIANT');
 const String _kDebugThemeMode = String.fromEnvironment('DEBUG_THEME_MODE');
 
 late Locale systemLocale;
@@ -94,8 +95,8 @@ class _RootAppState extends State<RootApp> {
     // light or dark explicitly in settings. The native splash also
     // follows the OS appearance, so a fresh install gets a consistent
     // splash → first frame in both modes.
-    themeNotifier.value = ThemeMode.values[
-        sharedPreferences.getInt(KEY_THEME_MODE) ?? DEFAULT_THEME_MODE];
+    themeNotifier.value = ThemeMode
+        .values[sharedPreferences.getInt(KEY_THEME_MODE) ?? DEFAULT_THEME_MODE];
     themeVariantNotifier.value =
         appThemeVariantFromName(sharedPreferences.getString(KEY_THEME_VARIANT));
     // Debug-only theme overrides (see _kDebug* consts above). No-ops in release
@@ -147,10 +148,10 @@ class _RootAppState extends State<RootApp> {
       // *does* match the route is handled gracefully by the landing page's
       // own error branch (it surfaces an "expired / unknown list" state).
       errorBuilder: (context, state) => SearchPage(
-        navigateToEntryPage: navigateToEntryPage,
-        includeEntryTypeButton: false,
-        entryDefinitionPreview: auslanDefinitionPreview,
-      ),
+            navigateToEntryPage: navigateToEntryPage,
+            includeEntryTypeButton: false,
+            entryDefinitionPreview: auslanDefinitionPreview,
+          ),
       routes: [
         GoRoute(
           path: "/",

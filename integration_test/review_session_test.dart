@@ -88,8 +88,8 @@ void main() {
       await sharedPreferences.remove(KEY_STORED_REVIEWS);
       await sharedPreferences.remove(KEY_REVISION_CARD_LIMIT);
       await sharedPreferences.remove(KEY_FLASHCARD_REGIONS);
-      await sharedPreferences.setStringList(
-          KEY_LISTS_TO_REVIEW, [KEY_FAVOURITES_ENTRIES]);
+      await sharedPreferences
+          .setStringList(KEY_LISTS_TO_REVIEW, [KEY_FAVOURITES_ENTRIES]);
     });
 
     await tester.pumpWidget(RootApp(startingLocale: LOCALE_ENGLISH));
@@ -117,7 +117,8 @@ void main() {
       await settle(tester);
       if (forgotIt) {
         await tester.tap(forgot);
-        await tester.pump(const Duration(seconds: 1)); // feedback timer (~750ms)
+        await tester
+            .pump(const Duration(seconds: 1)); // feedback timer (~750ms)
         await settle(tester);
       } else {
         await tester.tap(gotIt);
@@ -198,8 +199,8 @@ void main() {
         reason: 'one persisted review per reviewed card');
     expect(reviews.where((r) => r.rating == Rating.Hard).length, 1,
         reason: 'the one Forgot rating should persist as Hard');
-    expect(reviews.where((r) => r.rating == Rating.Good).length,
-        kSessionCards - 1,
+    expect(
+        reviews.where((r) => r.rating == Rating.Good).length, kSessionCards - 1,
         reason: 'the remaining ratings should persist as Good');
   });
 }

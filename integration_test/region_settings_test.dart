@@ -1,6 +1,7 @@
 import 'package:dictionarylib/common.dart';
 import 'package:dictionarylib/entry_types.dart';
-import 'package:dictionarylib/flashcards_logic.dart' show KEY_USE_UNKNOWN_REGION_SIGNS;
+import 'package:dictionarylib/flashcards_logic.dart'
+    show KEY_USE_UNKNOWN_REGION_SIGNS;
 import 'package:dictionarylib/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -37,8 +38,7 @@ void main() {
 
     // Start from no extra regions selected, unknown-region signs on (the
     // default). Restore afterwards so we don't disturb real settings.
-    final priorRegions =
-        sharedPreferences.getStringList(KEY_FLASHCARD_REGIONS);
+    final priorRegions = sharedPreferences.getStringList(KEY_FLASHCARD_REGIONS);
     final priorUnknown =
         sharedPreferences.getBool(KEY_USE_UNKNOWN_REGION_SIGNS);
     await sharedPreferences.setStringList(KEY_FLASHCARD_REGIONS, const []);
@@ -47,12 +47,14 @@ void main() {
       if (priorRegions == null) {
         await sharedPreferences.remove(KEY_FLASHCARD_REGIONS);
       } else {
-        await sharedPreferences.setStringList(KEY_FLASHCARD_REGIONS, priorRegions);
+        await sharedPreferences.setStringList(
+            KEY_FLASHCARD_REGIONS, priorRegions);
       }
       if (priorUnknown == null) {
         await sharedPreferences.remove(KEY_USE_UNKNOWN_REGION_SIGNS);
       } else {
-        await sharedPreferences.setBool(KEY_USE_UNKNOWN_REGION_SIGNS, priorUnknown);
+        await sharedPreferences.setBool(
+            KEY_USE_UNKNOWN_REGION_SIGNS, priorUnknown);
       }
     });
 

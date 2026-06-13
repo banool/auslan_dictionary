@@ -73,8 +73,7 @@ class FlashcardsPageState extends State<FlashcardsPage> {
   void initState() {
     super.initState();
     di = widget.di;
-    numCardsToReview =
-        getNumDueCards(di.dolphin, widget.revisionStrategy);
+    numCardsToReview = getNumDueCards(di.dolphin, widget.revisionStrategy);
     // Apply the optional session-size cap the user set on the landing page.
     // 0 means no limit. The landing page caps its displayed count the same way.
     final cardLimit = sharedPreferences.getInt(KEY_REVISION_CARD_LIMIT) ?? 0;
@@ -239,7 +238,8 @@ class FlashcardsPageState extends State<FlashcardsPage> {
     return answers.values.length;
   }
 
-  void completeCard(DRCard card, {Rating rating = Rating.Good, DateTime? when}) {
+  void completeCard(DRCard card,
+      {Rating rating = Rating.Good, DateTime? when}) {
     // Don't ack second taps if a timer is running.
     if (nextCardTimer != null) {
       return;
@@ -402,8 +402,8 @@ class FlashcardsPageState extends State<FlashcardsPage> {
     );
   }
 
-  Widget buildFlashcardWidget(DRCard card, ResolvedSavedVideo resolved,
-      String word,
+  Widget buildFlashcardWidget(
+      DRCard card, ResolvedSavedVideo resolved, String word,
       {required bool wordToSign, required bool revealed}) {
     final l = DictLibLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
@@ -480,8 +480,8 @@ class FlashcardsPageState extends State<FlashcardsPage> {
                 Expanded(
                     child: KeyedSubtree(
                         key: const ValueKey("ratingButton.next"),
-                        child: getRatingButton(Rating.Easy,
-                            forgotRatingWidgetActive,
+                        child: getRatingButton(
+                            Rating.Easy, forgotRatingWidgetActive,
                             isNext: true))),
               ],
             ),
@@ -514,8 +514,8 @@ class FlashcardsPageState extends State<FlashcardsPage> {
             children: [
               Text(
                 l.openDictionaryEntry,
-                style: const TextStyle(
-                    fontSize: 14, fontWeight: FontWeight.w700),
+                style:
+                    const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
               ),
               const SizedBox(width: 6),
               const Icon(Icons.arrow_forward, size: 16),
@@ -772,7 +772,8 @@ class FlashcardsPageState extends State<FlashcardsPage> {
         // Defensive: we couldn't resolve the saved video for this card (e.g.
         // the dictionary data changed mid-session). Skip to the next card
         // rather than crash.
-        printAndLog("No resolved video for master ${card.master}; skipping card");
+        printAndLog(
+            "No resolved video for master ${card.master}; skipping card");
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           showSnack(context, l.flashcardsCardUnavailable);
@@ -812,8 +813,7 @@ class FlashcardsPageState extends State<FlashcardsPage> {
         setState(() {
           playbackSpeed = p!;
         });
-        showSnack(
-            context,
+        showSnack(context,
             "${DictLibLocalizations.of(context)!.setPlaybackSpeedTo} ${getPlaybackSpeedString(playbackSpeed)}",
             duration: const Duration(milliseconds: 1000));
       }, enabled: videoIsShowing, current: playbackSpeed));
@@ -831,52 +831,53 @@ class FlashcardsPageState extends State<FlashcardsPage> {
         canPop: false,
         onPopInvokedWithResult: (didPop, result) {},
         child: Scaffold(
-      appBar: AppBar(
-          centerTitle: true,
-          title: Text(
-            appBarTitle,
-            textAlign: TextAlign.center,
-          ),
-          actions: buildActionButtons(actions),
-          leading: IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () async {
-                final navigator = Navigator.of(context);
-                final ok = await beforePop();
-                if (!mounted) return;
-                if (ok) {
-                  navigator.pop();
-                } else {
-                  // The write failed. Don't drop the user out silently —
-                  // beforePop already reset its single-shot guard, so surface
-                  // the failure and let them retry (re-tapping close, or the
-                  // snack action, re-attempts the write).
-                  setState(() {
-                    reviewWriteFailed = true;
-                  });
-                  _showWriteFailedSnack();
-                }
-              }),
-          bottom: currentCard == null
-              ? null
-              : PreferredSize(
-                  preferredSize: const Size.fromHeight(3),
-                  // Track the current card's position so the bar matches the
-                  // "x / N" counter and doesn't jump on reveal (revealing adds a
-                  // default answer, which the position is immune to) or when the
-                  // user steps back to an earlier card.
-                  child: Builder(builder: (context) {
-                    final cardsCompleted = _pos;
-                    return LinearProgressIndicator(
-                      value: numCardsToReview > 0
-                          ? (cardsCompleted / numCardsToReview).clamp(0.0, 1.0)
-                          : null,
-                      minHeight: 3,
-                      backgroundColor: cs.surfaceContainerHighest,
-                    );
+          appBar: AppBar(
+              centerTitle: true,
+              title: Text(
+                appBarTitle,
+                textAlign: TextAlign.center,
+              ),
+              actions: buildActionButtons(actions),
+              leading: IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () async {
+                    final navigator = Navigator.of(context);
+                    final ok = await beforePop();
+                    if (!mounted) return;
+                    if (ok) {
+                      navigator.pop();
+                    } else {
+                      // The write failed. Don't drop the user out silently —
+                      // beforePop already reset its single-shot guard, so surface
+                      // the failure and let them retry (re-tapping close, or the
+                      // snack action, re-attempts the write).
+                      setState(() {
+                        reviewWriteFailed = true;
+                      });
+                      _showWriteFailedSnack();
+                    }
                   }),
-                )),
-      body: body,
-    ));
+              bottom: currentCard == null
+                  ? null
+                  : PreferredSize(
+                      preferredSize: const Size.fromHeight(3),
+                      // Track the current card's position so the bar matches the
+                      // "x / N" counter and doesn't jump on reveal (revealing adds a
+                      // default answer, which the position is immune to) or when the
+                      // user steps back to an earlier card.
+                      child: Builder(builder: (context) {
+                        final cardsCompleted = _pos;
+                        return LinearProgressIndicator(
+                          value: numCardsToReview > 0
+                              ? (cardsCompleted / numCardsToReview)
+                                  .clamp(0.0, 1.0)
+                              : null,
+                          minHeight: 3,
+                          backgroundColor: cs.surfaceContainerHighest,
+                        );
+                      }),
+                    )),
+          body: body,
+        ));
   }
 }

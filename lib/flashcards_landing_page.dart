@@ -44,8 +44,7 @@ class MyFlashcardsLandingPageController
   /// first saved video the user has for the entry. Insertion order is
   /// preserved.
   @override
-  List<ResolvedSavedVideo> filterSavedVideos(
-      List<ResolvedSavedVideo> videos) {
+  List<ResolvedSavedVideo> filterSavedVideos(List<ResolvedSavedVideo> videos) {
     final allowedRegions =
         (sharedPreferences.getStringList(KEY_FLASHCARD_REGIONS) ?? [])
             .map((i) => Region.values[int.parse(i)])
@@ -177,8 +176,8 @@ class MyFlashcardsLandingPageController
                   onTap: () => toggleRegion(r),
                   borderRadius: BorderRadius.circular(999),
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 11),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(999),
                       border: Border.all(
@@ -227,8 +226,9 @@ class MyFlashcardsLandingPageController
                       style: tt.bodyMedium
                           ?.copyWith(color: cs.onSurfaceVariant, height: 1.45),
                     ),
-                    sectionLabel(
-                        DictLibLocalizations.of(ctx)!.regionSheetDialects.toUpperCase()),
+                    sectionLabel(DictLibLocalizations.of(ctx)!
+                        .regionSheetDialects
+                        .toUpperCase()),
                     Wrap(spacing: 8, runSpacing: 8, children: [
                       pill(Region.SOUTHERN),
                       pill(Region.NORTHERN),
@@ -299,8 +299,8 @@ class MyFlashcardsLandingPageController
                       width: double.infinity,
                       child: FilledButton(
                         onPressed: () => Navigator.of(ctx).pop(),
-                        style:
-                            FilledButton.styleFrom(minimumSize: const Size(0, 52)),
+                        style: FilledButton.styleFrom(
+                            minimumSize: const Size(0, 52)),
                         child: Text(
                             DictLibLocalizations.of(ctx)!.shareLinkDoneButton),
                       ),

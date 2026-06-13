@@ -59,7 +59,8 @@ void main() {
     // The button saves the currently-shown video, which is the first
     // sub-entry's first video when the page opens with no focusVideo.
     final expected = SavedVideo(
-        entryKey: entry.getKey(), videoUrl: entry.getSubEntries().first.getMedia().first);
+        entryKey: entry.getKey(),
+        videoUrl: entry.getSubEntries().first.getMedia().first);
 
     final favList =
         userEntryListManager.getEntryLists()[KEY_FAVOURITES_ENTRIES]!;
@@ -107,8 +108,8 @@ void main() {
         reason: 'the saved video should persist to storage');
     // The reloaded list should report the entry, i.e. it would render as a row
     // in the list view.
-    expect(EntryList.fromRaw(KEY_FAVOURITES_ENTRIES).containsEntry(entry),
-        isTrue,
+    expect(
+        EntryList.fromRaw(KEY_FAVOURITES_ENTRIES).containsEntry(entry), isTrue,
         reason: 'the entry should appear in the reloaded list');
 
     // --- Toggle OFF (removal also persists) ---

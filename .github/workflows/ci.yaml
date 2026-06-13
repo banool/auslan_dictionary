@@ -6,6 +6,18 @@ on:
   pull_request:
 
 jobs:
+  # Always-on formatting gate (runs on every push/PR, unlike the
+  # path-gated build below).
+  format:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: subosito/flutter-action@v1
+      with:
+        flutter-version: '3.41.2'
+        channel: stable
+    - run: dart format --output=none --set-exit-if-changed lib test integration_test test_driver
+
   # Check which files / paths have changed. We use this to inform whether we should run
   # later jobs. Even though there is only a single job for now (build_android) we only
   # want to run it if the app itself has changed, not the app data (since we don't

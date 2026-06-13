@@ -135,8 +135,7 @@ class MySubEntry implements SubEntry {
     List<Region> regions;
     try {
       // Expected new data format with ints for Regions.
-      List<int> regionInts =
-          (wordJson["regions"] as List<dynamic>).cast<int>();
+      List<int> regionInts = (wordJson["regions"] as List<dynamic>).cast<int>();
       regions = regionInts.map((i) => Region.values[i]).toList();
     } catch (e) {
       List<String> regionStrings =

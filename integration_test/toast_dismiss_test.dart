@@ -51,7 +51,8 @@ void main() {
     final tapY = text.top - 5;
     expect(tapY, greaterThan(snack.top),
         reason: 'tap point must be inside the toast');
-    expect(tapY, lessThan(text.top), reason: 'tap point must be above the text');
+    expect(tapY, lessThan(text.top),
+        reason: 'tap point must be above the text');
 
     await tester.tapAt(Offset(text.center.dx, tapY));
     await tester.pumpAndSettle();

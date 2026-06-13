@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Pre-commit hook. Install once after cloning:
+#   git config core.hooksPath .githooks
+#
+# 1. Block any commit that contains unformatted Dart.
+# 2. Bump the build number (what this hook did before it moved here).
+
+set -euo pipefail
+
+files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.dart$' || true)
+if [ -n "$files" ]; then
+  if ! printf '%s\n' "$files" | xargs dart format --output=none --set-exit-if-changed; then
+    echo >&2
+    echo "✗ Unformatted Dart (above). Fix with:  dart format ." >&2
+    exit 1
+  fi
+fi
+
+./bump_version.sh
+git add pubspec.yaml

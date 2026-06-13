@@ -72,10 +72,12 @@ Credentials:
 - **Google Play:** a service account JSON key at `android/play_service_account.json` (git-ignored), or set `PLAY_SERVICE_ACCOUNT_JSON_PATH`. Use a key for the same service account CI publishes builds with (the `ANDROID_SERVICE_ACCOUNT_JSON` secret); it needs permission to edit the store listing in the Play Console. All Play changes happen inside a single edit that is committed only at the end, so a failed run changes nothing.
 
 ## General dev guide
-When first pulling this repo, add this to `.git/hooks/pre-commit`:
-```
-#!/bin/bash
 
-./bump_version.sh
-git add pubspec.yaml
+Install the git hooks once after cloning — the pre-commit hook checks formatting and bumps the build number:
+```sh
+git config core.hooksPath .githooks
 ```
+
+### Formatting
+
+All Dart is formatted with `dart format`. The pre-commit hook blocks unformatted commits, CI (`.github/workflows/ci.yaml` → the `format` job) runs `dart format --output=none --set-exit-if-changed lib test integration_test test_driver`, and `.zed/settings.json` keeps Zed's format-on-save in step. Format everything with `dart format lib test integration_test test_driver`.
