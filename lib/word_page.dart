@@ -12,6 +12,7 @@ import 'package:dictionarylib/web_drag_scroll_behavior.dart';
 import 'package:dictionarylib/dictionarylib.dart' show DictLibLocalizations;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'common.dart';
@@ -38,6 +39,8 @@ class EntryPage extends StatefulWidget {
     required this.showFavouritesButton,
     this.focusVideo,
     this.saveToList,
+    this.initialVariation,
+    this.initialVideo,
   });
 
   final Entry entry;
@@ -57,6 +60,12 @@ class EntryPage extends StatefulWidget {
   /// list (toggling membership) instead of opening the all-lists picker. Set
   /// by the list-edit "add videos from this entry" flow.
   final EntryList? saveToList;
+
+  /// Deep-link starting position from the URL (`?variation=N&video=M`). Used
+  /// only on first build, and only when [focusVideo] isn't driving the initial
+  /// position instead. Null when absent.
+  final int? initialVariation;
+  final int? initialVideo;
 
   @override
   State<EntryPage> createState() => _EntryPageState();
@@ -83,6 +92,16 @@ class _EntryPageState extends State<EntryPage> {
   void initState() {
     super.initState();
     _applyFocusVideo();
+    // No jump-to-video focus? Honour the deep-link position from the URL.
+    if (widget.focusVideo == null) {
+      final subEntries = widget.entry.getSubEntries();
+      if (widget.initialVariation != null && subEntries.isNotEmpty) {
+        currentPage = widget.initialVariation!.clamp(0, subEntries.length - 1);
+      }
+      if (widget.initialVideo != null) {
+        _focusedVideoInitialIndex = widget.initialVideo;
+      }
+    }
     _pageController = PageController(initialPage: currentPage);
   }
 
@@ -114,6 +133,28 @@ class _EntryPageState extends State<EntryPage> {
     setState(() {
       currentPage = index;
     });
+    _syncUrlToVariation(index);
+  }
+
+  /// Reflect the current sub-entry in the URL so the entry stays deep-linkable
+  /// as you swipe. Web only — on mobile it's a no-op route update the user
+  /// never sees. Re-passes [EntryPageArgs] so the page's non-URL state (focused
+  /// video, save target, favourites flag) survives the in-place replace; the
+  /// route's stable page key keeps the carousel from resetting.
+  void _syncUrlToVariation(int variation) {
+    if (!kIsWeb) return;
+    final key = Uri.encodeComponent(widget.entry.getKey());
+    final loc = variation == 0
+        ? "$WORD_ROUTE/$key"
+        : "$WORD_ROUTE/$key?variation=$variation";
+    GoRouter.of(context).replace(
+      loc,
+      extra: EntryPageArgs(
+        showFavouritesButton: widget.showFavouritesButton,
+        focusVideo: widget.focusVideo,
+        saveToList: widget.saveToList,
+      ),
+    );
   }
 
   @override

@@ -24,6 +24,7 @@ import 'common.dart';
 import 'entries_types.dart';
 import 'flashcards_landing_page.dart';
 import 'legal_information.dart';
+import 'word_page.dart';
 
 /// Short plain-text preview of an entry's first definition, for the
 /// "sign of the day" card on the search screen.
@@ -235,6 +236,42 @@ class _RootAppState extends State<RootApp> {
                 privacyPolicyUrl: 'https://auslandictionary.org/privacy',
                 termsOfServiceUrl: 'https://auslandictionary.org/terms',
               ));
+            }),
+        GoRoute(
+            path: "$WORD_ROUTE/:key",
+            pageBuilder: (BuildContext context, GoRouterState state) {
+              final key = Uri.decodeComponent(state.pathParameters['key']!);
+              final entry = keyedByEnglishEntriesGlobal[key];
+              // Unknown / not-yet-loaded word (a stale or hand-typed
+              // /word/<x> URL) → fall back to search rather than a broken page.
+              if (entry == null) {
+                return NoTransitionPage(
+                  child: SearchPage(
+                    navigateToEntryPage: navigateToEntryPage,
+                    includeEntryTypeButton: false,
+                    entryDefinitionPreview: auslanDefinitionPreview,
+                  ),
+                );
+              }
+              final args = state.extra is EntryPageArgs
+                  ? state.extra as EntryPageArgs
+                  : null;
+              // Stable key per entry so updating only the ?variation/?video
+              // query as the user swipes preserves the page's state instead of
+              // tearing it down and rebuilding (which would reset the carousel).
+              return NoTransitionPage(
+                key: ValueKey('word-$key'),
+                child: EntryPage(
+                  entry: entry,
+                  showFavouritesButton: args?.showFavouritesButton ?? true,
+                  focusVideo: args?.focusVideo,
+                  saveToList: args?.saveToList,
+                  initialVariation: int.tryParse(
+                      state.uri.queryParameters['variation'] ?? ''),
+                  initialVideo:
+                      int.tryParse(state.uri.queryParameters['video'] ?? ''),
+                ),
+              );
             }),
       ]);
 
