@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 #
-# Print the MSAL Android signature hash (base64-encoded SHA-1 of the signing
-# certificate) for the debug or release keystore, in BOTH forms it is needed:
-#   raw base64     -> the AndroidManifest.xml BrowserTabActivity android:path
-#                     (Android matches the percent-DECODED path, so the raw
-#                     form goes in the manifest).
-#   URL-encoded    -> the msauth:// redirect URI for main.dart and the Azure
-#                     app registration (Authentication -> Android).
-# See MANUAL_SETUP.md section 4 in the private backend repo.
+# Print EVERY signing-certificate fingerprint form an app provider needs, for
+# the debug or release(=upload) keystore, in one run:
+#   SHA-1   (colon hex) -> Google OAuth Android client + Facebook Android.
+#   SHA-256 (colon hex) -> assetlinks.json.ts sha256CertFingerprints + Facebook.
+#   MSAL hash (base64, raw)         -> AndroidManifest.xml android:path.
+#   MSAL hash (base64, URL-encoded) -> msauth:// redirect URI (main.dart + Azure).
+# (The third keystore — the Play App Signing key — isn't in any local keystore;
+# get it from the Play Console, see MANUAL_SETUP.md → "Android signing
+# fingerprints" in the private backend repo.)
 #
 # Usage:
 #   ./get-sha1.sh --env debug
@@ -83,20 +84,29 @@ if [[ ! -f "$keystore" ]]; then
   exit 1
 fi
 
-# `|| true` so a keytool failure reaches the friendly message below instead
-# of tripping set -e mid-pipeline.
-hash="$(keytool -exportcert -alias "$alias" -keystore "$keystore" \
-  -storepass "$storepass" -keypass "$keypass" 2>/dev/null \
-  | openssl sha1 -binary | openssl base64)" || true
-
-if [[ -z "$hash" ]]; then
-  echo "error: failed to compute signature hash (wrong alias or password?)" >&2
+# Export the signing certificate once to a temp file, then derive every
+# fingerprint form from it (DER bytes can't ride in a shell variable).
+cert_der="$(mktemp)"
+trap 'rm -f "$cert_der"' EXIT
+if ! keytool -exportcert -alias "$alias" -keystore "$keystore" \
+       -storepass "$storepass" -keypass "$keypass" >"$cert_der" 2>/dev/null \
+   || [[ ! -s "$cert_der" ]]; then
+  echo "error: failed to read certificate (wrong alias or password?)" >&2
   exit 1
 fi
 
+# Uppercase hex with a colon between every byte — the form keytool prints and
+# that Google / Facebook / assetlinks expect.
+colonize() { tr 'a-z' 'A-Z' | sed -E 's/(..)/\1:/g; s/:$//'; }
+
+sha1_hex="$(openssl dgst -sha1 <"$cert_der" | sed 's/.*= *//' | colonize)"
+sha256_hex="$(openssl dgst -sha256 <"$cert_der" | sed 's/.*= *//' | colonize)"
+# MSAL wants the base64 of the *binary* SHA-1, not the hex.
+b64="$(openssl dgst -sha1 -binary <"$cert_der" | openssl base64)"
+
 # URL-encode the base64 for the redirect-URI form (main.dart / Azure). Only
 # '+', '/' and '=' can appear in base64; encode '%' first for safety.
-encoded="${hash//%/%25}"
+encoded="${b64//%/%25}"
 encoded="${encoded//+/%2B}"
 encoded="${encoded//\//%2F}"
 encoded="${encoded//=/%3D}"
@@ -104,11 +114,18 @@ encoded="${encoded//=/%3D}"
 package="$(grep -E 'applicationId' "$SCRIPT_DIR/app/build.gradle" \
   | head -n1 | sed -E 's/.*"([^"]+)".*/\1/')"
 
-echo "env:                  $environment"
-echo "keystore:             $keystore"
-echo "signature hash (raw): $hash"
-echo "  -> use in AndroidManifest.xml:  android:path=\"/$hash\""
+echo "env:       $environment"
+echo "keystore:  $keystore"
+echo
+echo "SHA-1   (colon hex): $sha1_hex"
+echo "  -> Google OAuth Android client (one per keystore) + Facebook Android."
+echo "SHA-256 (colon hex): $sha256_hex"
+echo "  -> assetlinks.json.ts sha256CertFingerprints + Facebook Android."
+echo
+echo "MSAL hash (base64, raw):         $b64"
+echo "  -> AndroidManifest.xml BrowserTabActivity  android:path=\"/$b64\""
 if [[ -n "$package" ]]; then
-  echo "redirect URI (URL-encoded hash): msauth://$package/$encoded"
-  echo "  -> use in main.dart (microsoftAndroid*RedirectUri) and Azure"
+  echo "MSAL hash (base64, URL-encoded): $encoded"
+  echo "  -> main.dart microsoftAndroid*RedirectUri + Azure redirect URI:"
+  echo "       msauth://$package/$encoded"
 fi
