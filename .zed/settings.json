@@ -3,6 +3,8 @@
 {
   "format_on_save": "on",
   "languages": {
-    "Dart": { "formatter": "language_server" }
+    "Dart": { "formatter": "language_server" },
+    // Never reformat Markdown on save — prose stays long-line, soft-wrapped.
+    "Markdown": { "format_on_save": "off" }
   }
 }
