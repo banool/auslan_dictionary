@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:go_router/go_router.dart';
 import 'package:media_kit/media_kit.dart';
 
 import 'common.dart';
@@ -166,6 +167,11 @@ Future<void> main() async {
   // first frame without touching routing.
   if (kIsWeb) {
     usePathUrlStrategy();
+    // go_router only reflects `go()` in the browser URL by default; `push` /
+    // `replace` (which is how an entry page is opened, see navigateToEntryPage)
+    // leave the URL unchanged unless this is set. Without it /word/<key> never
+    // shows up in the address bar.
+    GoRouter.optionURLReflectsImperativeAPIs = true;
   }
   printAndLog("Start of main");
   try {
