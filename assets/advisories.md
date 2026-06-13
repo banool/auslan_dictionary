@@ -1,3 +1,12 @@
+//// ==========================================================================
+//// FROZEN — do not add new advisories here.
+//// ==========================================================================
+//// This is the legacy advisories file, read by Auslan Dictionary versions
+//// BEFORE 2.0.0. New announcements live in assets/advisories_v2.md, which only
+//// 2.0.0+ builds read. Anything added here would also show to old versions, so
+//// leave the sections below as-is.
+//// ==========================================================================
+////
 //// Lines starting with 4 slashes like this are ignored.
 ////
 //// To add a new advisory all you have to do is open a section with the start marker:

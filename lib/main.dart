@@ -36,8 +36,12 @@ Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
   // because they both make network calls, so we can do them concurrently.
   await Future.wait<void>([
     (() async {
+      // v2 advisories file: read only by 2.0.0+ builds. Older versions have the
+      // legacy assets/advisories.md URL baked in and never see anything added
+      // here, which is how new announcements stay off old builds without a
+      // hotfix. See assets/advisories_v2.md for the format.
       await setupPhaseTwo(Uri.parse(
-          "https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/advisories.md"));
+          "https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/advisories_v2.md"));
     })(),
     (() async {
       // If the user needs to upgrade, this will throw a specific error that main()
