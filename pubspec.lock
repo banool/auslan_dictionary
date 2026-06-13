@@ -269,8 +269,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "0f5e89a1fb05cafd2e7008b70a8495f49a2cdf79"
-      resolved-ref: "0f5e89a1fb05cafd2e7008b70a8495f49a2cdf79"
+      ref: "a344267d9c0db6cc93de8c7e2c7617e26cfd5b8c"
+      resolved-ref: "a344267d9c0db6cc93de8c7e2c7617e26cfd5b8c"
       url: "https://github.com/banool/dictionarylib.git"
     source: git
     version: "0.3.51"
