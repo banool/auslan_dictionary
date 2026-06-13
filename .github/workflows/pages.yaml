@@ -14,7 +14,6 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: production # manual approval gate
     # Run from site/ so wrangler picks up site/wrangler.toml (project name +
     # output dir) and the attach-domains script sits one dir down.
     defaults: { run: { working-directory: site } }
