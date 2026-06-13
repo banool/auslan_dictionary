@@ -16,6 +16,11 @@ jobs:
       with:
         flutter-version: '3.44.2'
         channel: stable
+    # `dart format` derives its style from the package's language version
+    # (the pubspec sdk lower bound), so it needs the package resolved first —
+    # without pub get it falls back to the latest style and reformats
+    # everything.
+    - run: flutter pub get
     - run: dart format --output=none --set-exit-if-changed lib test integration_test test_driver
 
   # Check which files / paths have changed. We use this to inform whether we should run
