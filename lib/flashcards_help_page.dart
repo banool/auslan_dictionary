@@ -32,6 +32,10 @@ Widget getFlashcardsHelpPage(BuildContext context) {
       "You may select one or more lists as the flashcard source. By default "
           "there is only one list, your favourites, but you may create additional "
           "lists and use words from many of them at once in a single revision session. ",
+      "Lists that other people have shared with you can be revision sources too. "
+          "On the revision settings the lists are grouped just like on the Lists "
+          "page: your own under \"My Lists\", and ones you follow or help edit "
+          "under \"Subscribed\".",
       "If two lists contain the same word, we will still only show the word once."
     ],
     "What do all these sign selection options mean?": const [
