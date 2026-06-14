@@ -48,7 +48,7 @@ void main() async {
       for (MySubEntry sw in ww.subEntries) {
         var m = Master(id: sw.getKey(ww), fields: [
           ww.entryInEnglish,
-          sw.videoLinks.join("=====")
+          sw.getMedia().join("=====")
         ], combinations: const [
           Combination(front: [0], back: [1]),
           Combination(front: [1], back: [0]),

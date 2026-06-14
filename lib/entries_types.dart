@@ -1,8 +1,6 @@
 import 'package:dictionarylib/entry_types.dart';
 import 'package:flutter/material.dart';
 
-const String BASE_URL = "https://media.auslan.org.au";
-
 class MyEntry implements Entry {
   String entryInEnglish;
   List<MySubEntry> subEntries;
@@ -29,7 +27,7 @@ class MyEntry implements Entry {
     for (final subJson in (data["sub_entries"] as List<dynamic>? ?? const [])) {
       MySubEntry subEntry =
           MySubEntry.fromJson(subJson as Map<String, dynamic>, index);
-      if (subEntry.videoLinks.isNotEmpty) {
+      if (subEntry.getMedia().isNotEmpty) {
         subEntry.keywords.remove(entryInEnglish);
         subEntriesList.add(subEntry);
       }
@@ -94,34 +92,16 @@ class MySubEntry implements SubEntry {
       required this.regions,
       required this.index});
 
-  List<String> get videoLinks {
-    List<String> out = [];
-    // See below for an explanation of why we do this.
-    for (var link in videoLinksInner) {
-      String l;
-      if (link.startsWith("http")) {
-        l = link;
-      } else {
-        // TODO: I don't think this branch is necessary anymore, all links in
-        // the JSON have a full URL now.
-        l = "$BASE_URL/$link";
-      }
-      out.add(l);
-    }
-    return out;
-  }
-
   MySubEntry.fromJson(Map<String, dynamic> wordJson, this.index) {
     keywords = (wordJson["keywords"] as List<dynamic>).cast<String>();
 
-    // In the past we made the assumption that all the videos came from the same
-    // URL. Accordingly the scraper trimmed the host part of the URL and just
-    // kept the path. This is no longer true, so the scraper now stores the full
-    // URL in the data file. The code previously assumed the URLs were only the
-    // paths but it no longer does this by default, it just uses the full URL.
-    // If the scheme + host is missing though, we prepend it like we did before.
-    // This might happen if the user has updated their app but is somehow still
-    // sitting on old data. We can remove this behavior eventually.
+    // data-v2.json stores each media item as a path (the part after the
+    // serving base, e.g. /mp4video/11/11450.mp4) rather than a full URL,
+    // so a saved video survives the content moving between hosts. The
+    // playable URL is rebuilt on demand via mediaUrlForPath (globals.dart)
+    // + mediaBaseUrls. An old build still reading the full-URL data.json
+    // keeps working: mediaUrlForPath passes an absolute URL through
+    // unchanged.
     videoLinksInner = (wordJson["video_links"] as List<dynamic>).cast<String>();
 
     List<Definition> definitions = [];
@@ -187,10 +167,9 @@ class MySubEntry implements SubEntry {
 
   @override
   List<String> getMedia() {
-    // The dump only contains the final filename + ext, we have to build the
-    // full URL. We do it here. buildUrl depends on the useCdnUrl knob having
-    // a value.
-    return videoLinks;
+    // Returns media paths (the stable identity). Resolve to a playable
+    // URL with mediaUrlForPath (globals.dart) — see fromJson above.
+    return videoLinksInner;
   }
 
   @override

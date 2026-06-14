@@ -14,8 +14,22 @@ import 'root.dart';
 const String KNOBS_URL_BASE =
     "https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/knobs/";
 
+/// Where Auslan media (the sign videos) is served from. data-v2.json stores
+/// each media item as the path *after* this base; the playable URL is
+/// `AUSLAN_MEDIA_BASE_URL + path`, rebuilt on demand (see mediaUrlForPath in
+/// dictionarylib). Shipping the base in the app — rather than baking it into
+/// the data or a saved video's identity — means the content can move hosts
+/// without invalidating saved videos. Confirmed common to every video_link.
+const String AUSLAN_MEDIA_BASE_URL =
+    'https://object-store.rc.nectar.org.au/v1/AUTH_92e2f9b70316412697cddc6f3ac0ee4e/staticauslanorgau';
+
 Future<void> setup({Set<Entry>? entriesGlobalReplacement}) async {
   var widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+
+  // Configure how saved-video paths resolve to playable URLs. Must be set
+  // before the dictionary + lists load so the list migration can resolve /
+  // strip it.
+  mediaBaseUrls = const [AUSLAN_MEDIA_BASE_URL];
 
   // Initialize media_kit for video playback (native only; web plays via the
   // HTML5 video_player path — see VideoSurface in dictionarylib).

@@ -40,7 +40,7 @@ from typing import Dict, List
 
 from bs4 import BeautifulSoup
 
-from common import LOG, get_pages_html, validate_video_urls
+from common import LOG, get_pages_html, strip_media_base, validate_video_urls
 
 SITE_ROOT = "http://www.auslan.org.au"
 LETTER_PAGE_TEMPLATE = SITE_ROOT + "/dictionary/search/?query={letter}&page={page}"
@@ -446,6 +446,16 @@ async def main():
             f"Validation complete: removed {removed_sub_entries} sub_entries and "
             f"{len(entries_to_remove)} entries with no valid videos"
         )
+
+    # Fail loudly if any video is served from an unexpected base. The app
+    # ships AUSLAN_MEDIA_BASE_URL and stores only the path after it (see
+    # make_data_v2.py + lib/main.dart), so a video from a new host would
+    # silently break playback. data.json itself keeps the full URLs (old app
+    # builds read it); this is purely a guardrail.
+    for word, info in word_to_info.items():
+        for sub_entry in info["sub_entries"]:
+            for url in sub_entry["video_links"]:
+                strip_media_base(url)  # Raises on an unexpected base.
 
     # Flatten the data, structure inside "data".
     out = {"data": list(word_to_info.values())}

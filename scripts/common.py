@@ -12,6 +12,31 @@ ch = logging.StreamHandler()
 ch.setFormatter(formatter)
 LOG.addHandler(ch)
 
+# Base every Auslan media URL is served from. data-v2.json (read by current app
+# builds) stores only the path *after* this base; the app re-prepends it (see
+# AUSLAN_MEDIA_BASE_URL in lib/main.dart). Keeping the host out of the data — and
+# out of a saved video's identity — means the content can move hosts without
+# invalidating saved videos. If Signbank ever serves a video from a different
+# base, strip_media_base() raises so we notice and update both sides.
+MEDIA_BASE_URL = (
+    "https://object-store.rc.nectar.org.au/v1/"
+    "AUTH_92e2f9b70316412697cddc6f3ac0ee4e/staticauslanorgau"
+)
+
+
+def strip_media_base(url: str) -> str:
+    """Return the path of [url] after MEDIA_BASE_URL, raising if it isn't
+    under that base — that would mean Auslan media moved hosts, which needs a
+    coordinated change to MEDIA_BASE_URL here and AUSLAN_MEDIA_BASE_URL in the
+    app (plus a client data-version bump)."""
+    if not url.startswith(MEDIA_BASE_URL):
+        raise ValueError(
+            f"Video URL is not under the expected media base "
+            f"{MEDIA_BASE_URL!r}: {url!r}. If Auslan media moved hosts, update "
+            f"MEDIA_BASE_URL here and AUSLAN_MEDIA_BASE_URL in the app."
+        )
+    return url[len(MEDIA_BASE_URL):]
+
 # Default timeout for HTTP requests.
 DEFAULT_TIMEOUT = 180
 

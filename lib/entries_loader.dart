@@ -15,6 +15,19 @@ class MyEntryLoader extends EntryLoader {
     'https://storage.googleapis.com/auslan-media-bucket/sync',
   ];
 
+  // data-v2.json stores media as paths (not full URLs) — see entries_types.dart
+  // + the AUSLAN_MEDIA_BASE_URL the app ships. Old app builds keep reading
+  // data.json. A fresh cache name (below) makes a just-upgraded build ignore
+  // its old full-URL cache and re-download data-v2.json, so the list migration
+  // and the player only ever see path-based data.
+  static const String dataFileName = 'data-v2.json';
+
+  @override
+  String get dictionaryCacheFileName => 'word_dictionary_v2.json';
+
+  @override
+  String get webDictionaryCacheKey => 'web_dictionary_data_v2';
+
   @override
   Future<NewData?> downloadNewData(
       int currentVersion, bool forceDownload) async {
@@ -43,7 +56,8 @@ class MyEntryLoader extends EntryLoader {
         }
 
         // Download the new data
-        String newData = (await http.get(Uri.parse('$baseUrl/data.json'))).body;
+        String newData =
+            (await http.get(Uri.parse('$baseUrl/$dataFileName'))).body;
 
         printAndLog("Successfully downloaded new data from $baseUrl");
 

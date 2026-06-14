@@ -116,7 +116,7 @@ class _EntryPageState extends State<EntryPage> {
     if (focus == null) return;
     final subEntries = widget.entry.getSubEntries();
     for (var i = 0; i < subEntries.length; i++) {
-      final idx = subEntries[i].getMedia().indexOf(focus.videoUrl);
+      final idx = subEntries[i].getMedia().indexOf(focus.mediaPath);
       if (idx >= 0) {
         currentPage = i;
         _focusedVideoInitialIndex = idx;
@@ -398,7 +398,7 @@ class SubEntryPageState extends State<SubEntryPage>
   /// exactly the same spot as on multi-video pages instead of shifting.
   /// Shared by the vertical and horizontal layouts so tablets/TVs get it too.
   Widget? _videoIndicator(BuildContext context, {bool reserveSpace = false}) {
-    final videoCount = widget.subEntry.videoLinks.length;
+    final videoCount = widget.subEntry.getMedia().length;
     if (videoCount == 0 || (videoCount == 1 && !reserveSpace)) return null;
     final cs = Theme.of(context).colorScheme;
     final l = DictLibLocalizations.of(context)!;
@@ -508,7 +508,8 @@ class SubEntryPageState extends State<SubEntryPage>
     // VideoPlayerScreen so the inline tile pauses + hides while expanded —
     // no second player). Image recordings (.jpg) are skipped automatically.
     final Widget tappableVideo = VideoPlayerScreen(
-      mediaLinks: widget.subEntry.videoLinks,
+      // getMedia() returns paths; resolve each to a playable URL.
+      mediaLinks: widget.subEntry.getMedia().map(mediaUrlForPath).toList(),
       fallbackAspectRatio: 16 / 9,
       initialPage: _currentVideo,
       onPageChanged: _onVideoChanged,
@@ -517,13 +518,13 @@ class SubEntryPageState extends State<SubEntryPage>
     );
 
     Widget? bookmarkRow;
-    if (widget.showSaveButton && widget.subEntry.videoLinks.isNotEmpty) {
-      final urls = widget.subEntry.videoLinks;
-      final url = urls[_currentVideo.clamp(0, urls.length - 1)];
+    final paths = widget.subEntry.getMedia();
+    if (widget.showSaveButton && paths.isNotEmpty) {
+      final path = paths[_currentVideo.clamp(0, paths.length - 1)];
       bookmarkRow = _BookmarkButton(
           key: const ValueKey('wordPage.saveButton'),
           entry: widget.word,
-          videoUrl: url,
+          mediaPath: path,
           saveToList: widget.saveToList);
     }
 
@@ -679,7 +680,9 @@ Widget definition(BuildContext context, Definition definition) {
 /// whole entry page.
 class _BookmarkButton extends StatefulWidget {
   final Entry entry;
-  final String videoUrl;
+
+  /// The media **path** (stable identity) of the video this button saves.
+  final String mediaPath;
 
   /// When set, the button toggles this video's membership in [saveToList]
   /// directly (the user arrived here to add to a specific list). When null,
@@ -689,7 +692,7 @@ class _BookmarkButton extends StatefulWidget {
   const _BookmarkButton({
     super.key,
     required this.entry,
-    required this.videoUrl,
+    required this.mediaPath,
     this.saveToList,
   });
 
@@ -700,8 +703,8 @@ class _BookmarkButton extends StatefulWidget {
 class _BookmarkButtonState extends State<_BookmarkButton> {
   @override
   Widget build(BuildContext context) {
-    final v =
-        SavedVideo(entryKey: widget.entry.getKey(), videoUrl: widget.videoUrl);
+    final v = SavedVideo(
+        entryKey: widget.entry.getKey(), mediaPath: widget.mediaPath);
     final l = DictLibLocalizations.of(context)!;
 
     // Direct mode: we came from a specific list, so the button just adds (or

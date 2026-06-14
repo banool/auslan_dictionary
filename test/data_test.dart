@@ -8,10 +8,12 @@ void main() async {
   SharedPreferences.setMockInitialValues({});
   sharedPreferences = await SharedPreferences.getInstance();
 
-  // Test that we can load the local data correctly.
+  // Test that we can load the local data correctly. This is the path-based
+  // data-v2.json the app ships/reads (see entries_loader.dart); it must parse
+  // and populate the globals.
   test('Data loads correctly', () async {
     // Read the data from disk.
-    final file = File('assets/data/data.json');
+    final file = File('assets/data/data-v2.json');
     final data = await file.readAsString();
 
     // Confirm the loader can load it.
