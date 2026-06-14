@@ -261,9 +261,14 @@ void main() async {
     await letVideoLoad(tester);
     await takeScreenshot(tester, binding, info, "flashcardRevealed");
 
-    // Leave the session via the app-bar close button (writes reviews) and return
-    // to the revision landing page. Target the IconButton specifically — the
-    // "Forgot" rating button also uses an Icons.close glyph.
+    // Leave the session via the app-bar close button. Tapping × mid-session
+    // ends it early and shows the revision summary first (revealing a card adds
+    // a default answer, so there's something to summarise), then a second × pops
+    // the summary back to the revision landing page. Both writes happen on that
+    // first close. Target the IconButton specifically — the "Forgot" rating
+    // button also uses an Icons.close glyph.
+    await tester.tap(find.widgetWithIcon(IconButton, Icons.close));
+    await settle(tester);
     await tester.tap(find.widgetWithIcon(IconButton, Icons.close));
     await settle(tester);
 
@@ -312,21 +317,34 @@ void main() async {
       rootNavigatorKey.currentState!.pop();
       await settle(tester);
 
-      // 13. Flashcard front in landscape (the "what does this sign mean"
-      // prompt next to the controls).
-      await tester.tap(find.byIcon(Icons.style));
-      await settle(tester);
-      await tester.tap(find.byKey(const ValueKey("startButton")));
-      await letVideoLoad(tester);
-      await takeScreenshot(tester, binding, info, "flashcardFrontLandscape");
+      // 13/14. Flashcard front + revealed in landscape. Skipped on Android:
+      // rotating the flashcard re-creates its media_kit video player, which
+      // needs a GL context the emulator can't provide (eglCreateContext fails
+      // with EGL_BAD_ATTRIBUTE) — the very mpv/GL limitation the poster
+      // workaround exists for, except this rotation path bypasses the poster
+      // and crashes the capture instead of rendering it. These shots are
+      // local-only (neither store publishes them) and the iOS phone is the
+      // authoritative landscape record for the flashcard, so dropping them on
+      // Android costs nothing. Shot 12 above (the landscape word page, which
+      // keeps using the poster) still covers the landscape layout on Android.
+      if (!Platform.isAndroid) {
+        // 13. Flashcard front in landscape (the "what does this sign mean"
+        // prompt next to the controls).
+        await tester.tap(find.byIcon(Icons.style));
+        await settle(tester);
+        await tester.tap(find.byKey(const ValueKey("startButton")));
+        await letVideoLoad(tester);
+        await takeScreenshot(tester, binding, info, "flashcardFrontLandscape");
 
-      // 14. The same flashcard revealed: video left, word + rating buttons
-      // right.
-      await tester.tap(find.byKey(const ValueKey("revealButton")));
-      await letVideoLoad(tester);
-      await takeScreenshot(tester, binding, info, "flashcardRevealedLandscape");
-      await tester.tap(find.widgetWithIcon(IconButton, Icons.close));
-      await settle(tester);
+        // 14. The same flashcard revealed: video left, word + rating buttons
+        // right.
+        await tester.tap(find.byKey(const ValueKey("revealButton")));
+        await letVideoLoad(tester);
+        await takeScreenshot(
+            tester, binding, info, "flashcardRevealedLandscape");
+        await tester.tap(find.widgetWithIcon(IconButton, Icons.close));
+        await settle(tester);
+      }
 
       // Restore portrait, then hand orientation control back to the OS.
       await SystemChrome.setPreferredOrientations(
