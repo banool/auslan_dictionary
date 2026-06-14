@@ -12,8 +12,6 @@ import 'entries_types.dart';
 import 'flashcards_help_page.dart';
 import 'flashcards_page.dart';
 
-const String UNKNOWN_REGIONS_TEXT = "Signs with unknown region";
-
 class MyFlashcardsLandingPageController
     extends FlashcardsLandingPageController {
   @override
@@ -85,28 +83,29 @@ class MyFlashcardsLandingPageController
     bool useUnknownRegionSigns =
         sharedPreferences.getBool(KEY_USE_UNKNOWN_REGION_SIGNS) ?? true;
 
+    final l = DictLibLocalizations.of(context)!;
     // Keep the subtitle to one short summary line. Spelling out every
     // selected region made the row wrap to several lines and crowd the
     // card once more than a couple were on; past three we just show a
     // count instead.
-    final parts = <String>["All of Australia"];
+    final parts = <String>[l.regionSubtitleAllAustralia];
     if (additionalRegionsValues.isNotEmpty) {
       if (additionalRegionsValues.length <= 3) {
         parts.add(additionalRegionsValues
             .map((i) => Region.values[i].pretty)
             .join(", "));
       } else {
-        parts.add("${additionalRegionsValues.length} regions");
+        parts.add(l.regionSubtitleRegionCount(additionalRegionsValues.length));
       }
     }
     if (useUnknownRegionSigns) {
-      parts.add("unknown-region signs");
+      parts.add(l.regionSubtitleUnknownSigns);
     }
     final String regionsString = parts.join(" + ");
     return [
       HearthRow(
         icon: Icons.public,
-        title: DictLibLocalizations.of(context)!.regionSheetTitle,
+        title: l.regionSheetTitle,
         subtitle: regionsString,
         onTap: () =>
             _showRegionSheet(context, setState, updateRevisionSettings),
@@ -253,9 +252,11 @@ class MyFlashcardsLandingPageController
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Row(children: [
-                                  const Flexible(
-                                    child: Text(UNKNOWN_REGIONS_TEXT,
-                                        style: TextStyle(
+                                  Flexible(
+                                    child: Text(
+                                        DictLibLocalizations.of(ctx)!
+                                            .regionSheetUnknownSignsTitle,
+                                        style: const TextStyle(
                                             fontSize: 15.5,
                                             fontWeight: FontWeight.w600)),
                                   ),

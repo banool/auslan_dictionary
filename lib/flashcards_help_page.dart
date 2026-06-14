@@ -1,8 +1,6 @@
 import 'package:dictionarylib/help_common.dart';
 import 'package:flutter/material.dart';
 
-import 'flashcards_landing_page.dart';
-
 Widget getFlashcardsHelpPage(BuildContext context) {
   return HelpPage(title: "Revision FAQ", items: {
     "What do the flashcard types mean?": const [
@@ -43,7 +41,7 @@ Widget getFlashcardsHelpPage(BuildContext context) {
           "used throughout the whole country, but you may also opt in to seeing "
           "signs from specific regions (e.g. Northern, VIC, WA, etc). ",
       "Many signs in the signbank don't have regional information attached. "
-          "For those you may enable \"$UNKNOWN_REGIONS_TEXT\". I would "
+          "For those you may enable \"Signs with unknown region\". I would "
           "generally recommend leaving this enabled, but we provide this option "
           "based on whatever works best for you."
     ],
