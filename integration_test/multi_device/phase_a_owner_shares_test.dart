@@ -42,7 +42,7 @@ void main() {
     for (final entry in [first, second]) {
       await localList.addVideo(SavedVideo(
         entryKey: entry.getKey(),
-        videoUrl: entry
+        mediaPath: entry
             .getSubEntries()
             .firstWhere((s) => s.getMedia().isNotEmpty)
             .getMedia()

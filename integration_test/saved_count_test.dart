@@ -42,7 +42,7 @@ void main() {
     });
     final video = SavedVideo(
         entryKey: entry.getKey(),
-        videoUrl: entry.getSubEntries().first.getMedia().first);
+        mediaPath: entry.getSubEntries().first.getMedia().first);
 
     final favList =
         userEntryListManager.getEntryLists()[KEY_FAVOURITES_ENTRIES]!;

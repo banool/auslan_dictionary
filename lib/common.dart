@@ -1,5 +1,7 @@
+import 'package:dictionarylib/common.dart';
 import 'package:dictionarylib/entry_list.dart';
 import 'package:dictionarylib/entry_types.dart';
+import 'package:dictionarylib/page_word.dart';
 import 'package:dictionarylib/saved_video.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -13,27 +15,6 @@ const MaterialColor MAIN_COLOR = Colors.blue;
 
 const String IOS_APP_ID = "1531368368";
 const String ANDROID_APP_ID = "com.banool.auslan_dictionary";
-
-/// Route path for an entry page. The entry's key (its English phrase) is the
-/// `:key` path segment; `?variation=N&video=M` optionally deep-link to a
-/// specific sub-entry / video within it.
-const String WORD_ROUTE = "/word";
-
-/// Non-URL-serialisable args carried to the [WORD_ROUTE] page by an in-app
-/// navigation (the entry object is re-resolved from the URL key, but these
-/// can't be). Absent on a cold deep link, where the route falls back to
-/// sensible defaults (full UI, no focused video, no save-to-list target).
-class EntryPageArgs {
-  const EntryPageArgs({
-    this.showFavouritesButton = true,
-    this.focusVideo,
-    this.saveToList,
-  });
-
-  final bool showFavouritesButton;
-  final SavedVideo? focusVideo;
-  final EntryList? saveToList;
-}
 
 /// Open an entry. Pushes a real `/word/<key>` route so the URL reflects the
 /// entry and it's deep-linkable on web (a pasted link resolves the entry from
@@ -61,6 +42,7 @@ Future<void> navigateToEntryPage(
       MaterialPageRoute(
         builder: (context) => EntryPage(
             entry: entry,
+            config: auslanWordPageConfig,
             showFavouritesButton: showFavouritesButton,
             focusVideo: focusVideo,
             saveToList: saveToList),

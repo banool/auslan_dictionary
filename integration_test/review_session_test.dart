@@ -52,7 +52,7 @@ void main() {
     for (final e in entriesGlobal) {
       for (final sub in e.getSubEntries()) {
         for (final url in sub.getMedia()) {
-          saved.add(SavedVideo(entryKey: e.getKey(), videoUrl: url));
+          saved.add(SavedVideo(entryKey: e.getKey(), mediaPath: url));
         }
       }
       if (saved.length >= 30) break;

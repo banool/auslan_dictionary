@@ -8,6 +8,7 @@ import 'package:dictionarylib/page_entry_list_overview.dart';
 import 'package:dictionarylib/page_flashcards_landing.dart';
 import 'package:dictionarylib/page_search.dart';
 import 'package:dictionarylib/page_settings.dart';
+import 'package:dictionarylib/page_word.dart';
 import 'package:dictionarylib/sharing/deep_link_handler.dart';
 import 'package:dictionarylib/sharing/engine_notification_listener.dart';
 import 'package:dictionarylib/sharing/shared_list_landing_page.dart';
@@ -263,6 +264,7 @@ class _RootAppState extends State<RootApp> {
                 key: ValueKey('word-$key'),
                 child: EntryPage(
                   entry: entry,
+                  config: auslanWordPageConfig,
                   showFavouritesButton: args?.showFavouritesButton ?? true,
                   focusVideo: args?.focusVideo,
                   saveToList: args?.saveToList,

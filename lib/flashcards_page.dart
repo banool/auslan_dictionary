@@ -4,6 +4,7 @@ import 'package:dictionarylib/common.dart';
 import 'package:dictionarylib/flashcards_logic.dart';
 import 'package:dictionarylib/globals.dart';
 import 'package:dictionarylib/hearth.dart';
+import 'package:dictionarylib/page_word.dart';
 import 'package:dictionarylib/revision.dart';
 import 'package:dictionarylib/theme.dart' show constrainContentWidth;
 import 'package:dictionarylib/video_player_screen.dart';
@@ -503,6 +504,7 @@ class FlashcardsPageState extends State<FlashcardsPage> {
                           // force-unwrap and wouldn't work for non-English
                           // revision locales).
                           entry: resolved.entry,
+                          config: auslanWordPageConfig,
                           // Show the per-video save UI so the user can add the
                           // sign to (or remove it from) their lists straight
                           // from a card they're revising.

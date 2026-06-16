@@ -48,7 +48,7 @@ void main() {
         (e) => e.getSubEntries().any((s) => s.getMedia().isNotEmpty));
     final video = SavedVideo(
         entryKey: entry.getKey(),
-        videoUrl: entry
+        mediaPath: entry
             .getSubEntries()
             .firstWhere((s) => s.getMedia().isNotEmpty)
             .getMedia()
