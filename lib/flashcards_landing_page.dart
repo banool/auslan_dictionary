@@ -2,28 +2,43 @@ import 'package:dictionarylib/common.dart';
 import 'package:dictionarylib/flashcards_logic.dart';
 import 'package:dictionarylib/globals.dart';
 import 'package:dictionarylib/hearth.dart';
+import 'package:dictionarylib/page_flashcards.dart';
 import 'package:dictionarylib/page_flashcards_landing.dart';
-import 'package:dictionarylib/revision.dart';
-import 'package:dolphinsr_dart/dolphinsr_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:dictionarylib/dictionarylib.dart' show DictLibLocalizations;
 
+import 'common.dart';
 import 'entries_types.dart';
 import 'flashcards_help_page.dart';
-import 'flashcards_page.dart';
+import 'word_page.dart';
+
+/// Auslan's wiring for the shared [FlashcardsPage]: a 16:9 video, the region
+/// string from [MySubEntry], the Signbank link in the app bar, and the app's
+/// own entry-page navigation.
+final FlashcardsConfig auslanFlashcardsConfig = FlashcardsConfig(
+  videoAspectRatio: 16 / 9,
+  regionRowHeight: 48,
+  navigateToEntryPage: navigateToEntryPage,
+  buildRegionInfo: (context, resolved, shouldUseHorizontalDisplay, revealed) {
+    final regionsText =
+        revealed ? (resolved.subEntry as MySubEntry).getRegionsString() : "";
+    return Text(regionsText, textAlign: TextAlign.center);
+  },
+  buildExtraAppBarActions: (context,
+          {required String word,
+          required ResolvedSavedVideo resolved,
+          required bool revealed}) =>
+      [
+    getAuslanSignbankLaunchAppBarActionWidget(
+        context, word, (resolved.subEntry as MySubEntry).index,
+        enabled: revealed),
+  ],
+);
 
 class MyFlashcardsLandingPageController
     extends FlashcardsLandingPageController {
   @override
-  Widget buildFlashcardsPage(
-      {required DolphinInformation dolphinInformation,
-      required RevisionStrategy revisionStrategy,
-      required List<Review> existingReviews}) {
-    return FlashcardsPage(
-        di: dolphinInformation,
-        revisionStrategy: revisionStrategy,
-        existingReviews: existingReviews);
-  }
+  FlashcardsConfig get flashcardsConfig => auslanFlashcardsConfig;
 
   @override
   Widget buildHelpPage(BuildContext context) {
