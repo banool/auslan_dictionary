@@ -173,6 +173,13 @@ class MySubEntry implements SubEntry {
   }
 
   @override
+  List<MediaItem> getMediaItems() {
+    // Auslan has no per-video versioning, so items carry no status — the word
+    // page shows no status pill.
+    return videoLinksInner.map((p) => MediaItem(path: p)).toList();
+  }
+
+  @override
   List<Definition> getDefinitions(Locale locale) {
     return definitions;
   }
