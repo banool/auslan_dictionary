@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/facebook/facebook-ios-sdk",
       "state" : {
-        "revision" : "8c90832bf2302d9ecd0d23cb63b81f1fb9a36497",
-        "version" : "18.0.3"
+        "revision" : "3818dd2ccb6547c6d320ff68a1bd599789c3a44f",
+        "version" : "18.1.0"
       }
     },
     {
@@ -68,8 +68,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/AzureAD/microsoft-authentication-library-for-objc",
       "state" : {
-        "revision" : "19c3c7d48c9fa73f9ef6384b53c1e9da53c07dd0",
-        "version" : "2.12.1"
+        "revision" : "856a252c77b5d92fd3f2352497c96a9bed15ba4e",
+        "version" : "2.13.0"
       }
     },
     {
