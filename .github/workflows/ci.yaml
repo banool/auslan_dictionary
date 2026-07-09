@@ -107,14 +107,20 @@ jobs:
       contents: 'read'
       id-token: 'write'
     needs: [changes]
-    if: needs.changes.outputs.data == 'true'
+    # Only mirror data from merged commits on master, never from PR branches.
+    # Without the push guard, opening a data-update PR would overwrite the
+    # mirror with unvetted, unmerged data (it triggers on pull_request too).
+    if: needs.changes.outputs.data == 'true' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      # Copy the target files elsewhere.
+      # Copy the target files elsewhere. data-v2.json is what current app
+      # builds read (see entries_loader.dart); data.json is the legacy v1 file
+      # still read by old builds. Both must be mirrored or the GCS fallback is
+      # dead for current clients.
       - run: mkdir -p tmp
-      - run: cp assets/data/data.json assets/data/latest_version tmp
+      - run: cp assets/data/data.json assets/data/data-v2.json assets/data/latest_version tmp
 
       - uses: 'google-github-actions/auth@v2'
         with:
