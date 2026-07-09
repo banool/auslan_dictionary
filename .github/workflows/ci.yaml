@@ -14,7 +14,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: subosito/flutter-action@v1
       with:
-        flutter-version: '3.44.2'
+        flutter-version: '3.44.5'
         channel: stable
     # `dart format` derives its style from the package's language version
     # (the pubspec sdk lower bound), so it needs the package resolved first —
@@ -65,7 +65,7 @@ jobs:
 
     - uses: subosito/flutter-action@v1
       with:
-        flutter-version: '3.44.2'
+        flutter-version: '3.44.5'
         channel: stable
 
     # Initial build and test.
