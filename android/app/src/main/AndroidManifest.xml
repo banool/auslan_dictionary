@@ -165,5 +165,13 @@
          11+ due to package visibility restrictions. -->
     <queries>
         <package android:name="com.facebook.katana" />
+        <!-- So url_launcher can resolve an email app for the "email me"
+             settings button. Without this, Android 11+ package visibility
+             hides mail apps, canLaunchUrl(mailto:) returns false, and the
+             launch itself can't resolve a handler. -->
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
+        </intent>
     </queries>
 </manifest>

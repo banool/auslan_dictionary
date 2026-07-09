@@ -269,11 +269,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "763b935982754152f7692e1a0837149829f87032"
-      resolved-ref: "763b935982754152f7692e1a0837149829f87032"
+      ref: dcdb8ee6c95cc87fa4e9814e49517114d6ad432d
+      resolved-ref: dcdb8ee6c95cc87fa4e9814e49517114d6ad432d
       url: "https://github.com/banool/dictionarylib.git"
     source: git
-    version: "0.3.71"
+    version: "0.3.72"
   dolphinsr_dart:
     dependency: "direct main"
     description:

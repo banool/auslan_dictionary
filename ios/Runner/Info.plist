@@ -107,6 +107,9 @@
 		<array>
 			<string>itms-beta</string>
 			<string>itms</string>
+			<!-- So canLaunchUrl(mailto:) works for the "email me" settings
+		     button; without it iOS answers false for the mailto scheme. -->
+			<string>mailto</string>
 			<!-- Facebook SDK probes these to decide between Facebook app vs
 		     web browser at sign-in time. -->
 			<string>fbapi</string>
