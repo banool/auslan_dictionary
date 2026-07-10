@@ -10,7 +10,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:auslan_dictionary/main.dart';
 import 'package:auslan_dictionary/root.dart';
 
-import 'helpers.dart';
+import 'package:dictionarylib_test_support/helpers.dart';
 
 // End-to-end coverage for the sign-region configurator on the revision
 // landing page:

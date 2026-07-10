@@ -1,11 +1,8 @@
-import 'package:dictionarylib/common.dart';
 import 'package:dictionarylib/entry_list.dart';
 import 'package:dictionarylib/entry_types.dart';
-import 'package:dictionarylib/page_word.dart';
+import 'package:dictionarylib/root_app.dart' show defaultNavigateToEntryPage;
 import 'package:dictionarylib/saved_video.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'word_page.dart';
 
@@ -16,37 +13,15 @@ const MaterialColor MAIN_COLOR = Colors.blue;
 const String IOS_APP_ID = "1531368368";
 const String ANDROID_APP_ID = "com.banool.auslan_dictionary";
 
-/// Open an entry. Pushes a real `/word/<key>` route so the URL reflects the
-/// entry and it's deep-linkable on web (a pasted link resolves the entry from
-/// the key). Mobile is unaffected — URLs are simply invisible there. The
-/// non-serialisable bits ride along as `extra`.
+/// Open an entry — dictionarylib's shared web-route / native-push navigation
+/// with this app's word-page config. A plain function (not a curried final):
+/// auslanWordPageConfig itself references this, so eagerly evaluating the
+/// config here would recurse during lazy initialization.
 Future<void> navigateToEntryPage(
     BuildContext context, Entry entry, bool showFavouritesButton,
-    {SavedVideo? focusVideo, EntryList? saveToList}) async {
-  // Web: push a real /word/<key> go_router route so the URL reflects the entry
-  // and it's deep-linkable. Native: keep the proven imperative push — URLs are
-  // invisible there anyway, and going through go_router would clobber a
-  // raw-pushed parent (e.g. the list view) and break its back button.
-  if (kIsWeb) {
-    await context.push(
-      "$WORD_ROUTE/${Uri.encodeComponent(entry.getKey())}",
-      extra: EntryPageArgs(
-        showFavouritesButton: showFavouritesButton,
-        focusVideo: focusVideo,
-        saveToList: saveToList,
-      ),
-    );
-  } else {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EntryPage(
-            entry: entry,
-            config: auslanWordPageConfig,
-            showFavouritesButton: showFavouritesButton,
-            focusVideo: focusVideo,
-            saveToList: saveToList),
-      ),
-    );
-  }
+    {SavedVideo? focusVideo, EntryList? saveToList}) {
+  return defaultNavigateToEntryPage(context, entry, showFavouritesButton,
+      focusVideo: focusVideo,
+      saveToList: saveToList,
+      config: auslanWordPageConfig);
 }
