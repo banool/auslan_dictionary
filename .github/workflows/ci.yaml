@@ -7,26 +7,15 @@ on:
 
 jobs:
   # Always-on formatting gate (runs on every push/PR, unlike the
-  # path-gated build below).
+  # path-gated jobs below). The job body is a reusable workflow in the
+  # dictionarylib repo.
   format:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: subosito/flutter-action@v1
-      with:
-        flutter-version: '3.44.5'
-        channel: stable
-    # `dart format` derives its style from the package's language version
-    # (the pubspec sdk lower bound), so it needs the package resolved first —
-    # without pub get it falls back to the latest style and reformats
-    # everything.
-    - run: flutter pub get
-    - run: dart format --output=none --set-exit-if-changed lib test integration_test test_driver
+    uses: banool/dictionarylib/.github/workflows/app-format.yaml@main
 
-  # Check which files / paths have changed. We use this to inform whether we should run
-  # later jobs. Even though there is only a single job for now (build_android) we only
-  # want to run it if the app itself has changed, not the app data (since we don't
-  # bundle that in to the app anymore).
+  # Check which files / paths have changed. We use this to inform whether we
+  # should run later jobs — only build/release the app if the app itself has
+  # changed, not the app data (since we don't bundle that into the app
+  # anymore).
   changes:
     outputs:
       android: ${{ steps.filter.outputs.android }}
@@ -44,13 +33,34 @@ jobs:
         ANDROID: ${{ steps.filter.outputs.android }}
         DATA: ${{ steps.filter.outputs.data }}
 
-  build_android:
-    # The release step rewrites the "latest" tag + release assets, which
-    # needs write access — the default GITHUB_TOKEN is read-only.
+  # Test (always, when the app or data changed), and — only for android-change
+  # pushes — build the signed appbundle and upload it to the Play internal
+  # track. The job body is a reusable workflow in the dictionarylib repo; the
+  # `publish` expression preserves the old build_android semantics exactly
+  # (tests run on PRs and data-only changes; build/upload only on
+  # android-change pushes).
+  release_android:
+    needs: [changes]
+    if: needs.changes.outputs.android == 'true' || needs.changes.outputs.data == 'true'
+    uses: banool/dictionarylib/.github/workflows/app-release-android.yaml@main
+    with:
+      package_name: com.banool.auslan_dictionary
+      publish: ${{ needs.changes.outputs.android == 'true' && github.event_name == 'push' }}
+    secrets:
+      UPLOAD_KEYSTORE: ${{ secrets.UPLOAD_KEYSTORE }}
+      KEY_PROPERTIES: ${{ secrets.KEY_PROPERTIES }}
+      ANDROID_SERVICE_ACCOUNT_JSON: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
+
+  # Auslan-specific: attach a signed APK to the rolling "latest" GitHub
+  # release. (The Play appbundle is handled by release_android above; this
+  # stays here because the other app doesn't publish an APK.)
+  release_apk:
+    # Rewriting the "latest" tag + release assets needs write access — the
+    # default GITHUB_TOKEN is read-only.
     permissions:
       contents: write
     needs: [changes]
-    if: needs.changes.outputs.android == 'true' || needs.changes.outputs.data == 'true'
+    if: needs.changes.outputs.android == 'true' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -63,44 +73,25 @@ jobs:
         distribution: 'temurin'
         java-version: '21'
 
-    - uses: subosito/flutter-action@v1
+    - uses: subosito/flutter-action@v2
       with:
         flutter-version: '3.44.5'
         channel: stable
+        cache: true
 
-    # Initial build and test.
     - run: flutter pub get
-
-    # Run tests.
-    - run: flutter test
 
     # Build apk. This will be signed.
     - run: flutter build apk
-      if: needs.changes.outputs.android == 'true' && github.event_name == 'push'
 
     # Publish apk to Github Packages
     - uses: marvinpinto/action-automatic-releases@919008cf3f741b179569b7a6fb4d8860689ab7f0
-      if: needs.changes.outputs.android == 'true' && github.event_name == 'push'
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "latest"
         prerelease: false
         title: "Latest apk build"
         files: build/app/outputs/flutter-apk/app-release.apk
-
-    # Build appbundle. This will be signed.
-    - run: flutter build appbundle
-      if: needs.changes.outputs.android == 'true' && github.event_name == 'push'
-
-    # Publish appbundle to the store.
-    - name: Publish Android build to internal track
-      uses: r0adkll/upload-google-play@v1.0.15
-      if: needs.changes.outputs.android == 'true' && github.event_name == 'push'
-      with:
-        serviceAccountJsonPlainText: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
-        packageName: com.banool.auslan_dictionary
-        releaseFile: build/app/outputs/bundle/release/app-release.aab
-        track: internal
 
   upload-to-gcs:
     permissions:
@@ -132,4 +123,3 @@ jobs:
           path: tmp
           destination: 'auslan-media-bucket/sync'
           parent: false
-

@@ -69,6 +69,14 @@ if [[ "$BETA" == true ]]; then
     echo "No 'What to Test' notes entered — aborting." >&2
     exit 1
   fi
+  # The beta-promotion helper lives in the dictionarylib repo (sibling
+  # checkout, or set DICTIONARYLIB_DIR). Resolve it up front so a missing
+  # checkout fails fast here, not after the ~20-minute build/upload.
+  APPSTORE_BETA="${DICTIONARYLIB_DIR:-../dictionarylib}/scripts/appstore_beta.py"
+  if [[ ! -f "$APPSTORE_BETA" ]]; then
+    echo "error: $APPSTORE_BETA not found. Clone dictionarylib next to this repo, or set DICTIONARYLIB_DIR." >&2
+    exit 1
+  fi
 fi
 
 ARCHIVE_PATH="build/ios/Runner.xcarchive"
@@ -297,7 +305,7 @@ if [[ "$BETA" == true ]]; then
   APP_STORE_CONNECT_API_KEY_ID="$KEY_ID" \
   APP_STORE_CONNECT_API_ISSUER_ID="$APP_STORE_CONNECT_API_ISSUER_ID" \
   API_KEY_PATH="$API_KEY_PATH" \
-  python3 ios/appstore_beta.py
+  python3 "$APPSTORE_BETA"
 fi
 
 echo "==> Done! Build uploaded to TestFlight."
