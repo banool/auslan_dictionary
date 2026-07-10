@@ -1,5 +1,8 @@
 name: Deploy web app to Cloudflare Pages
 
+# The deploy itself is a reusable workflow in the dictionarylib repo
+# (app-web-deploy.yaml); this is the thin Auslan-specific caller.
+
 on:
   push:
     branches: [master]
@@ -18,30 +21,10 @@ concurrency:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
-    env:
+    uses: banool/dictionarylib/.github/workflows/app-web-deploy.yaml@main
+    with:
+      project_name: auslan-web
+      production_branch: master
+    secrets:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      # The account id is not a credential (it appears in dashboard URLs); a repo
-      # secret, if added, wins, otherwise this literal fallback is used. Same
-      # value + rationale as pages.yaml.
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || '47989fc190166b22bc15768dc41e8693' }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v1
-        with:
-          flutter-version: '3.44.5'
-          channel: stable
-      # No pubspec_overrides.yaml in CI (it's gitignored), so this resolves
-      # dictionarylib from the git ref pinned in pubspec.yaml — keep that pin
-      # current with any dictionarylib changes the web build needs.
-      - run: flutter pub get
-      - run: flutter build web --release
-      - name: Ensure Pages project exists
-        run: npx wrangler@latest pages project create auslan-web --production-branch=master || true
-      - name: Deploy to Cloudflare Pages
-        run: npx wrangler@latest pages deploy build/web --project-name=auslan-web --branch=master --commit-dirty=true
-      # Custom-domain reconciliation (app.auslandictionary.org) is a one-time,
-      # idempotent step owned by the private backend repo's Cloudflare CLI:
-      # `bun scripts/cf.ts app`. It isn't run here because this public CI can't
-      # reach the private script — and a deploy never detaches an already-
-      # attached domain, so there's nothing to do on each push.
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

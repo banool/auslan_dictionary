@@ -1,5 +1,8 @@
 name: Deploy site to Cloudflare Pages
 
+# The deploy itself is a reusable workflow in the dictionarylib repo
+# (app-pages-deploy.yaml); this is the thin Auslan-specific caller.
+
 on:
   push:
     branches: [master]
@@ -13,29 +16,10 @@ concurrency:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
-    # Run from site/ so wrangler picks up site/wrangler.toml (project name +
-    # output dir) and the attach-domains script sits one dir down.
-    defaults: { run: { working-directory: site } }
-    env:
+    uses: banool/dictionarylib/.github/workflows/app-pages-deploy.yaml@main
+    with:
+      project_name: auslan-dictionary
+      production_branch: master
+    secrets:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      # The account id is not a credential (it appears in dashboard URLs);
-      # the repo has no CLOUDFLARE_ACCOUNT_ID secret, and wrangler used to
-      # pick the id up from the since-untracked site/.wrangler cache, so it
-      # lives here as a literal fallback. A repo secret, if added, wins.
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || '47989fc190166b22bc15768dc41e8693' }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Ensure Pages project exists
-        run: npx wrangler@latest pages project create auslan-dictionary --production-branch=master || true
-      - name: Deploy to Cloudflare Pages
-        run: npx wrangler@latest pages deploy --branch=master --commit-dirty=true
-      # Custom-domain reconciliation (auslandictionary.org + www) is a
-      # one-time, idempotent setup, now owned by the private backend repo's
-      # Cloudflare CLI: `bun scripts/cf.ts apex`. It isn't run from this
-      # public CI because that can't reach the private script — and a deploy
-      # never detaches an already-attached domain, so there's nothing to do
-      # here on each push.
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
