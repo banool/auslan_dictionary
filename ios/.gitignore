@@ -1,3 +1,4 @@
+secrets.env
 publish.env
 report.xml
 *.mobileprovision

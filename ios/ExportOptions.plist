@@ -9,7 +9,7 @@
 	<!-- Automatic signing: the app uses Sign In with Apple + Associated Domains,
 	     so the profile must carry those entitlements. Automatic signing
 	     regenerates such a profile on the fly; a hand-pinned profile does not.
-	     publish.sh clears revoked/expired certs first so the automatic resolver
+	     upload.sh clears revoked/expired certs first so the automatic resolver
 	     cannot select an invalid one ("Signing certificate is invalid"). -->
 	<key>signingStyle</key>
 	<string>automatic</string>

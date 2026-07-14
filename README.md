@@ -11,22 +11,43 @@ As of 2025-01-05 the app has been downloaded 372,975 times:
 
 Note that 67% of downloads on Apple are [institutional](https://apple.stackexchange.com/a/428958), likely implying use by educational institutions. Ignoring those, there have been 103k unique downloads.
 
-## Deploying to Android
-This is done automatically via Github Actions.
+## Releasing
 
-## Deploying to iOS
-Currently this must be done manually. Make sure `ios/publish.env` is configured (see below), then run:
+There are two operations: **upload** a build (produces an *internal* build) and **promote** an already-uploaded build to a wider audience (beta testers, then the public). The commands are the same across both dictionary apps; they wrap canonical scripts in the [dictionarylib](https://github.com/banool/dictionarylib) repo (checked out as a sibling of this repo, or point at it with `DICTIONARYLIB_DIR`).
+
+### 1. Upload a build (internal)
+
+- **Android — automatic.** Every push that changes the app is built (signed appbundle) and uploaded to the Play **internal** track by CI (`.github/workflows/ci.yaml` → the shared `app-release-android.yaml`). Nothing to run by hand.
+- **iOS — manual** (no CI path). Make sure `ios/secrets.env` is configured (see [App Store Connect API key](#app-store-connect-api-key-iossecretsenv)), then run:
+  ```
+  flutter pub get
+  flutter pub run flutter_launcher_icons:main
+  flutter pub run flutter_native_splash:create
+  ./ios/upload.sh
+  ```
+  `ios/upload.sh` is fully hands-off: it verifies the API key, clears any revoked/expired certs and stale provisioning profiles, then builds with `xcodebuild` using **automatic** signing and uploads to TestFlight via `xcrun altool`. With an Admin API key, automatic signing creates and manages the distribution certificate and the App Store provisioning profile (including the Sign In with Apple + Associated Domains entitlements) — no fastlane, match, Xcode GUI, or manual cert management. The build lands as an **internal** TestFlight build; `upload.sh` does not release it any further.
+
+### 2. Promote a build (beta → public)
+
+Promotion takes an already-uploaded internal build and sends it wider. It always needs release notes, and it works on **both** platforms via a mandatory `--stage`.
+
+**Locally** (both platforms at once):
 ```
-flutter pub get
-flutter pub run flutter_launcher_icons:main
-flutter pub run flutter_native_splash:create
-./ios/publish.sh
+./promote.sh --stage beta        # -> TestFlight "Beta Group" + Play beta track ("What to Test")
+./promote.sh --stage external    # -> App Store + Play production ("What's New")
 ```
+Pass a notes file (`./promote.sh --stage external notes.txt`) for the release notes; `--stage external` falls back to a generic default, `--stage beta` prompts you for the required "What to Test" notes. Useful flags: `--dry-run` (plan only), `--ios-only` / `--android-only`, `--yes` (skip the confirm), `--no-submit` (iOS: prepare but don't submit) / `--no-commit` (Android: prepare but don't commit), `--rollout=0.2` (Android staged rollout). Android promotion assumes the build is already on the Play internal track (from CI).
 
-`ios/publish.sh` is fully hands-off: it verifies the API key, clears any revoked/expired certs and stale provisioning profiles, then builds with `xcodebuild` using **automatic** signing and uploads to TestFlight via `xcrun altool`. With an Admin API key, automatic signing creates and manages the distribution certificate and the App Store provisioning profile (including the Sign In with Apple + Associated Domains entitlements) — no fastlane, match, Xcode GUI, or manual cert management.
+**Android via GitHub Actions** (no local checkout needed): Actions → **Promote Android** → *Run workflow*, then pick:
+- `stage` — `external` (Play **production**) or `beta` (Play **beta** track).
+- `notes` — release notes (blank uses a generic default).
+- `mode` — `release` to commit, or `dry-run` to preview without changing anything.
+- `rollout` — optional staged-rollout fraction (e.g. `0.2`); blank = 100%.
 
-### App Store Connect API key (`ios/publish.env`)
-`ios/publish.env` (git-ignored) must export:
+It runs the same `play_release.py` the local script does. **iOS has no GHA path** — promote iOS locally with `./promote.sh --stage <stage> --ios-only`.
+
+### App Store Connect API key (`ios/secrets.env`)
+`ios/secrets.env` (git-ignored) must export:
 ```
 export TEAM_ID='...'                              # Apple Developer team id (e.g. 9N3SNHTGL7)
 export APP_STORE_CONNECT_API_ISSUER_ID='...'      # Issuer ID (top of the API keys page)
@@ -35,7 +56,7 @@ export APP_STORE_CONNECT_API_KEY_ID='XXXX'        # optional — see note
 ```
 Get these at App Store Connect → **Users and Access → Integrations → App Store Connect API**:
 - The key **must have the Admin role** — a lesser role (e.g. App Manager) can upload builds but cannot create signing certificates, which makes the export fail.
-- **Key ID:** the `.p8` does *not* contain its ID; Apple only encodes it in the download filename `AuthKey_<KEYID>.p8`. So if you keep that filename, `publish.sh` derives the ID automatically and you can omit `APP_STORE_CONNECT_API_KEY_ID`. If you rename the file, set `APP_STORE_CONNECT_API_KEY_ID` to the key's ID. (The `.p8` can only be downloaded once — keep it safe.)
+- **Key ID:** the `.p8` does *not* contain its ID; Apple only encodes it in the download filename `AuthKey_<KEYID>.p8`. So if you keep that filename, `upload.sh` derives the ID automatically and you can omit `APP_STORE_CONNECT_API_KEY_ID`. If you rename the file, set `APP_STORE_CONNECT_API_KEY_ID` to the key's ID. (The `.p8` can only be downloaded once — keep it safe.)
 
 ### Troubleshooting
 The script runs a fast auth precheck before building, so credential problems fail in seconds rather than after a full archive:
@@ -68,7 +89,7 @@ python3 screenshots/upload_screenshots.py
 This drives the App Store Connect and Google Play APIs directly (no fastlane) and supports `--ios-only`, `--android-only`, and `--dry-run`. The stores cap a listing at 10 (App Store) and 8 (Play) screenshots while the harness captures more than that, so the ordered selection lists at the top of the script choose which captures are published and in what order — edit them there to re-curate the storefronts.
 
 Credentials:
-- **App Store Connect:** the same `ios/publish.env` that `ios/publish.sh` uses. Screenshots attach to an *editable* app version, so create the new version in App Store Connect first if one isn't already in Prepare for Submission.
+- **App Store Connect:** the same `ios/secrets.env` that `ios/upload.sh` uses. Screenshots attach to an *editable* app version, so create the new version in App Store Connect first if one isn't already in Prepare for Submission.
 - **Google Play:** a service account JSON key at `android/play_service_account.json` (git-ignored), or set `PLAY_SERVICE_ACCOUNT_JSON_PATH`. Use a key for the same service account CI publishes builds with (the `ANDROID_SERVICE_ACCOUNT_JSON` secret); it needs permission to edit the store listing in the Play Console. All Play changes happen inside a single edit that is committed only at the end, so a failed run changes nothing.
 
 ## General dev guide

@@ -45,7 +45,7 @@ jobs:
     uses: banool/dictionarylib/.github/workflows/app-release-android.yaml@main
     with:
       package_name: com.banool.auslan_dictionary
-      publish: ${{ needs.changes.outputs.android == 'true' && github.event_name == 'push' }}
+      upload: ${{ needs.changes.outputs.android == 'true' && github.event_name == 'push' }}
     secrets:
       UPLOAD_KEYSTORE: ${{ secrets.UPLOAD_KEYSTORE }}
       KEY_PROPERTIES: ${{ secrets.KEY_PROPERTIES }}
