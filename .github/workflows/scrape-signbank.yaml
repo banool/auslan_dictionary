@@ -1,0 +1,98 @@
+name: Scrape Signbank
+
+# Re-scrape auslan.org.au (Auslan Signbank) and open — or update — a
+# data-update PR against master. This used to be a weekly CronJob on the home
+# k8s cluster (server-platform src/apps/dictionary.ts, now disabled); it moved
+# here so it runs on GitHub's infra, needs no home-server PAT, and can be
+# kicked off manually.
+#
+# The old create_data_update_pr.sh git dance (fresh timestamped branch + reset
+# --hard + push + `gh pr create` every week) is gone: create-pull-request keeps
+# a single rolling branch and updates the same PR in place. The scrape itself
+# still lives in scripts/ (scrape.sh + move_data.sh) as the single source of
+# truth.
+on:
+  schedule:
+    # Sundays 04:00 UTC — the exact slot the old CronJob used (k8s crons and
+    # GitHub crons are both UTC). The scrape is rate-limited and walks the whole
+    # site, so it runs for a while; weekly is plenty for a slowly-changing
+    # dictionary.
+    - cron: '0 4 * * 0'
+  workflow_dispatch:
+
+# create-pull-request pushes the rolling branch and opens the PR with the
+# default GITHUB_TOKEN. (Repo setting "Allow GitHub Actions to create and
+# approve pull requests" must be enabled for this to work.)
+permissions:
+  contents: write
+  pull-requests: write
+
+# Never let two scrapes overlap — mirrors the old CronJob's
+# concurrencyPolicy: Forbid.
+concurrency:
+  group: scrape-signbank
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    # The full a..z scrape is slow under the 0.1s/request rate limit against a
+    # flaky source. GitHub-hosted runners hard-cap a job at 6h regardless of
+    # this value; 350m leaves a little headroom under that ceiling. If real runs
+    # start bumping the cap we'd shard the a..z walk across a job matrix.
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Scrape Signbank (categories + a..z)
+        working-directory: scripts
+        # scrape.sh scrapes categories.json then walks a..z into all_letters.json.
+        # It (and incremental_scrape.sh) require running under `uv run`, which
+        # sets $UV and puts the venv python on PATH.
+        run: uv run bash scrape.sh
+
+      - name: Detect data changes
+        id: detect
+        working-directory: scripts
+        # move_data.sh rewrites latest_version to `date +%s` unconditionally, so
+        # running it always dirties the tree. Only proceed when the freshly
+        # scraped data actually differs from what's committed — the same
+        # diff-gate the old create_data_update_pr.sh used.
+        run: |
+          if diff -q all_letters.json ../assets/data/data.json > /dev/null; then
+            echo "No new data; nothing to open a PR for."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Move data into place
+        if: steps.detect.outputs.changed == 'true'
+        working-directory: scripts
+        # Moves all_letters.json -> assets/data/data.json, regenerates the
+        # path-based data-v2.json, and bumps latest_version.
+        run: uv run bash move_data.sh
+
+      - name: Open or update the data-update PR
+        if: steps.detect.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          # Commit only the data files. The scrape's working files
+          # (all_letters.json, scrape_state.txt, next_*.json, …) are gitignored,
+          # but scoping the commit keeps it unambiguous.
+          add-paths: |
+            assets/data/data.json
+            assets/data/data-v2.json
+            assets/data/categories.json
+            assets/data/latest_version
+          branch: automated/update-signbank-data
+          commit-message: Update signbank data
+          title: Update signbank data
+          body: |
+            Automated Auslan Signbank re-scrape.
+
+            Check the diff for signs added, changed or removed. Opened by the
+            **Scrape Signbank** workflow (`.github/workflows/scrape-signbank.yaml`).
+          labels: data_update

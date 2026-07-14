@@ -8,9 +8,24 @@ Install [uv](https://github.com/astral-sh/uv) for Python dependency management.
 
 ## Quick Start
 
-### Automated Scraping (Server)
+### Automated Scraping (GitHub Actions)
 
-For automated scraping on a server that creates a PR automatically:
+The scrape runs automatically as the **Scrape Signbank** workflow
+(`.github/workflows/scrape-signbank.yaml`): weekly (Sundays 04:00 UTC) and on
+manual dispatch. It runs `scrape.sh` + `move_data.sh` and opens/updates a single
+rolling data-update PR (branch `automated/update-signbank-data`, label
+`data_update`) whenever the scraped data differs from what's committed.
+
+To trigger a run by hand: **Actions → Scrape Signbank → Run workflow**, or
+`gh workflow run scrape-signbank.yaml`.
+
+> This previously ran as a weekly CronJob on the home k8s cluster
+> (`server-platform`, now disabled) via `create_data_update_pr.sh`. That script
+> is kept below for reference / local use, but the workflow no longer calls it —
+> `create-pull-request` handles the branch/commit/PR instead of the old git
+> dance.
+
+For automated scraping on a server that creates a PR automatically (legacy):
 
 ```bash
 cd /var/www/auslan/scripts
