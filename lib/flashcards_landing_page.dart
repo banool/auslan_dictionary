@@ -3,13 +3,13 @@ import 'package:dictionarylib/flashcards_logic.dart';
 import 'package:dictionarylib/globals.dart';
 import 'package:dictionarylib/hearth.dart';
 import 'package:dictionarylib/page_flashcards.dart';
+import 'package:dictionarylib/page_flashcards_help_en.dart';
 import 'package:dictionarylib/page_flashcards_landing.dart';
 import 'package:flutter/material.dart';
 import 'package:dictionarylib/dictionarylib.dart' show DictLibLocalizations;
 
 import 'common.dart';
 import 'entries_types.dart';
-import 'flashcards_help_page.dart';
 import 'word_page.dart';
 
 /// Auslan's wiring for the shared [FlashcardsPage]: a 16:9 video, the region
@@ -42,7 +42,26 @@ class MyFlashcardsLandingPageController
 
   @override
   Widget buildHelpPage(BuildContext context) {
-    return getFlashcardsHelpPage(context);
+    return getFlashcardsHelpPageEn(subjectNoun: "word", extraItems: const {
+      "Can I limit how many cards I review in one session?": [
+        "Yes. Before you start, the revision settings let you set a card limit "
+            "for the session. Choose \"No limit\" to revise every selected card, "
+            "or pick a number to cap how many cards you'll be shown this time. "
+            "This is handy when a lot of cards are due and a full session would "
+            "otherwise feel overwhelming.",
+      ],
+      "What do all these sign selection options mean?": [
+        "Within a single dictionary entry in Auslan Dictionary there may be "
+            "multiple \"sub-entries\", for example showing signs from different regions. "
+            "By default we automatically opt you in to signs that are known to be "
+            "used throughout the whole country, but you may also opt in to seeing "
+            "signs from specific regions (e.g. Northern, VIC, WA, etc). ",
+        "Many signs in the signbank don't have regional information attached. "
+            "For those you may enable \"Signs with unknown region\". I would "
+            "generally recommend leaving this enabled, but we provide this option "
+            "based on whatever works best for you."
+      ],
+    });
   }
 
   /// Filter the saved-video pool against the user's region prefs and
