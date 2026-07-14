@@ -1,0 +1,41 @@
+name: Promote Android to production
+# Promote the latest internal-track build to the Google Play production track,
+# using the shared scripts/play_release.py from dictionarylib and the same
+# ANDROID_SERVICE_ACCOUNT_JSON service-account key CI already uses to upload to
+# the internal track. Manual trigger only. Safe to re-run: play_release.py
+# no-ops if the latest build is already live on production.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "release = promote + commit; dry-run = plan only, no commit"
+        type: choice
+        options: [release, dry-run]
+        default: release
+      rollout:
+        description: "Staged rollout fraction 0<f<1 (blank = full 100%)"
+        required: false
+        default: ""
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out dictionarylib (for scripts/play_release.py)
+        uses: actions/checkout@v4
+        with:
+          repository: banool/dictionarylib
+          ref: main
+      - name: Write Play service-account key
+        run: printf '%s' "$KEY" > "$RUNNER_TEMP/play_key.json"
+        env:
+          KEY: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
+      - name: Promote internal -> production
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON_PATH: ${{ runner.temp }}/play_key.json
+          PLAY_PACKAGE_NAME: com.banool.auslan_dictionary
+          PLAY_RELEASE_NOTES: "Assorted improvements and bug fixes."
+          PLAY_ROLLOUT: ${{ github.event.inputs.rollout }}
+          PLAY_COMMIT: ${{ github.event.inputs.mode == 'dry-run' && '0' || '1' }}
+          PLAY_DRY_RUN: ${{ github.event.inputs.mode == 'dry-run' && '1' || '0' }}
+        run: python3 scripts/play_release.py
