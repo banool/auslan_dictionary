@@ -12,7 +12,11 @@ import 'entries_types.dart';
 class MyEntryLoader extends EntryLoader {
   static const List<String> baseUrls = [
     'https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/data',
-    'https://storage.googleapis.com/auslan-media-bucket/sync',
+    // Cloudflare R2 mirror (cdn.auslandictionary.org), populated by the
+    // mirror-to-r2 CI job. Secondary fallback for the data files when GitHub
+    // raw is unavailable. Replaced the old GCS bucket
+    // (storage.googleapis.com/auslan-media-bucket/sync).
+    'https://cdn.auslandictionary.org/data',
   ];
 
   // data-v2.json stores media as paths (not full URLs) — see entries_types.dart

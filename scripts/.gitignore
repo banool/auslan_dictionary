@@ -7,3 +7,4 @@ all_letters.json
 scrape_state.txt
 scrape_progress.json
 .venv
+secrets.env

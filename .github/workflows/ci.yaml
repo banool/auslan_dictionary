@@ -93,33 +93,38 @@ jobs:
         title: "Latest apk build"
         files: build/app/outputs/flutter-apk/app-release.apk
 
-  upload-to-gcs:
-    permissions:
-      contents: 'read'
-      id-token: 'write'
+  # Mirror the data files to the Cloudflare R2 bucket, served at
+  # cdn.auslandictionary.org/data/... — the app's secondary fallback for the
+  # data files when GitHub raw is unavailable (see entries_loader.dart). This
+  # replaced the old Google Cloud Storage bucket. data-v2.json is what current
+  # builds read; data.json is the legacy v1 file still read by old builds;
+  # latest_version is the version marker — all three must be mirrored or the
+  # fallback is dead for those clients.
+  mirror-to-r2:
     needs: [changes]
     # Only mirror data from merged commits on master, never from PR branches.
     # Without the push guard, opening a data-update PR would overwrite the
     # mirror with unvetted, unmerged data (it triggers on pull_request too).
     if: needs.changes.outputs.data == 'true' && github.event_name == 'push'
     runs-on: ubuntu-latest
+    env:
+      # R2 S3-compatible API credentials (an R2 API token scoped to this
+      # bucket). AWS_DEFAULT_REGION must be "auto" for R2.
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      # aws-cli v2 adds request checksums R2 can reject; only send them when the
+      # operation actually requires them.
+      AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+      R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
     steps:
       - uses: actions/checkout@v4
 
-      # Copy the target files elsewhere. data-v2.json is what current app
-      # builds read (see entries_loader.dart); data.json is the legacy v1 file
-      # still read by old builds. Both must be mirrored or the GCS fallback is
-      # dead for current clients.
-      - run: mkdir -p tmp
-      - run: cp assets/data/data.json assets/data/data-v2.json assets/data/latest_version tmp
-
-      - uses: 'google-github-actions/auth@v2'
-        with:
-          project_id: 'auslan-dictionary'
-          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
-
-      - uses: 'google-github-actions/upload-cloud-storage@v2'
-        with:
-          path: tmp
-          destination: 'auslan-media-bucket/sync'
-          parent: false
+      - name: Upload data files to R2
+        run: |
+          set -euo pipefail
+          for f in data.json data-v2.json latest_version; do
+            aws s3 cp "assets/data/$f" "s3://auslan-mirror/data/$f" \
+              --endpoint-url "$R2_ENDPOINT" \
+              --cache-control "public, max-age=300"
+          done

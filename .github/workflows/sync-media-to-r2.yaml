@@ -1,0 +1,30 @@
+name: Sync media to R2
+
+# Mirror the sign videos from the primary host (Nectar) into the Cloudflare R2
+# bucket that backs cdn.auslandictionary.org, so R2 can serve as a media
+# fallback (see AUSLAN_MEDIA_MIRROR_BASE_URL in lib/main.dart). The script is
+# incremental — it only copies media referenced by data-v2.json that isn't
+# already in the bucket — so this runs only when data-v2.json changes (a new
+# sign was added) plus on demand. There's no schedule; media only grows when
+# the data set does.
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'assets/data/data-v2.json'
+  workflow_dispatch:
+
+jobs:
+  sync-media:
+    runs-on: ubuntu-latest
+    env:
+      # The same R2 S3-API credentials the mirror-to-r2 job (in ci.yaml) uses.
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Mirror new media to R2
+        working-directory: scripts
+        run: uv run python sync_media_to_r2.py

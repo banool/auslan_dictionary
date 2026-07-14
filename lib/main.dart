@@ -16,6 +16,14 @@ const String KNOBS_URL_BASE =
 const String AUSLAN_MEDIA_BASE_URL =
     'https://object-store.rc.nectar.org.au/v1/AUTH_92e2f9b70316412697cddc6f3ac0ee4e/staticauslanorgau';
 
+/// Cloudflare R2 mirror of the media, served at cdn.auslandictionary.org.
+/// Listed after [AUSLAN_MEDIA_BASE_URL] in [mediaBaseUrls] so it's only used
+/// when the primary (Nectar) host fails a fetch — the players walk the bases
+/// in order (see mediaFallbackUrlsFor in dictionarylib). The R2 object keys
+/// match the stored media paths (e.g. `/mp4video/11/11450.mp4`), so
+/// `AUSLAN_MEDIA_MIRROR_BASE_URL + path` resolves the same recording.
+const String AUSLAN_MEDIA_MIRROR_BASE_URL = 'https://cdn.auslandictionary.org';
+
 /// Auslan's plug-in points for the shared startup orchestration
 /// (setupDictionaryApp / runDictionaryApp in dictionarylib).
 final DictAppBootstrapConfig bootstrapConfig = DictAppBootstrapConfig(
@@ -31,8 +39,12 @@ final DictAppBootstrapConfig bootstrapConfig = DictAppBootstrapConfig(
   setupMediaAndEntryLoader: () async {
     // Configure how saved-video paths resolve to playable URLs. Must be set
     // before the dictionary + lists load so the list migration can resolve /
-    // strip it.
-    mediaBaseUrls = const [AUSLAN_MEDIA_BASE_URL];
+    // strip it. Nectar is the primary host; the R2 mirror is a fallback the
+    // players fall through to when a Nectar fetch fails.
+    mediaBaseUrls = const [
+      AUSLAN_MEDIA_BASE_URL,
+      AUSLAN_MEDIA_MIRROR_BASE_URL,
+    ];
     return MyEntryLoader();
   },
   //   apiBaseUrl     — Cloudflare Worker (JSON API)
