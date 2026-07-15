@@ -3,10 +3,11 @@ description: Free video dictionary of Auslan signs
 
 publish_to: 'none'
 
-version: 2.0.34+945
+version: 2.0.35+946
 
 environment:
-  sdk: '>=2.18.0 <3.0.0'
+  sdk: '>=3.2.3 <4.0.0'
+  flutter: ">=1.17.0"
 
 dependencies:
   flutter:
