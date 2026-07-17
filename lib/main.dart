@@ -7,6 +7,11 @@ import 'root.dart';
 const String KNOBS_URL_BASE =
     "https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/knobs/";
 
+/// Public Aptabase app key for privacy-first anonymous analytics (US region).
+/// An empty string disables analytics entirely — a safe no-op. This is a public
+/// client key (like the OAuth ids below), so hardcoding it is fine.
+const String APTABASE_APP_KEY = 'A-US-1002339341';
+
 /// Where Auslan media (the sign videos) is served from. data-v2.json stores
 /// each media item as the path *after* this base; the playable URL is
 /// `AUSLAN_MEDIA_BASE_URL + path`, rebuilt on demand (see mediaUrlForPath in
@@ -36,6 +41,7 @@ final DictAppBootstrapConfig bootstrapConfig = DictAppBootstrapConfig(
   yankedVersionsUrl:
       "https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/yanked_versions",
   knobUrlBase: KNOBS_URL_BASE,
+  aptabaseAppKey: APTABASE_APP_KEY,
   setupMediaAndEntryLoader: () async {
     // Configure how saved-video paths resolve to playable URLs. Must be set
     // before the dictionary + lists load so the list migration can resolve /

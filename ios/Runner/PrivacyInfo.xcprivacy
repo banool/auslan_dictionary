@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  App privacy manifest. We collect anonymous product-interaction analytics
+	  (Aptabase) that is NOT tracking (no linking across companies, no IDFA) and
+	  NOT linked to the user's identity, so no ATT prompt is required. Required-
+	  reason API declarations (UserDefaults, file timestamps, etc.) are provided
+	  by the Flutter plugins' own bundled manifests, so this app-level manifest
+	  keeps NSPrivacyAccessedAPITypes empty.
+	  NOTE: this file must be added to the Runner target in Xcode (Runner group,
+	  "Copy Bundle Resources") for it to ship.
+	-->
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeProductInteraction</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
+			</array>
+		</dict>
+	</array>
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array/>
+</dict>
+</plist>
