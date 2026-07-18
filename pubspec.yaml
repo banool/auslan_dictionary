@@ -3,7 +3,7 @@ description: Free video dictionary of Auslan signs
 
 publish_to: 'none'
 
-version: 2.0.41+952
+version: 2.0.42+953
 
 environment:
   sdk: '>=3.2.3 <4.0.0'
@@ -22,7 +22,7 @@ dependencies:
       url: https://github.com/banool/dictionarylib.git
       # NOTE: keep this ref and dictionarylib_test_support's ref (below, in
       # dev_dependencies) on the SAME commit when repinning.
-      ref: 13be4c56887094b7342ff19a55d5e9ad417f9c98
+      ref: f1090f445a86da18fde4cfc530bfd4092b08c0a7
   dolphinsr_dart:
     git:
       url: https://github.com/banool/dolphhinsr_dart.git
@@ -42,7 +42,7 @@ dev_dependencies:
   dictionarylib_test_support:
     git:
       url: https://github.com/banool/dictionarylib.git
-      ref: 13be4c56887094b7342ff19a55d5e9ad417f9c98
+      ref: f1090f445a86da18fde4cfc530bfd4092b08c0a7
       path: dictionarylib_test_support
   dependency_validator:
   flutter_driver:
