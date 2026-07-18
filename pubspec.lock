@@ -269,17 +269,17 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "5d6e2f9db050be4960e5a1c9c2ee1bf72922991b"
-      resolved-ref: "5d6e2f9db050be4960e5a1c9c2ee1bf72922991b"
+      ref: "94fc17d01cb6b0669881785736734e7db7fc44d2"
+      resolved-ref: "94fc17d01cb6b0669881785736734e7db7fc44d2"
       url: "https://github.com/banool/dictionarylib.git"
     source: git
-    version: "0.3.94"
+    version: "0.3.100"
   dictionarylib_test_support:
     dependency: "direct dev"
     description:
       path: dictionarylib_test_support
-      ref: "5d6e2f9db050be4960e5a1c9c2ee1bf72922991b"
-      resolved-ref: "5d6e2f9db050be4960e5a1c9c2ee1bf72922991b"
+      ref: "94fc17d01cb6b0669881785736734e7db7fc44d2"
+      resolved-ref: "94fc17d01cb6b0669881785736734e7db7fc44d2"
       url: "https://github.com/banool/dictionarylib.git"
     source: git
     version: "0.0.1"
@@ -287,11 +287,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "33ae39bf066ddb7e1169c97f56f5c9f2930a2f0b"
-      resolved-ref: "33ae39bf066ddb7e1169c97f56f5c9f2930a2f0b"
+      ref: "016df21ffc2496df5a3d2042a503f72f5b6bdc00"
+      resolved-ref: "016df21ffc2496df5a3d2042a503f72f5b6bdc00"
       url: "https://github.com/banool/dolphhinsr_dart.git"
     source: git
-    version: "3.0.1"
+    version: "4.0.0"
   edit_distance:
     dependency: transitive
     description:
