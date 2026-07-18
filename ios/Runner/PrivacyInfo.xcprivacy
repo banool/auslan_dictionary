@@ -9,8 +9,6 @@
 	  reason API declarations (UserDefaults, file timestamps, etc.) are provided
 	  by the Flutter plugins' own bundled manifests, so this app-level manifest
 	  keeps NSPrivacyAccessedAPITypes empty.
-	  NOTE: this file must be added to the Runner target in Xcode (Runner group,
-	  "Copy Bundle Resources") for it to ship.
 	-->
 	<key>NSPrivacyTracking</key>
 	<false/>
