@@ -141,7 +141,14 @@ def load_url(url: str, timeout: int = DEFAULT_TIMEOUT) -> requests.Response:
     _rate_limit()
     response = requests.get(url, timeout=timeout)
     if response.status_code != 200:
-        raise RuntimeError(f"Got status code {response.status_code} for {url}")
+        # Include enough detail to tell a blocked scraper (WAF / captcha /
+        # rate limiting) apart from the site just being down.
+        raise RuntimeError(
+            f"Got status code {response.status_code} for {url}. "
+            f"Response headers: {dict(response.headers)}. "
+            f"Our user agent: {response.request.headers.get('User-Agent')!r}. "
+            f"Start of body: {response.text[:500]!r}"
+        )
     return response
 
 

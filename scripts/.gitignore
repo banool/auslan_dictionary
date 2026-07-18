@@ -8,3 +8,4 @@ scrape_state.txt
 scrape_progress.json
 .venv
 secrets.env
+bad_pages/
