@@ -13,19 +13,19 @@ Note that 67% of downloads on Apple are [institutional](https://apple.stackexcha
 
 ## Releasing
 
-There are two operations: **upload** a build (produces an *internal* build) and **promote** an already-uploaded build to a wider audience (beta testers, then the public). The commands are the same across both dictionary apps; they wrap canonical scripts in the [dictionarylib](https://github.com/banool/dictionarylib) repo (checked out as a sibling of this repo, or point at it with `DICTIONARYLIB_DIR`).
+There are two operations: **upload** a build (produces an *internal* build) and **promote** an already-uploaded build to a wider audience (beta testers, then the public). The commands are the same across all three of my apps; they wrap canonical scripts in the [appci](https://github.com/banool/appci) repo (checked out as a sibling of this repo, or point at it with `APPCI_DIR`).
 
 ### 1. Upload a build (internal)
 
-- **Android — automatic.** Every push that changes the app is built (signed appbundle) and uploaded to the Play **internal** track by CI (`.github/workflows/ci.yaml` → the shared `app-release-android.yaml`). Nothing to run by hand.
-- **iOS — manual** (no CI path). Make sure `ios/secrets.env` is configured (see [App Store Connect API key](#app-store-connect-api-key-iossecretsenv)), then run:
+- **Automatic (both platforms).** Every push that changes the app is built and uploaded by CI (`.github/workflows/ci.yaml`): a signed appbundle to the Play **internal** track (shared `app-release-android.yaml`) and an archive to the **internal** TestFlight track (shared `app-release-ios.yaml`, on a macOS runner). Nothing to run by hand.
+- **Manually** (e.g. to iterate without a push): make sure `ios/secrets.env` is configured (see [App Store Connect API key](#app-store-connect-api-key-iossecretsenv)), then run `./ios/upload.sh` and/or `./android/upload.sh`.
   ```
   flutter pub get
   flutter pub run flutter_launcher_icons:main
   flutter pub run flutter_native_splash:create
   ./ios/upload.sh
   ```
-  `ios/upload.sh` is fully hands-off: it verifies the API key, clears any revoked/expired certs and stale provisioning profiles, then builds with `xcodebuild` using **automatic** signing and uploads to TestFlight via `xcrun altool`. With an Admin API key, automatic signing creates and manages the distribution certificate and the App Store provisioning profile (including the Sign In with Apple + Associated Domains entitlements) — no fastlane, match, Xcode GUI, or manual cert management. The build lands as an **internal** TestFlight build; `upload.sh` does not release it any further.
+  `ios/upload.sh` is fully hands-off: it verifies the API key, runs a version preflight against the store, clears any revoked/expired certs and stale provisioning profiles, then builds with `xcodebuild` using **automatic** signing and uploads to TestFlight via `xcrun altool`. With an Admin API key, automatic signing creates and manages the distribution certificate and the App Store provisioning profile (including the Sign In with Apple + Associated Domains entitlements) — no fastlane, match, Xcode GUI, or manual cert management. The build lands as an **internal** TestFlight build; `upload.sh` does not release it any further. `android/upload.sh` is the Android counterpart: preflight, `flutter build appbundle` (signed via `android/key.properties` → the keystore in `~/creds`), upload to the Play internal track.
 
 ### 2. Promote a build (beta → public)
 
@@ -38,13 +38,14 @@ Promotion takes an already-uploaded internal build and sends it wider. It always
 ```
 Pass a notes file (`./promote.sh --stage external notes.txt`) for the release notes; `--stage external` falls back to a generic default, `--stage beta` prompts you for the required "What to Test" notes. Useful flags: `--dry-run` (plan only), `--ios-only` / `--android-only`, `--yes` (skip the confirm), `--no-submit` (iOS: prepare but don't submit) / `--no-commit` (Android: prepare but don't commit), `--rollout=0.2` (Android staged rollout). Android promotion assumes the build is already on the Play internal track (from CI).
 
-**Android via GitHub Actions** (no local checkout needed): Actions → **Promote Android** → *Run workflow*, then pick:
-- `stage` — `external` (Play **production**) or `beta` (Play **beta** track).
-- `notes` — release notes (blank uses a generic default).
-- `mode` — `release` to commit, or `dry-run` to preview without changing anything.
-- `rollout` — optional staged-rollout fraction (e.g. `0.2`); blank = 100%.
+**Via GitHub Actions** (no local checkout needed, both platforms): Actions → **Promote** → *Run workflow*, then pick:
+- `stage` — `external` (App Store + Play **production**) or `beta` (TestFlight "Beta Group" + Play **beta** track).
+- `platform` — `both` (default), `ios`, or `android`.
+- `notes` — release notes ("What to Test" for beta, required; "What's New" for external, blank uses a generic default).
+- `rollout` — optional Android staged-rollout fraction (e.g. `0.2`); blank = 100%.
+- `dry_run` — preview without changing anything.
 
-It runs the same `play_release.py` the local script does. **iOS has no GHA path** — promote iOS locally with `./promote.sh --stage <stage> --ios-only`.
+It runs the same `promote.sh` the local flow does (iOS promotion is pure App Store Connect API calls, so it runs on an ubuntu runner).
 
 ### App Store Connect API key (`ios/secrets.env`)
 `ios/secrets.env` (git-ignored) must export:

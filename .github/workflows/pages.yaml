@@ -1,6 +1,6 @@
 name: Deploy site to Cloudflare Pages
 
-# The deploy itself is a reusable workflow in the dictionarylib repo
+# The deploy itself is a reusable workflow in the appci repo
 # (app-pages-deploy.yaml); this is the thin Auslan-specific caller.
 
 on:
@@ -9,14 +9,14 @@ on:
     paths: ['site/**', '.github/workflows/pages.yaml']
   workflow_dispatch:
 
-# Single deployment at a time.
+# A newer push supersedes any in-flight deploy — cancel it.
 concurrency:
   group: pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   deploy:
-    uses: banool/dictionarylib/.github/workflows/app-pages-deploy.yaml@main
+    uses: banool/appci/.github/workflows/app-pages-deploy.yaml@main
     with:
       project_name: auslan-dictionary
       production_branch: master

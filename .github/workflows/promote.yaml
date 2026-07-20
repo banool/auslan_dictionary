@@ -1,0 +1,53 @@
+name: Promote
+# Promote the latest already-uploaded internal build to a wider audience on
+# either or both stores — beta (external TestFlight group + Play beta track)
+# or external (App Store + Play production). The job body is a reusable
+# workflow in the appci repo, which runs this repo's promote.sh; iOS promotion
+# is pure App Store Connect API calls so it runs on ubuntu. Manual trigger
+# only. Safe to re-run: the underlying scripts no-op if the build is already
+# live on the target.
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: "beta = TestFlight group + Play beta track (What to Test); external = App Store + Play production (What's New)"
+        type: choice
+        options: [external, beta]
+        default: external
+      platform:
+        description: "Which stores to promote on"
+        type: choice
+        options: [both, ios, android]
+        default: both
+      notes:
+        description: "Release notes. Required for beta; blank = generic default for external."
+        required: false
+        default: ""
+      rollout:
+        description: "Android staged rollout fraction 0<f<1 (blank = full 100%)"
+        required: false
+        default: ""
+      dry_run:
+        description: "Plan only, touch nothing on either store"
+        type: boolean
+        default: false
+
+# Never cancel a promote that is mid-flight against the stores; queue instead.
+concurrency:
+  group: promote
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    uses: banool/appci/.github/workflows/app-promote.yaml@main
+    with:
+      stage: ${{ inputs.stage }}
+      platform: ${{ inputs.platform }}
+      notes: ${{ inputs.notes }}
+      rollout: ${{ inputs.rollout }}
+      dry_run: ${{ inputs.dry_run }}
+    secrets:
+      APP_STORE_CONNECT_API_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+      APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+      APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+      ANDROID_SERVICE_ACCOUNT_JSON: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
