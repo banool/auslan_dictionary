@@ -1,0 +1,28 @@
+# Build Auslan Dictionary and upload it to the internal TestFlight track. The
+# job body is a reusable workflow in the appci repo (app-release-ios.yaml),
+# which runs this repo's ios/upload.sh on a macOS runner.
+#
+# Manual trigger only (dispatch with the appci CLI: appci --app auslan
+# --platform ios --stage internal --operator gha). It builds the pushed
+# master commit, not your working tree, so push before you run it. Promotion
+# to beta or the public is the Promote workflow (or a local ./promote.sh).
+
+name: iOS upload (TestFlight internal)
+
+on:
+  workflow_dispatch:
+
+# Never cancel an upload mid-flight; queue instead.
+concurrency:
+  group: ios-upload
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    uses: banool/appci/.github/workflows/app-release-ios.yaml@main
+    with:
+      team_id: 9N3SNHTGL7
+    secrets:
+      APP_STORE_CONNECT_API_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+      APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+      APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}

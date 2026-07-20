@@ -17,8 +17,10 @@ There are two operations: **upload** a build (produces an *internal* build) and 
 
 ### 1. Upload a build (internal)
 
-- **Automatic (both platforms).** Every push that changes the app is built and uploaded by CI (`.github/workflows/ci.yaml`): a signed appbundle to the Play **internal** track (shared `app-release-android.yaml`) and an archive to the **internal** TestFlight track (shared `app-release-ios.yaml`, on a macOS runner). Nothing to run by hand.
-- **Manually** (e.g. to iterate without a push): make sure `ios/secrets.env` is configured (see [App Store Connect API key](#app-store-connect-api-key-iossecretsenv)), then run `./ios/upload.sh` and/or `./android/upload.sh`.
+Uploads are **on demand only** — pushes to master run tests but never touch the stores. The easiest way to trigger any of it is the appci CLI (`appci --app auslan --platform ios --stage internal --operator gha`; omit flags to be prompted).
+
+- **Via GitHub Actions**: the manual **iOS upload (TestFlight internal)** and **Android upload (Play internal)** workflows (each a thin caller of the shared appci workflow). They build the pushed master commit, not your working tree, so push first.
+- **Locally**: make sure `ios/secrets.env` is configured (see [App Store Connect API key](#app-store-connect-api-key-iossecretsenv)), then run `./ios/upload.sh` and/or `./android/upload.sh`.
   ```
   flutter pub get
   flutter pub run flutter_launcher_icons:main
@@ -38,7 +40,7 @@ Promotion takes an already-uploaded internal build and sends it wider. It always
 ```
 Pass a notes file (`./promote.sh --stage external notes.txt`) for the release notes; `--stage external` falls back to a generic default, `--stage beta` prompts you for the required "What to Test" notes. Useful flags: `--dry-run` (plan only), `--ios-only` / `--android-only`, `--yes` (skip the confirm), `--no-submit` (iOS: prepare but don't submit) / `--no-commit` (Android: prepare but don't commit), `--rollout=0.2` (Android staged rollout). Android promotion assumes the build is already on the Play internal track (from CI).
 
-**Via GitHub Actions** (no local checkout needed, both platforms): Actions → **Promote** → *Run workflow*, then pick:
+**Via GitHub Actions** (no local checkout needed): `appci --app auslan --platform <ios|android> --stage <beta|external> --operator gha`, or Actions → **Promote** → *Run workflow*, then pick:
 - `stage` — `external` (App Store + Play **production**) or `beta` (TestFlight "Beta Group" + Play **beta** track).
 - `platform` — `both` (default), `ios`, or `android`.
 - `notes` — release notes ("What to Test" for beta, required; "What's New" for external, blank uses a generic default).

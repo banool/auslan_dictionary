@@ -4,14 +4,9 @@ on:
   push:
     branches: [ master ]
   pull_request:
-  # For smoke-testing the release jobs without a qualifying push (they are
-  # path-gated on push, dispatch bypasses the filter).
-  workflow_dispatch:
 
 # A newer push supersedes any in-flight run for the same ref — cancel it
-# rather than burning minutes finishing a build nobody will ship. Every commit
-# has a fresh build number (pre-commit bump), so a cancelled upload just means
-# a skipped number, which the stores are fine with.
+# rather than burning minutes finishing a build nobody will ship.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -24,13 +19,12 @@ jobs:
     uses: banool/appci/.github/workflows/app-format.yaml@main
 
   # Check which files / paths have changed. We use this to inform whether we
-  # should run later jobs — only build/release the app if the app itself has
+  # should run later jobs — only build/test the app if the app itself has
   # changed, not the app data (since we don't bundle that into the app
   # anymore).
   changes:
     outputs:
       android: ${{ steps.filter.outputs.android }}
-      ios: ${{ steps.filter.outputs.ios }}
       data: ${{ steps.filter.outputs.data }}
     runs-on: ubuntu-latest
     steps:
@@ -40,44 +34,21 @@ jobs:
       with:
         filters: '.github/filters.yml'
     - name: Print changes
-      run: printf "Android files changed $ANDROID\niOS files changed $IOS\nData files changed $DATA\n"
+      run: printf "Android files changed $ANDROID\nData files changed $DATA\n"
       env:
         ANDROID: ${{ steps.filter.outputs.android }}
-        IOS: ${{ steps.filter.outputs.ios }}
         DATA: ${{ steps.filter.outputs.data }}
 
-  # Test (always, when the app or data changed), and — only for android-change
-  # pushes — build the signed appbundle and upload it to the Play internal
-  # track. The job body is a reusable workflow in the appci repo; the
-  # `upload` expression preserves the old build_android semantics exactly
-  # (tests run on PRs and data-only changes; build/upload only on
-  # android-change pushes).
-  release_android:
+  # Test-only: store uploads never happen from CI pushes — internal builds are
+  # released on demand via the iOS/Android upload workflows (use the appci
+  # CLI). The job body is a reusable workflow in the appci repo.
+  test_android:
     needs: [changes]
     if: needs.changes.outputs.android == 'true' || needs.changes.outputs.data == 'true'
     uses: banool/appci/.github/workflows/app-release-android.yaml@main
     with:
       package_name: com.banool.auslan_dictionary
-      upload: ${{ needs.changes.outputs.android == 'true' && github.event_name == 'push' }}
-    secrets:
-      UPLOAD_KEYSTORE: ${{ secrets.UPLOAD_KEYSTORE }}
-      KEY_PROPERTIES: ${{ secrets.KEY_PROPERTIES }}
-      ANDROID_SERVICE_ACCOUNT_JSON: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
-
-  # Build and upload an internal TestFlight build on app-change pushes, the
-  # iOS counterpart of release_android. No test-only mode: a macOS runner adds
-  # nothing on PRs (flutter test already runs in release_android), so this
-  # only runs when it will actually upload.
-  release_ios:
-    needs: [changes]
-    if: github.event_name == 'workflow_dispatch' || (needs.changes.outputs.ios == 'true' && github.event_name == 'push')
-    uses: banool/appci/.github/workflows/app-release-ios.yaml@main
-    with:
-      team_id: 9N3SNHTGL7
-    secrets:
-      APP_STORE_CONNECT_API_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
-      APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-      APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+      upload: false
 
   # Auslan-specific: attach a signed APK to the rolling "latest" GitHub
   # release. (The Play appbundle is handled by release_android above; this

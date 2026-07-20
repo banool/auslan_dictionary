@@ -14,14 +14,6 @@ android:
   - 'pubspec.yaml'
   - 'pubspec.lock'
 
-ios:
-  - *force
-  - *ci
-  - 'lib/**'
-  - 'ios/**'
-  - 'pubspec.yaml'
-  - 'pubspec.lock'
-
 data:
   - *force
   - *ci

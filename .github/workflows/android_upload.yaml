@@ -1,0 +1,28 @@
+# Build Auslan Dictionary and upload it to the Play internal track. The job
+# body is a reusable workflow in the appci repo (app-release-android.yaml):
+# flutter test, signed appbundle, preflight version gate, upload via
+# play_upload.py — the same code path as the local ./android/upload.sh.
+#
+# Manual trigger only (dispatch with the appci CLI: appci --app auslan
+# --platform android --stage internal --operator gha). It builds the pushed
+# master commit, not your working tree, so push before you run it.
+
+name: Android upload (Play internal)
+
+on:
+  workflow_dispatch:
+
+# Never cancel an upload mid-flight; queue instead.
+concurrency:
+  group: android-upload
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    uses: banool/appci/.github/workflows/app-release-android.yaml@main
+    with:
+      package_name: com.banool.auslan_dictionary
+    secrets:
+      UPLOAD_KEYSTORE: ${{ secrets.UPLOAD_KEYSTORE }}
+      KEY_PROPERTIES: ${{ secrets.KEY_PROPERTIES }}
+      ANDROID_SERVICE_ACCOUNT_JSON: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
