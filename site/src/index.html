@@ -4,6 +4,11 @@
 		<title>Auslan Dictionary — Australian Sign Language app for iOS, Android &amp; web</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<!-- Favicons, generated from the app icon (ios/.../Icon-App-1024x1024@1x.png). -->
+		<link rel="icon" href="favicon.ico" sizes="any" />
+		<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+		<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+		<link rel="apple-touch-icon" href="apple-touch-icon.png" />
 		<meta name="description" content="Free Auslan (Australian Sign Language) video dictionary app for iPhone, Android and the web. Watch clear videos of thousands of Auslan signs, save favourites, and practise with built-in revision." />
 			<link rel="canonical" href="https://auslandictionary.org/" />
 		<meta property="og:type" content="website" />
@@ -103,6 +108,25 @@
 				width: 100%;
 				border-radius: 2.5em;
 			}
+
+			/* The blurb is width-capped for readability, which makes it narrower
+			   than the rest of the column. Push the block flush against the right
+			   edge so it lines up with the buttons above and the policy links
+			   below, rather than sitting centred and short of both. The cap is
+			   just under the width the headings give the column, so the blurb
+			   wraps to three even lines without widening the column itself. */
+			#header .content .intro {
+				max-width: 38em;
+				margin: 1.5em 0 0 auto;
+				font-size: 0.85em;
+			}
+
+			/* ...except where the template centres the whole column. */
+			@media screen and (max-width: 980px) and (orientation: portrait) {
+				#header .content .intro {
+					margin: 1.5em auto 0;
+				}
+			}
 		</style>
 	</head>
 	<body id="top">
@@ -120,7 +144,7 @@
 						<li><a href="https://play.google.com/store/apps/details?id=com.banool.auslan_dictionary" class="button special icon fa-android">Android</a></li>
 						<li><a href="https://github.com/banool/auslan_dictionary" class="button special icon fa-github">GitHub</a></li>
 					</ul>
-					<p style="font-size: 0.85em; max-width: 34em; margin: 1.5em auto 0;">Auslan Dictionary is a free Australian Sign Language app for iPhone and Android, with a web app that works in any browser. Watch clear videos of thousands of Auslan signs, save favourites into lists, and practise with built-in revision.</p>
+					<p class="intro">Auslan Dictionary is a free Australian Sign Language app for iPhone and Android, with a web app that works in any browser. Watch clear videos of thousands of Auslan signs, save favourites into lists, and practise with built-in revision.</p>
 					<ul class="actions" style="margin-top: 1em;">
 						<li><a href="privacy.html" style="color: #6F6155; font-size: 0.85em;">Privacy Policy</a></li>
 						<li><a href="terms.html" style="color: #6F6155; font-size: 0.85em;">Terms of Service</a></li>
