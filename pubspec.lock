@@ -269,28 +269,27 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "8c22bcf118442822b4310981d47ba13434a0c490"
-      resolved-ref: "8c22bcf118442822b4310981d47ba13434a0c490"
+      ref: c5ccb7b5647b2e2c3ce8696fd35c266a9756af35
+      resolved-ref: c5ccb7b5647b2e2c3ce8696fd35c266a9756af35
       url: "https://github.com/banool/dictionarylib.git"
     source: git
-    version: "0.3.104"
+    version: "0.3.105"
   dictionarylib_test_support:
     dependency: "direct dev"
     description:
       path: dictionarylib_test_support
-      ref: "8c22bcf118442822b4310981d47ba13434a0c490"
-      resolved-ref: "8c22bcf118442822b4310981d47ba13434a0c490"
+      ref: c5ccb7b5647b2e2c3ce8696fd35c266a9756af35
+      resolved-ref: c5ccb7b5647b2e2c3ce8696fd35c266a9756af35
       url: "https://github.com/banool/dictionarylib.git"
     source: git
     version: "0.0.1"
-  dolphinsr_dart:
+  dolphinsr:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "016df21ffc2496df5a3d2042a503f72f5b6bdc00"
-      resolved-ref: "016df21ffc2496df5a3d2042a503f72f5b6bdc00"
-      url: "https://github.com/banool/dolphhinsr_dart.git"
-    source: git
+      name: dolphinsr
+      sha256: d71dbda23cff029245795cd5ccad8002de8f866c37c3c38b6e4abf37b76de00f
+      url: "https://pub.dev"
+    source: hosted
     version: "4.0.0"
   edit_distance:
     dependency: transitive

@@ -1,7 +1,7 @@
 import 'package:auslan_dictionary/entries_types.dart';
 import 'package:auslan_dictionary/root.dart';
 import 'package:dictionarylib/dictionarylib.dart';
-import 'package:dolphinsr_dart/dolphinsr_dart.dart';
+import 'package:dolphinsr/dolphinsr.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
