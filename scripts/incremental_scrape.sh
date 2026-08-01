@@ -6,7 +6,6 @@
 #   ./incremental_scrape.sh              # Start fresh or resume from last checkpoint
 #   ./incremental_scrape.sh --fresh      # Force a fresh start (ignore any existing progress)
 #   ./incremental_scrape.sh --from d     # Start/resume from letter 'd'
-#   ./incremental_scrape.sh --validate   # Also validate video URLs with OPTIONS requests
 #
 # The script automatically saves progress after each letter, so if it crashes
 # or you need to stop it, you can just run it again to resume.
@@ -23,7 +22,6 @@ cd "$(dirname "$0")"
 # Parse arguments.
 FRESH=false
 START_FROM=""
-VALIDATE_FLAG=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -35,13 +33,9 @@ while [[ $# -gt 0 ]]; do
             START_FROM="$2"
             shift 2
             ;;
-        --validate)
-            VALIDATE_FLAG="--validate-video-urls"
-            shift
-            ;;
         *)
             echo "Unknown option: $1"
-            echo "Usage: $0 [--fresh] [--from LETTER] [--validate]"
+            echo "Usage: $0 [--fresh] [--from LETTER]"
             exit 1
             ;;
     esac
@@ -103,8 +97,7 @@ for l in {a..z}; do
             --output-file "next_${l}.json" \
             --existing-file "$PROGRESS_FILE" \
             --letters "$l" \
-            --categories-file ../assets/data/categories.json \
-            $VALIDATE_FLAG; then
+            --categories-file ../assets/data/categories.json; then
 
             # Success - update progress file and state.
             mv "next_${l}.json" "$PROGRESS_FILE"

@@ -44,8 +44,8 @@ For running locally with manual PR creation:
 ```bash
 cd scripts
 
-# Step 1: Run the full scrape
-uv run ./scrape.sh --validate |& tee ~/run-out.log
+# Step 1: Run the full scrape (includes the dead-media filter phase)
+uv run ./scrape.sh |& tee ~/run-out.log
 
 # Step 2: Review the output
 # Check all_letters.json looks correct
@@ -74,15 +74,8 @@ gh pr create --fill
 uv run ./scrape.sh
 ```
 
-This scrapes categories first, then entries letter by letter.
-
-### Scrape with Video URL Validation
-
-Validates each video URL with an OPTIONS request and removes entries with invalid videos:
-
-```bash
-uv run ./scrape.sh --validate
-```
+This scrapes categories first, then entries letter by letter, then removes
+videos that 404 on the media host (see `filter_dead_media.py` below).
 
 ### Resume an Interrupted Scrape
 
@@ -137,13 +130,36 @@ uv run python scrape_signbank.py -d \
     --urls 'https://auslan.org.au/dictionary/words/hello-1.html' \
     --categories-file ../assets/data/categories.json \
     --output-file output.json
+```
 
-# With video URL validation
-uv run python scrape_signbank.py -d \
-    --letters a \
-    --categories-file ../assets/data/categories.json \
-    --output-file output.json \
-    --validate-video-urls
+### filter_dead_media.py
+
+Removes videos that 404 on the media host from a scraped data file, pruning sub_entries/entries left empty. Run automatically as the final phase of `scrape.sh`, but works standalone on any v1-shaped file. A URL is only removed after `--dead-attempts` (default 5) authentic Swift 404s across rounds spaced `--recheck-delay` seconds apart; anything that never resolves to alive-or-dead fails the run rather than guessing. Writes full per-attempt evidence to `media_filter_report/report.json`.
+
+```bash
+# Clean the committed data in a standalone pass, extra-patient re-checks.
+uv run python filter_dead_media.py --input ../assets/data/data.json \
+    --output all_letters.json --recheck-delay 300
+```
+
+Exit codes: `0` cleaned output written; `2` too many dead URLs (`--max-dead-fraction`, output not written — protects against a host-side event gutting the dictionary); `3` some URLs never resolved (output not written).
+
+### verify_removed_media.py
+
+Independently confirms (different code path, request shape, and pacing — deliberately so) that every URL the filter removed authentically 404s. Diffs the pre-/post-filter files itself, fails (exit 1) on any removal that answers alive or can't be confirmed, and spot-checks a sample of kept URLs. CI runs it before the data-update PR can open.
+
+```bash
+uv run python verify_removed_media.py \
+    --before all_letters_prefilter.json --after all_letters.json
+```
+
+### archive_orphaned_media.py
+
+Lists R2 mirror objects that `data-v2.json` no longer references and, with `--archive`, moves them to the `archive/` prefix (server-side copy + delete — nothing is ever hard-deleted, and moving an object back undoes a mistake). Manual housekeeping, not in CI. Needs the R2 env vars from `secrets.env`, like `sync_media_to_r2.py`.
+
+```bash
+uv run python archive_orphaned_media.py            # list only
+uv run python archive_orphaned_media.py --archive  # list + move
 ```
 
 ### move_data.sh
@@ -204,11 +220,7 @@ uv run python scrape_signbank.py -d \
 
 ### Video URLs are returning errors
 
-Some video URLs on the site may be broken. Use `--validate` to filter these out:
-
-```bash
-uv run ./scrape.sh --validate
-```
+Some video URLs on the site are broken (Signbank lists videos whose objects are gone from the media host). `scrape.sh` filters these out automatically in its final phase; see `filter_dead_media.py` above. Expect the same ~1-2% of URLs to be re-removed every scrape for as long as Signbank keeps listing them.
 
 ### Rate limiting
 

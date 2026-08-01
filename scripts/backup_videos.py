@@ -36,7 +36,6 @@ import argparse
 import json
 import logging
 import os
-import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from email.utils import parsedate_to_datetime
 from pathlib import Path
@@ -46,7 +45,7 @@ from urllib.parse import urlsplit
 import requests
 from retry import retry
 
-from common import LOG, DEFAULT_TIMEOUT, _rate_limit
+from common import LOG, DEFAULT_TIMEOUT, _rate_limit, _respect_retry_after
 
 # Retry config for network calls. The source object store is slow and flaky, so
 # we retry generously with exponential backoff (1s, 2s, 4s, ... capped at 120s).
@@ -59,10 +58,6 @@ RETRY_KWARGS = dict(
     tries=12,
     logger=LOG,
 )
-
-# Cap on how long we'll honor a server's Retry-After header (seconds), so a
-# pathological value can't stall a worker indefinitely.
-RETRY_AFTER_CAP = 120
 
 # Default location of the scraped data relative to this script (scripts/ ->
 # repo root -> assets/data/data.json).
@@ -79,29 +74,6 @@ CHUNK_SIZE = 1 << 16  # 64 KiB.
 
 class VideoNotFound(Exception):
     """Raised when a video URL returns 404. Deliberately not retried."""
-
-
-def _respect_retry_after(response):
-    """
-    If the server sent a Retry-After header (typically with a 429 or 503),
-    sleep for the requested duration (capped) so we back off politely. Supports
-    both the integer-seconds and HTTP-date forms of the header.
-    """
-    header = response.headers.get("Retry-After")
-    if not header:
-        return
-    delay = None
-    try:
-        delay = float(header)
-    except ValueError:
-        try:
-            delay = parsedate_to_datetime(header).timestamp() - time.time()
-        except (TypeError, ValueError):
-            delay = None
-    if delay and delay > 0:
-        delay = min(delay, RETRY_AFTER_CAP)
-        LOG.warning(f"Server asked us to back off; sleeping {delay:.0f}s (Retry-After)")
-        time.sleep(delay)
 
 
 def collect_video_urls(data_file: Path) -> list:
