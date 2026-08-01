@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import time
+from email.utils import parsedate_to_datetime
 from typing import List, Optional
 
 import requests
@@ -35,7 +36,28 @@ def strip_media_base(url: str) -> str:
             f"{MEDIA_BASE_URL!r}: {url!r}. If Auslan media moved hosts, update "
             f"MEDIA_BASE_URL here and AUSLAN_MEDIA_BASE_URL in the app."
         )
-    return url[len(MEDIA_BASE_URL):]
+    return url[len(MEDIA_BASE_URL) :]
+
+
+# The fallback media host: a Cloudflare R2 bucket (auslan-mirror) that
+# sync_media_to_r2.py keeps populated. The app lists it after MEDIA_BASE_URL in
+# mediaBaseUrls (AUSLAN_MEDIA_MIRROR_BASE_URL in lib/main.dart), so keys are the
+# same strip_media_base() paths.
+MIRROR_BASE_URL = "https://cdn.auslandictionary.org"
+
+# Identify ourselves to the hosts we hit. Scripts that make many requests
+# should use make_session() so they also get connection reuse.
+USER_AGENT = (
+    "auslan-dictionary-scripts/1.0 (+https://github.com/banool/auslan_dictionary)"
+)
+
+
+def make_session() -> requests.Session:
+    """A requests Session with our User-Agent set."""
+    session = requests.Session()
+    session.headers["User-Agent"] = USER_AGENT
+    return session
+
 
 # Default timeout for HTTP requests.
 DEFAULT_TIMEOUT = 180
@@ -55,72 +77,32 @@ def _rate_limit():
     _last_request_time = time.time()
 
 
-@retry(
-    exceptions=(requests.exceptions.RequestException, RuntimeError),
-    delay=1,
-    backoff=2,
-    max_delay=120,
-    tries=10,
-    logger=LOG,
-)
-def _check_video_url_request(url: str, timeout: int) -> int:
+# Cap on how long we'll honor a server's Retry-After header (seconds), so a
+# pathological value can't stall a worker indefinitely.
+RETRY_AFTER_CAP = 120
+
+
+def _respect_retry_after(response):
     """
-    Make a GET request with Range header to check if a video URL exists.
-    Only requests the first byte to minimize bandwidth.
-    Returns the status code. Retries on network errors and unexpected status codes.
-    200/206 = exists, 404 = doesn't exist. Other codes trigger a retry.
+    If the server sent a Retry-After header (typically with a 429 or 503),
+    sleep for the requested duration (capped) so we back off politely. Supports
+    both the integer-seconds and HTTP-date forms of the header.
     """
-    LOG.debug(f"Checking video URL with Range GET: {url}")
-    _rate_limit()
-    headers = {"Range": "bytes=0-0"}
-    response = requests.get(url, headers=headers, timeout=timeout)
-    status_code = response.status_code
-    # 200/206 = exists (206 is partial content for range request).
-    # 404 = doesn't exist. Both are valid final states.
-    # Any other status code should trigger a retry.
-    if status_code not in (200, 206, 404):
-        raise RuntimeError(f"Got unexpected status code {status_code} for {url}")
-    return status_code
-
-
-def check_video_url_exists(url: str, timeout: int = 30) -> bool:
-    """
-    Check if a video URL is valid by making a GET request with Range header.
-    Returns True if the URL returns 200/206, False if 404.
-    Retries with exponential backoff on network errors or unexpected status codes.
-    Raises an exception if retries are exhausted for non-404 errors.
-    """
-    status_code = _check_video_url_request(url, timeout)
-    if status_code in (200, 206):
-        return True
-    else:
-        # Must be 404 since _check_video_url_request only returns 200, 206, or 404.
-        LOG.warning(f"Video URL returned 404, skipping: {url}")
-        return False
-
-
-async def validate_video_urls(executor, urls: List[str]) -> List[str]:
-    """
-    Validate a list of video URLs using OPTIONS requests.
-    Returns only the URLs that return 200.
-    URLs that return 404 are considered invalid and skipped.
-    Other errors will raise an exception after retries are exhausted.
-    """
-    if not urls:
-        return []
-
-    loop = asyncio.get_running_loop()
-    futures = [loop.run_in_executor(executor, check_video_url_exists, url) for url in urls]
-    results = await asyncio.gather(*futures, return_exceptions=True)
-
-    valid_urls = []
-    for url, result in zip(urls, results):
-        if isinstance(result, Exception):
-            raise RuntimeError(f"Failed to validate video URL {url} after retries: {result}") from result
-        if result:
-            valid_urls.append(url)
-
-    return valid_urls
+    header = response.headers.get("Retry-After")
+    if not header:
+        return
+    delay = None
+    try:
+        delay = float(header)
+    except ValueError:
+        try:
+            delay = parsedate_to_datetime(header).timestamp() - time.time()
+        except (TypeError, ValueError):
+            delay = None
+    if delay and delay > 0:
+        delay = min(delay, RETRY_AFTER_CAP)
+        LOG.warning(f"Server asked us to back off; sleeping {delay:.0f}s (Retry-After)")
+        time.sleep(delay)
 
 
 @retry(
@@ -152,7 +134,9 @@ def load_url(url: str, timeout: int = DEFAULT_TIMEOUT) -> requests.Response:
     return response
 
 
-def load_url_safe(url: str, timeout: int = DEFAULT_TIMEOUT) -> Optional[requests.Response]:
+def load_url_safe(
+    url: str, timeout: int = DEFAULT_TIMEOUT
+) -> Optional[requests.Response]:
     """
     Load a URL, returning None instead of raising on failure.
     Useful when you want to continue processing even if some URLs fail.
@@ -198,7 +182,9 @@ async def get_pages_html(
                 LOG.warning(f"Failed to get page {url}: {result}")
                 failed.append(url)
             else:
-                raise RuntimeError(f"Failed to fetch {url} after retries: {result}") from result
+                raise RuntimeError(
+                    f"Failed to fetch {url} after retries: {result}"
+                ) from result
         elif result is None:
             # load_url_safe returned None.
             failed.append(url)
@@ -247,7 +233,9 @@ async def get_pages_html_with_urls(
             if continue_on_error:
                 LOG.warning(f"Failed to get page {url}: {result}")
             else:
-                raise RuntimeError(f"Failed to fetch {url} after retries: {result}") from result
+                raise RuntimeError(
+                    f"Failed to fetch {url} after retries: {result}"
+                ) from result
         elif result is None:
             LOG.warning(f"Failed to get page {url}")
         else:

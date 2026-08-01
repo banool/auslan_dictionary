@@ -1,6 +1,7 @@
 name: Scrape Signbank
 
-# Re-scrape auslan.org.au (Auslan Signbank) and open — or update — a
+# Re-scrape auslan.org.au (Auslan Signbank), filter out videos that 404 on the
+# media host (with an independent verification pass), and open — or update — a
 # data-update PR against master. This used to be a weekly CronJob on the home
 # k8s cluster (server-platform src/apps/dictionary.ts, now disabled); it moved
 # here so it runs on GitHub's infra, needs no home-server PAT, and can be
@@ -48,10 +49,33 @@ jobs:
 
       - name: Scrape Signbank (categories + a..z)
         working-directory: scripts
-        # scrape.sh scrapes categories.json then walks a..z into all_letters.json.
-        # It (and incremental_scrape.sh) require running under `uv run`, which
-        # sets $UV and puts the venv python on PATH.
+        # scrape.sh scrapes categories.json, walks a..z into all_letters.json,
+        # then filters out videos that 404 on the media host
+        # (filter_dead_media.py; exits non-zero rather than guess, so a flaky
+        # week fails here instead of opening a PR). It (and
+        # incremental_scrape.sh) require running under `uv run`, which sets $UV
+        # and puts the venv python on PATH.
         run: uv run bash scrape.sh
+
+      - name: Verify removed media
+        working-directory: scripts
+        # Independent double-check (different code path/pacing/timing) that
+        # every URL the filter removed authentically 404s. Fails the run —
+        # before the diff-gate, so before any PR — if a removal can't be
+        # confirmed.
+        run: |
+          uv run python verify_removed_media.py \
+            --before all_letters_prefilter.json \
+            --after all_letters.json \
+            --initial-delay 120
+
+      - name: Upload media filter report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: media-filter-report
+          path: scripts/media_filter_report/
+          if-no-files-found: ignore
 
       - name: Detect data changes
         id: detect

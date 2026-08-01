@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Scrapes the signbank for category data first and then for entry data.
+# Scrapes the signbank for category data, then entry data, then filters out
+# videos that 404 on the media host so they never ship (filter_dead_media.py).
 # This is the main entry point for a full scrape.
 #
 # Usage:
 #   ./scrape.sh              # Normal scrape
-#   ./scrape.sh --validate   # Also validate video URLs
 #   ./scrape.sh --fresh      # Force fresh start (ignore existing progress)
 
 set -e
@@ -37,6 +37,17 @@ sleep 10
 echo ""
 echo "Step 2: Scraping entries..."
 ./incremental_scrape.sh $ARGS
+
+# Step 3: Remove videos that 404 on the media host. The prefilter snapshot is
+# taken here (not by the filter) so verify_removed_media.py's "before" input is
+# something the filter never touched.
+echo ""
+echo "Step 3: Filtering dead media..."
+cp all_letters.json all_letters_prefilter.json
+python filter_dead_media.py \
+    --input all_letters.json \
+    --output all_letters.json \
+    --report-dir media_filter_report
 
 echo ""
 echo "========================================"

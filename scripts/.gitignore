@@ -4,6 +4,8 @@ previous.json
 next.json
 next_*.json
 all_letters.json
+all_letters_prefilter.json
+media_filter_report/
 scrape_state.txt
 scrape_progress.json
 .venv
