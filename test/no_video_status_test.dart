@@ -1,5 +1,4 @@
 import 'package:auslan_dictionary/entries_types.dart';
-import 'package:dictionarylib/entry_types.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 // Auslan has no per-video versioning. The shared word page's Current/Historical
