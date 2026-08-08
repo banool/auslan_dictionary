@@ -1,11 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.banool.auslan_dictionary">
-    <!-- The Facebook SDK injects the advertising-id permission, but the app
-         never uses advertising IDs (and Facebook sign-in is currently
-         switched off entirely) — the Play Console declaration says so, and
-         Play rejects uploads carrying the permission. Strip it at
-         manifest-merge time. -->
+    <!-- The app never uses advertising IDs and the Play Console declaration
+         says so, so Play rejects an upload carrying this permission. Some
+         transitive SDKs inject it at manifest-merge time regardless; strip it
+         back out here. -->
     <uses-permission
         android:name="com.google.android.gms.permission.AD_ID"
         tools:node="remove" />
@@ -93,28 +92,6 @@
                       android:path="/apple-callback" />
             </intent-filter>
         </activity>
-        <!-- Facebook Login (flutter_facebook_auth). FacebookAppID +
-             ClientToken come from developers.facebook.com → My Apps →
-             App ID. fb_login_protocol_scheme is "fb<APP_ID>". The
-             values are provisioned in res/values/strings.xml. -->
-        <meta-data android:name="com.facebook.sdk.ApplicationId"
-            android:value="@string/facebook_app_id"/>
-        <meta-data android:name="com.facebook.sdk.ClientToken"
-            android:value="@string/facebook_client_token"/>
-        <activity
-            android:name="com.facebook.FacebookActivity"
-            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
-            android:label="@string/app_name" />
-        <activity
-            android:name="com.facebook.CustomTabActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="@string/fb_login_protocol_scheme" />
-            </intent-filter>
-        </activity>
         <!-- Microsoft sign-in (MSAL via msal_auth). The browser-delegated
              auth flow redirects back to msauth://<package>/<sig-hash>, which
              this BrowserTabActivity catches. One data element per signing
@@ -161,10 +138,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- MSAL browser-delegated auth needs network-state visibility. -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <!-- Facebook SDK probes for the Facebook app. Required on Android
-         11+ due to package visibility restrictions. -->
     <queries>
-        <package android:name="com.facebook.katana" />
         <!-- So url_launcher can resolve an email app for the "email me"
              settings button. Without this, Android 11+ package visibility
              hides mail apps, canLaunchUrl(mailto:) returns false, and the

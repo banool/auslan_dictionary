@@ -59,8 +59,7 @@ final DictAppBootstrapConfig bootstrapConfig = DictAppBootstrapConfig(
   //                    where the App Link / Universal Link manifests live)
   //   auth           — OAuth client ids per provider. Each must match the
   //                    corresponding Worker env (`APPLE_AUDIENCES`,
-  //                    `GOOGLE_AUDIENCES`, `FACEBOOK_APP_ID`,
-  //                    `MICROSOFT_CLIENT_ID`). See
+  //                    `GOOGLE_AUDIENCES`, `MICROSOFT_CLIENT_ID`). See
   //                    MANUAL_SETUP.md in the private backend repo.
   sharingConfig: const SharingConfig(
     appId: 'auslan',
@@ -98,19 +97,17 @@ final DictAppBootstrapConfig bootstrapConfig = DictAppBootstrapConfig(
       // MANUAL_SETUP.md in the private backend repo §2.
       googleServerClientId:
           '901039920141-fq7ln7rltv705srdtruuafm48d2mv38d.apps.googleusercontent.com',
-      // Facebook app id from developers.facebook.com → My Apps → App ID.
-      facebookAppId: '1003244748751862',
       // Microsoft Entra (Azure AD) application (client) id from the Azure
       // Portal app registration. Must match the Worker's
       // `MICROSOFT_CLIENT_ID`. One id covers iOS + Android. See
-      // MANUAL_SETUP.md in the private backend repo §4.
+      // MANUAL_SETUP.md in the private backend repo §3.
       microsoftClientId: '9001429b-4197-45e2-8f22-1b4a6c915b46',
       // Android MSAL redirect URIs, one per signing cert (Play App
       // Signing key, upload key, debug keystore); the wrapper picks
       // whichever matches the running build's real signature. Generate
       // with android/get-sha1.sh; every hash must also be registered in
       // Azure and as a <data> entry in AndroidManifest.xml. Details:
-      // MANUAL_SETUP.md in the private backend repo §4.
+      // MANUAL_SETUP.md in the private backend repo §3.
       microsoftAndroidRedirectUri:
           'msauth://com.banool.auslan_dictionary/tnPupvWBIsfs5VUhZbUCXxyL8%2FQ%3D',
       microsoftAndroidUploadRedirectUri:

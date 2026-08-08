@@ -269,17 +269,17 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "8391d8d814da88af055183a48e1fccf8bc7b3633"
-      resolved-ref: "8391d8d814da88af055183a48e1fccf8bc7b3633"
+      ref: "3e8e4deb9a22e9c6f93d8ae1a23cf907d8fadcb5"
+      resolved-ref: "3e8e4deb9a22e9c6f93d8ae1a23cf907d8fadcb5"
       url: "https://github.com/banool/dictionarylib.git"
     source: git
-    version: "0.3.113"
+    version: "0.3.114"
   dictionarylib_test_support:
     dependency: "direct dev"
     description:
       path: dictionarylib_test_support
-      ref: "8391d8d814da88af055183a48e1fccf8bc7b3633"
-      resolved-ref: "8391d8d814da88af055183a48e1fccf8bc7b3633"
+      ref: "3e8e4deb9a22e9c6f93d8ae1a23cf907d8fadcb5"
+      resolved-ref: "3e8e4deb9a22e9c6f93d8ae1a23cf907d8fadcb5"
       url: "https://github.com/banool/dictionarylib.git"
     source: git
     version: "0.0.1"
@@ -307,14 +307,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
-  facebook_auth_desktop:
-    dependency: transitive
-    description:
-      name: facebook_auth_desktop
-      sha256: "9fcde1146914e9f46497d2b6053ea5865828b576a258be4e0193635f52176712"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.3"
   fake_async:
     dependency: transitive
     description:
@@ -373,30 +365,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_facebook_auth:
-    dependency: transitive
-    description:
-      name: flutter_facebook_auth
-      sha256: "393c87b4ffa6cc75d2f39239b8d6ebc9095725805016133f80d1d89adb84682d"
-      url: "https://pub.dev"
-    source: hosted
-    version: "7.2.0"
-  flutter_facebook_auth_platform_interface:
-    dependency: transitive
-    description:
-      name: flutter_facebook_auth_platform_interface
-      sha256: e04b8dbfa77702bea45a79993163ad5d20b2c0084109bec591fdc2b9ee505779
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.1.2"
-  flutter_facebook_auth_web:
-    dependency: transitive
-    description:
-      name: flutter_facebook_auth_web
-      sha256: f682400d61cf8d52dd8b6458b5ee106ed57e95309a117dc32875d3da129ce47c
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.1.2"
   flutter_launcher_icons:
     dependency: "direct dev"
     description:
@@ -438,18 +406,18 @@ packages:
     dependency: transitive
     description:
       name: flutter_secure_storage
-      sha256: "7686b1d6a29985dcbb808c59518226e603e3bfa7c0ddfd1a0d00e4cda77c868e"
+      sha256: "15e8c8fe269fdf7d469b23008ab3df521c8b826ed345820532364c31bdebace6"
       url: "https://pub.dev"
     source: hosted
-    version: "10.3.1"
+    version: "11.0.0"
   flutter_secure_storage_darwin:
     dependency: transitive
     description:
       name: flutter_secure_storage_darwin
-      sha256: "82329fa5cdf343773b1b6897dea959105a29f092454259edff92f9f6637e8149"
+      sha256: ac6d76a752de0cd738334eb4b21743fc4943f449f5b6e308f18838b048c02ac0
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.2"
+    version: "0.4.0"
   flutter_secure_storage_linux:
     dependency: transitive
     description:

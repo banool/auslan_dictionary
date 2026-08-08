@@ -44,17 +44,6 @@
 					<string>com.googleusercontent.apps.901039920141-ag39tbgmhje86jq3rtsdbnec8j3flrp6</string>
 				</array>
 			</dict>
-			<!-- Facebook login — fb<APP_ID> custom scheme. -->
-			<dict>
-				<key>CFBundleTypeRole</key>
-				<string>Editor</string>
-				<key>CFBundleURLName</key>
-				<string>facebook</string>
-				<key>CFBundleURLSchemes</key>
-				<array>
-					<string>fb1003244748751862</string>
-				</array>
-			</dict>
 			<!-- Microsoft sign-in (MSAL) — msauth.<bundle-id> redirect scheme.
 			     MSAL derives the iOS redirect URI from the bundle id, so no
 			     hash/Dart config is needed on iOS. -->
@@ -75,21 +64,6 @@
 	     above. -->
 		<key>GIDClientID</key>
 		<string>901039920141-ag39tbgmhje86jq3rtsdbnec8j3flrp6.apps.googleusercontent.com</string>
-		<!-- Facebook Limited Login plumbing. FacebookAppID/ClientToken/DisplayName
-	     must be set before the Facebook button is enabled in the sign-in
-	     dialog; ClientToken comes from Facebook's app dashboard. -->
-		<key>FacebookAppID</key>
-		<string>1003244748751862</string>
-		<key>FacebookClientToken</key>
-		<string>0e84e902c05b8d988138a40157a2f9fa</string>
-		<key>FacebookDisplayName</key>
-		<string>Auslan Dictionary</string>
-		<key>FacebookAutoInitEnabled</key>
-		<true/>
-		<key>FacebookAdvertiserIDCollectionEnabled</key>
-		<false/>
-		<key>FacebookAutoLogAppEventsEnabled</key>
-		<false/>
 		<key>CFBundleVersion</key>
 		<string>$(FLUTTER_BUILD_NUMBER)</string>
 		<!-- Disable Flutter's built-in deep-link handling. We route deep links
@@ -110,12 +84,6 @@
 			<!-- So canLaunchUrl(mailto:) works for the "email me" settings
 		     button; without it iOS answers false for the mailto scheme. -->
 			<string>mailto</string>
-			<!-- Facebook SDK probes these to decide between Facebook app vs
-		     web browser at sign-in time. -->
-			<string>fbapi</string>
-			<string>fb-messenger-share-api</string>
-			<string>fbauth2</string>
-			<string>fbshareextension</string>
 			<!-- MSAL probes these to hand off to the Microsoft Authenticator
 		     app when it's installed (falls back to Safari otherwise). -->
 			<string>msauthv2</string>

@@ -2,8 +2,8 @@
 #
 # Print EVERY signing-certificate fingerprint form an app provider needs, for
 # the debug or release(=upload) keystore, in one run:
-#   SHA-1   (colon hex) -> Google OAuth Android client + Facebook Android.
-#   SHA-256 (colon hex) -> assetlinks.json.ts sha256CertFingerprints + Facebook.
+#   SHA-1   (colon hex) -> Google OAuth Android client.
+#   SHA-256 (colon hex) -> assetlinks.json.ts sha256CertFingerprints.
 #   MSAL hash (base64, raw)         -> AndroidManifest.xml android:path.
 #   MSAL hash (base64, URL-encoded) -> msauth:// redirect URI (main.dart + Azure).
 # (The third keystore — the Play App Signing key — isn't in any local keystore;
@@ -96,7 +96,7 @@ if ! keytool -exportcert -alias "$alias" -keystore "$keystore" \
 fi
 
 # Uppercase hex with a colon between every byte — the form keytool prints and
-# that Google / Facebook / assetlinks expect.
+# that Google / assetlinks expect.
 colonize() { tr 'a-z' 'A-Z' | sed -E 's/(..)/\1:/g; s/:$//'; }
 
 sha1_hex="$(openssl dgst -sha1 <"$cert_der" | sed 's/.*= *//' | colonize)"
@@ -118,9 +118,9 @@ echo "env:       $environment"
 echo "keystore:  $keystore"
 echo
 echo "SHA-1   (colon hex): $sha1_hex"
-echo "  -> Google OAuth Android client (one per keystore) + Facebook Android."
+echo "  -> Google OAuth Android client (one per keystore)."
 echo "SHA-256 (colon hex): $sha256_hex"
-echo "  -> assetlinks.json.ts sha256CertFingerprints + Facebook Android."
+echo "  -> assetlinks.json.ts sha256CertFingerprints."
 echo
 echo "MSAL hash (base64, raw):         $b64"
 echo "  -> AndroidManifest.xml BrowserTabActivity  android:path=\"/$b64\""

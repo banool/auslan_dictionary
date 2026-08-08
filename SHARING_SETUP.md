@@ -1,6 +1,6 @@
 # Shared-lists setup (manual steps for the auslan_dictionary repo)
 
-This document covers the auslan-specific platform-config steps. The cross-app setup (Cloudflare, Apple Developer, Google Cloud, Facebook, Worker secrets, Worker route bindings, Xcode entitlements) lives in **the private backend repo's `MANUAL_SETUP.md`** — start there if you're standing this up from scratch or onto a new account. Xcode wiring for Associated Domains + Sign in with Apple is documented there too (§"iOS — Associated Domains" and §1a).
+This document covers the auslan-specific platform-config steps. The cross-app setup (Cloudflare, Apple Developer, Google Cloud, Worker secrets, Worker route bindings, Xcode entitlements) lives in **the private backend repo's `MANUAL_SETUP.md`** — start there if you're standing this up from scratch or onto a new account. Xcode wiring for Associated Domains + Sign in with Apple is documented there too (§"iOS — Associated Domains" and §1a).
 
 ## Provider client identifiers in this repo
 
@@ -10,16 +10,13 @@ All `REPLACE_WITH_*` placeholders have been filled in. For reference, the live v
 |-----------------------------------------------|----------------------------------------------------|
 | `ios/Runner/Info.plist` `GIDClientID`         | Google iOS OAuth client id                         |
 | `ios/Runner/Info.plist` `com.googleusercontent.apps.*` URL scheme | Reversed Google iOS client id |
-| `ios/Runner/Info.plist` `FacebookAppID` + `FacebookClientToken` + `fb<id>` URL scheme | Facebook app config |
-| `android/app/src/main/res/values/strings.xml` `facebook_app_id` / `facebook_client_token` / `fb_login_protocol_scheme` | Facebook app config (Android) |
 | `lib/main.dart` `SharingAuthConfig.appleBundleId` | iOS bundle id (camelCase)                       |
 | `lib/main.dart` `SharingAuthConfig.appleServicesId` | Apple Services ID for Android web flow         |
 | `lib/main.dart` `SharingAuthConfig.appleRedirectUri` | Apple's `form_post` redirect URL                |
 | `lib/main.dart` `SharingAuthConfig.googleServerClientId` | Google **Web** OAuth client id — required by `google_sign_in` v7 on Android (Credential Manager mints ID tokens with the Web client as `aud`). Must appear in the Worker's `GOOGLE_AUDIENCES`. |
-| `lib/main.dart` `SharingAuthConfig.facebookAppId` | Facebook app id                                 |
 | `lib/main.dart` `SharingConfig.testSignIn` | Debug-only test sign-in config (token sourced from `--dart-define=TEST_AUTH_TOKEN=...`). Surfaces a "Sign in as test user" button in `kDebugMode` builds. See the private backend repo's `MANUAL_SETUP.md` § "Integration testing without provider accounts". |
 
-Provider-side provisioning (creating these clients, enabling Sign in with Apple, hosting the Facebook app secret server-side, etc.) is documented in the private backend repo's `MANUAL_SETUP.md` §1–§4.
+Provider-side provisioning (creating these clients, enabling Sign in with Apple, etc.) is documented in the private backend repo's `MANUAL_SETUP.md` §1–§3.
 
 ## Outstanding platform caveats
 
@@ -51,6 +48,6 @@ adb shell am start -W -a android.intent.action.VIEW \
 # iOS — paste a share URL into Notes.app and tap it. No CLI equivalent.
 ```
 
-Then in the app: open a list → tap Share → walk through the sign-in dialog for each provider (Apple, Google, Facebook). Each should round-trip to the Worker and return a session JWT; the share-link dialog should appear after a successful sign-in.
+Then in the app: open a list → tap Share → walk through the sign-in dialog for each provider (Apple, Google, Microsoft). Each should round-trip to the Worker and return a session JWT; the share-link dialog should appear after a successful sign-in.
 
 For end-to-end API verification with curl (using either the gated test sign-in path or real provider tokens), see the private backend repo's `workers/CURL_GUIDE.md`.
