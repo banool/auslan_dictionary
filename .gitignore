@@ -7,6 +7,12 @@ ios/Runner.app.*
 # Wrangler's local dev cache (e.g. site/.wrangler) — mirrors dictionarylib.
 .wrangler
 ios/*.cer
+# Xcode's SPM resolution lockfile. Not committed, matching slsl_dictionary: it
+# records one pin per plugin-pulled remote package, so it goes stale the moment
+# a Flutter plugin is added or removed — and Xcode doesn't reconcile that, it
+# crashes the resolve ("count of array (N) differs from count of index set").
+# Nothing pins these versions transitively anyway; the plugins do.
+ios/**/xcshareddata/swiftpm/
 ios/fastlane/screenshots
 ios/fastlane/Preview.html
 ios/build
