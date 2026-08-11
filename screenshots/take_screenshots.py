@@ -5,7 +5,7 @@
 # The block still earns its keep by pinning the interpreter, so screenshots
 # never silently run on whatever python3 happens to be on PATH.
 # /// script
-# requires-python = ">=3.13"
+# requires-python = ">=3.14"
 # dependencies = []
 # ///
 """Generate the store screenshots. Thin wrapper: the implementation lives in

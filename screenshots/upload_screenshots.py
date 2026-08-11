@@ -2,7 +2,7 @@
 # Empty dependency list on purpose — see take_screenshots.py. Stdlib only; the
 # block is here to pin the interpreter, not to install anything.
 # /// script
-# requires-python = ">=3.13"
+# requires-python = ">=3.14"
 # dependencies = []
 # ///
 """Upload the captured store screenshots. Thin wrapper: the implementation
