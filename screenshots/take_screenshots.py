@@ -1,4 +1,13 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# The empty dependency list is deliberate, not an oversight: this wrapper and
+# the appci libs it imports are stdlib-only (appci signs the store API JWTs by
+# shelling out to openssl precisely so the release tooling needs no packages).
+# The block still earns its keep by pinning the interpreter, so screenshots
+# never silently run on whatever python3 happens to be on PATH.
+# /// script
+# requires-python = ">=3.13"
+# dependencies = []
+# ///
 """Generate the store screenshots. Thin wrapper: the implementation lives in
 appci/scripts/take_screenshots_lib.py (sibling checkout, or set
 APPCI_DIR); this supplies Auslan's app-specific values. Same CLI as

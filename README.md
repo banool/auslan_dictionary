@@ -81,12 +81,12 @@ You may also need to `flutter clean` after this.
 
 Then run this:
 ```
-python3 screenshots/take_screenshots.py
+uv run screenshots/take_screenshots.py
 ```
 
 This takes screenshots for both platforms on multiple devices. Upload them to both stores with:
 ```
-python3 screenshots/upload_screenshots.py
+uv run screenshots/upload_screenshots.py
 ```
 
 This drives the App Store Connect and Google Play APIs directly (no fastlane) and supports `--ios-only`, `--android-only`, and `--dry-run`. The stores cap a listing at 10 (App Store) and 8 (Play) screenshots while the harness captures more than that, so the ordered selection lists at the top of the script choose which captures are published and in what order — edit them there to re-curate the storefronts.

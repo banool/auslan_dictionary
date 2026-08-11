@@ -3,9 +3,9 @@
 # Scrapes the signbank one letter at a time with automatic resume support.
 #
 # Usage:
-#   ./incremental_scrape.sh              # Start fresh or resume from last checkpoint
-#   ./incremental_scrape.sh --fresh      # Force a fresh start (ignore any existing progress)
-#   ./incremental_scrape.sh --from d     # Start/resume from letter 'd'
+#   uv run ./incremental_scrape.sh            # Start fresh or resume from last checkpoint
+#   uv run ./incremental_scrape.sh --fresh    # Force a fresh start (ignore any existing progress)
+#   uv run ./incremental_scrape.sh --from d   # Start/resume from letter 'd'
 #
 # The script automatically saves progress after each letter, so if it crashes
 # or you need to stop it, you can just run it again to resume.

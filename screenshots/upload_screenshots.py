@@ -1,4 +1,10 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# Empty dependency list on purpose — see take_screenshots.py. Stdlib only; the
+# block is here to pin the interpreter, not to install anything.
+# /// script
+# requires-python = ">=3.13"
+# dependencies = []
+# ///
 """Upload the captured store screenshots. Thin wrapper: the implementation
 lives in appci/scripts/upload_screenshots_lib.py (sibling checkout,
 or set APPCI_DIR); this supplies Auslan's app-specific values. Same

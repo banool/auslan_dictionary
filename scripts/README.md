@@ -53,7 +53,7 @@ uv run ./scrape.sh |& tee ~/run-out.log
 diff all_letters.json ../assets/data/data.json | head -100
 
 # Step 3: Move data into place (updates latest_version)
-./move_data.sh
+uv run ./move_data.sh
 
 # Step 4: Review and commit
 git diff
@@ -167,7 +167,7 @@ uv run python archive_orphaned_media.py --archive  # list + move
 Moves scraped data into place and updates `latest_version`:
 
 ```bash
-./move_data.sh
+uv run ./move_data.sh
 ```
 
 ### backup_videos.py

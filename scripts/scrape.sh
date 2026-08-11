@@ -5,8 +5,13 @@
 # This is the main entry point for a full scrape.
 #
 # Usage:
-#   ./scrape.sh              # Normal scrape
-#   ./scrape.sh --fresh      # Force fresh start (ignore existing progress)
+#   uv run ./scrape.sh           # Normal scrape
+#   uv run ./scrape.sh --fresh   # Force fresh start (ignore existing progress)
+
+if [ -z "$UV" ]; then
+    echo "ERROR: Run this with uv."
+    exit 1
+fi
 
 set -e
 
@@ -54,4 +59,4 @@ echo "========================================"
 echo "Full scrape complete!"
 echo "========================================"
 echo "Output is in all_letters.json"
-echo "If everything looks good, run: ./move_data.sh"
+echo "If everything looks good, run: uv run ./move_data.sh"
