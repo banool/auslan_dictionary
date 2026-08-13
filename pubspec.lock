@@ -269,17 +269,17 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: a072ab1f54a9ba35ef2fdbc642bee2358c96f726
-      resolved-ref: a072ab1f54a9ba35ef2fdbc642bee2358c96f726
+      ref: "9e7c0b876ca34bca8c39dd7feea96598d0250862"
+      resolved-ref: "9e7c0b876ca34bca8c39dd7feea96598d0250862"
       url: "https://github.com/banool/dictionarylib.git"
     source: git
-    version: "0.3.117"
+    version: "0.3.118"
   dictionarylib_test_support:
     dependency: "direct dev"
     description:
       path: dictionarylib_test_support
-      ref: a072ab1f54a9ba35ef2fdbc642bee2358c96f726
-      resolved-ref: a072ab1f54a9ba35ef2fdbc642bee2358c96f726
+      ref: "9e7c0b876ca34bca8c39dd7feea96598d0250862"
+      resolved-ref: "9e7c0b876ca34bca8c39dd7feea96598d0250862"
       url: "https://github.com/banool/dictionarylib.git"
     source: git
     version: "0.0.1"
@@ -589,8 +589,8 @@ packages:
     dependency: transitive
     description:
       path: "."
-      ref: "38469da840a9cb3a1cd3465976ec1e4a8f6d5dae"
-      resolved-ref: "38469da840a9cb3a1cd3465976ec1e4a8f6d5dae"
+      ref: "540fd5acbc1936263b172dc676d0df64bec8f71a"
+      resolved-ref: "540fd5acbc1936263b172dc676d0df64bec8f71a"
       url: "https://github.com/banool/http_proxy"
     source: git
     version: "1.2.2"
