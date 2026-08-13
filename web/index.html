@@ -34,7 +34,10 @@
 
   <!-- Boot/loading screen shown until Flutter's first frame renders over it.
        Lives here (HTML) rather than as an early runApp() so it never touches
-       the initial route or document title — see lib/main.dart. -->
+       the initial route or document title — see lib/main.dart.
+       The colours below mirror dictionarylib's Hearth light tokens (theme.dart):
+       bg, onSurface, outline, primary. Keep them in step if the palette moves —
+       manifest.json's theme_color is the same primary. -->
   <style>
     body { margin: 0; }
     #loading {
@@ -57,7 +60,7 @@
       width: 28px;
       height: 28px;
       border: 3px solid #e7d8c9;
-      border-top-color: #bf5c36;
+      border-top-color: #b06544;
       border-radius: 50%;
       animation: loading-spin 0.8s linear infinite;
     }

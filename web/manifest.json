@@ -4,7 +4,7 @@
     "start_url": ".",
     "display": "standalone",
     "background_color": "#FBF5EE",
-    "theme_color": "#BF5C36",
+    "theme_color": "#B06544",
     "description": "Free video dictionary for Australian Sign Language (Auslan).",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
