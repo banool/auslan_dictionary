@@ -12,40 +12,51 @@ subprojects {
         if (project.hasProperty('android')) {
             project.android {
                 if (namespace == null) {
-                    namespace project.group
+                    namespace = project.group.toString()
                 }
-                compileSdkVersion 36
-                buildToolsVersion "36.0.0"
+                // AGP 9 dropped the compileSdkVersion()/buildToolsVersion()
+                // method forms; these are plain property assignments now.
+                compileSdk = 36
+                buildToolsVersion = "36.0.0"
                 // Many plugins still default to Java 8, which javac now warns
                 // is obsolete. Pull every plugin module up to Java 17 — not
                 // obsolete, and high enough for plugins that already use 17-only
                 // syntax (e.g. flutter_secure_storage's switch expressions and
-                // instanceof patterns). Keep Kotlin's jvmTarget in lockstep —
-                // AGP/KGP fail the build on a Java/Kotlin target mismatch —
-                // guarding on the extension since pure-Java modules don't have
-                // kotlinOptions.
+                // instanceof patterns).
                 compileOptions {
-                    sourceCompatibility JavaVersion.VERSION_17
-                    targetCompatibility JavaVersion.VERSION_17
+                    sourceCompatibility = JavaVersion.VERSION_17
+                    targetCompatibility = JavaVersion.VERSION_17
                 }
-                if (project.android.hasProperty('kotlinOptions')) {
-                    project.android.kotlinOptions {
-                        jvmTarget = "17"
-                    }
+            }
+            // Keep Kotlin's jvmTarget in lockstep — AGP/KGP fail the build on a
+            // Java/Kotlin target mismatch. AGP 9 removed android.kotlinOptions,
+            // so this goes through the Kotlin plugin's own extension, and only
+            // for modules that actually apply it (pure-Java plugin modules
+            // don't). We keep android.builtInKotlin=false, so KGP is what
+            // provides that extension.
+            project.plugins.withId('org.jetbrains.kotlin.android') {
+                project.extensions.getByName('kotlin').compilerOptions {
+                    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
                 }
             }
         }
     }
 }
 
-rootProject.buildDir = "../build"
+// Relocate the build directory out of android/ and into <app>/build, where the
+// flutter tool looks for outputs. Gradle 9 removed Project.buildDir, so this is
+// the layout.buildDirectory form used by the current Flutter template.
+// newBuildDir is captured from the ORIGINAL buildDirectory (android/build), so
+// "../../build" resolves to <app>/build.
+def newBuildDir = rootProject.layout.buildDirectory.dir("../../build").get()
+rootProject.layout.buildDirectory.value(newBuildDir)
 subprojects {
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
+    project.layout.buildDirectory.value(newBuildDir.dir(project.name))
 }
 subprojects {
     project.evaluationDependsOn(":app")
 }
 
 tasks.register("clean", Delete) {
-    delete rootProject.buildDir
+    delete rootProject.layout.buildDirectory
 }
