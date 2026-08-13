@@ -10,7 +10,8 @@ final MdSuiteConfig mdSuiteConfig = MdSuiteConfig(
   appId: 'auslan',
   appName: 'Auslan Dictionary',
   advisoriesUrl: Uri.parse(
-      'https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/advisories.md'),
+    'https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/advisories.md',
+  ),
   knobUrlBase: KNOBS_URL_BASE,
   mediaBaseUrls: const [AUSLAN_MEDIA_BASE_URL],
   buildEntryLoader: () => MyEntryLoader(),

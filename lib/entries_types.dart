@@ -7,11 +7,12 @@ class MyEntry implements Entry {
   List<String> categories;
   EntryType entryType;
 
-  MyEntry(
-      {required this.entryInEnglish,
-      required this.subEntries,
-      required this.categories,
-      required this.entryType});
+  MyEntry({
+    required this.entryInEnglish,
+    required this.subEntries,
+    required this.categories,
+    required this.entryType,
+  });
 
   // This should be an entry in the list under "data".
   static MyEntry fromJson(Map<String, dynamic> data) {
@@ -25,8 +26,10 @@ class MyEntry implements Entry {
     // Necessary to know how to build the link to Auslan Signbank.
     int index = 0;
     for (final subJson in (data["sub_entries"] as List<dynamic>? ?? const [])) {
-      MySubEntry subEntry =
-          MySubEntry.fromJson(subJson as Map<String, dynamic>, index);
+      MySubEntry subEntry = MySubEntry.fromJson(
+        subJson as Map<String, dynamic>,
+        index,
+      );
       if (subEntry.getMedia().isNotEmpty) {
         subEntry.keywords.remove(entryInEnglish);
         subEntriesList.add(subEntry);
@@ -35,10 +38,11 @@ class MyEntry implements Entry {
     }
 
     return MyEntry(
-        entryInEnglish: entryInEnglish,
-        subEntries: subEntriesList,
-        categories: (data["categories"] as List<dynamic>).cast<String>(),
-        entryType: EntryType.WORD);
+      entryInEnglish: entryInEnglish,
+      subEntries: subEntriesList,
+      categories: (data["categories"] as List<dynamic>).cast<String>(),
+      entryType: EntryType.WORD,
+    );
   }
 
   @override
@@ -85,12 +89,13 @@ class MySubEntry implements SubEntry {
   // We need this to know how to build the link to Auslan Signbank.
   late int index;
 
-  MySubEntry(
-      {required this.keywords,
-      required this.videoLinksInner,
-      required this.definitions,
-      required this.regions,
-      required this.index});
+  MySubEntry({
+    required this.keywords,
+    required this.videoLinksInner,
+    required this.definitions,
+    required this.regions,
+    required this.index,
+  });
 
   MySubEntry.fromJson(Map<String, dynamic> wordJson, this.index) {
     keywords = (wordJson["keywords"] as List<dynamic>).cast<String>();
@@ -107,8 +112,9 @@ class MySubEntry implements SubEntry {
     List<Definition> definitions = [];
     (wordJson["definitions"] as Map<String, dynamic>).forEach((heading, value) {
       List<String>? subdefinitions = (value as List<dynamic>).cast<String>();
-      definitions
-          .add(Definition(heading: heading, subdefinitions: subdefinitions));
+      definitions.add(
+        Definition(heading: heading, subdefinitions: subdefinitions),
+      );
     });
     this.definitions = definitions;
 
@@ -118,8 +124,8 @@ class MySubEntry implements SubEntry {
       List<int> regionInts = (wordJson["regions"] as List<dynamic>).cast<int>();
       regions = regionInts.map((i) => Region.values[i]).toList();
     } catch (e) {
-      List<String> regionStrings =
-          (wordJson["regions"] as List<dynamic>).cast<String>();
+      List<String> regionStrings = (wordJson["regions"] as List<dynamic>)
+          .cast<String>();
       regions = regionStrings.map((v) => regionFromLegacyString(v)).toList();
     }
 
@@ -247,8 +253,9 @@ extension PrintRegion on Region {
   }
 }
 
-final List<Region> regionsWithoutEverywhere =
-    List.from(Region.values.where((r) => r != Region.EVERYWHERE).toList());
+final List<Region> regionsWithoutEverywhere = List.from(
+  Region.values.where((r) => r != Region.EVERYWHERE).toList(),
+);
 
 Region regionFromLegacyString(String s) {
   switch (s.toLowerCase()) {

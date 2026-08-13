@@ -18,10 +18,18 @@ const String ANDROID_APP_ID = "com.banool.auslan_dictionary";
 /// auslanWordPageConfig itself references this, so eagerly evaluating the
 /// config here would recurse during lazy initialization.
 Future<void> navigateToEntryPage(
-    BuildContext context, Entry entry, bool showFavouritesButton,
-    {SavedVideo? focusVideo, EntryList? saveToList}) {
-  return defaultNavigateToEntryPage(context, entry, showFavouritesButton,
-      focusVideo: focusVideo,
-      saveToList: saveToList,
-      config: auslanWordPageConfig);
+  BuildContext context,
+  Entry entry,
+  bool showFavouritesButton, {
+  SavedVideo? focusVideo,
+  EntryList? saveToList,
+}) {
+  return defaultNavigateToEntryPage(
+    context,
+    entry,
+    showFavouritesButton,
+    focusVideo: focusVideo,
+    saveToList: saveToList,
+    config: auslanWordPageConfig,
+  );
 }

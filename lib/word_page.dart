@@ -11,8 +11,11 @@ import 'common.dart';
 /// App-bar action linking out to this sign on Auslan Signbank. Also used by the
 /// flashcards screen, so it lives here rather than inline in [WordPageConfig].
 Widget getAuslanSignbankLaunchAppBarActionWidget(
-    BuildContext context, String word, int currentPage,
-    {bool enabled = true}) {
+  BuildContext context,
+  String word,
+  int currentPage, {
+  bool enabled = true,
+}) {
   return buildActionButton(
     context,
     const Icon(Icons.public, semanticLabel: "Link to sign in Auslan Signbank"),
@@ -31,45 +34,55 @@ Widget auslanDefinition(BuildContext context, dynamic d) {
   final definition = d as Definition;
   final cs = Theme.of(context).colorScheme;
   return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         // A small primary marker + the heading set as an uppercase eyebrow.
-        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(
-            margin: const EdgeInsets.only(top: 5),
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: cs.primary,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              definition.heading!.toUpperCase(),
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.5,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 5),
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
                 color: cs.primary,
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-          ),
-        ]),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                definition.heading!.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  color: cs.primary,
+                ),
+              ),
+            ),
+          ],
+        ),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: definition.subdefinitions!
-              .map<Widget>((s) => Padding(
+              .map<Widget>(
+                (s) => Padding(
                   padding: const EdgeInsets.only(left: 14.0, top: 8.0),
-                  child: Text(s,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyLarge
-                          ?.copyWith(height: 1.45))))
+                  child: Text(
+                    s,
+                    style: Theme.of(context).textTheme.bodyLarge
+                        ?.copyWith(height: 1.45),
+                  ),
+                ),
+              )
               .toList(),
-        )
-      ]));
+        ),
+      ],
+    ),
+  );
 }
 
 /// Auslan's wiring for the shared [EntryPage]: English-only related-word
@@ -84,6 +97,9 @@ final WordPageConfig auslanWordPageConfig = WordPageConfig(
   videoAspectRatio: 16 / 9,
   buildExtraAppBarActions: (context, ctx) => [
     getAuslanSignbankLaunchAppBarActionWidget(
-        context, ctx.entry.getPhrase(LOCALE_ENGLISH)!, ctx.currentVariation),
+      context,
+      ctx.entry.getPhrase(LOCALE_ENGLISH)!,
+      ctx.currentVariation,
+    ),
   ],
 );

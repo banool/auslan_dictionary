@@ -38,9 +38,9 @@ final DictAppBootstrapConfig bootstrapConfig = DictAppBootstrapConfig(
   // here, which is how new announcements stay off old builds without a
   // hotfix. See assets/advisories_v2.md for the format.
   advisoriesUrl: Uri.parse(
-      "https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/advisories_v2.md"),
-  yankedVersionsUrl:
-      "https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/yanked_versions",
+    "https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/advisories_v2.md",
+  ),
+  yankedVersionsUrl: "https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/yanked_versions",
   knobUrlBase: KNOBS_URL_BASE,
   aptabaseAppKey: APTABASE_APP_KEY,
   setupMediaAndEntryLoader: () async {
@@ -48,10 +48,7 @@ final DictAppBootstrapConfig bootstrapConfig = DictAppBootstrapConfig(
     // before the dictionary + lists load so the list migration can resolve /
     // strip it. Nectar is the primary host; the R2 mirror is a fallback the
     // players fall through to when a Nectar fetch fails.
-    mediaBaseUrls = const [
-      AUSLAN_MEDIA_BASE_URL,
-      AUSLAN_MEDIA_MIRROR_BASE_URL,
-    ];
+    mediaBaseUrls = const [AUSLAN_MEDIA_BASE_URL, AUSLAN_MEDIA_MIRROR_BASE_URL];
     return MyEntryLoader();
   },
   //   apiBaseUrl     — Cloudflare Worker (JSON API)
@@ -95,8 +92,7 @@ final DictAppBootstrapConfig bootstrapConfig = DictAppBootstrapConfig(
       // audience. The client's secret is unused — verification is
       // offline against Google's JWKS. See
       // MANUAL_SETUP.md in the private backend repo §2.
-      googleServerClientId:
-          '901039920141-fq7ln7rltv705srdtruuafm48d2mv38d.apps.googleusercontent.com',
+      googleServerClientId: '901039920141-fq7ln7rltv705srdtruuafm48d2mv38d.apps.googleusercontent.com',
       // Microsoft Entra (Azure AD) application (client) id from the Azure
       // Portal app registration. Must match the Worker's
       // `MICROSOFT_CLIENT_ID`. One id covers iOS + Android. See
@@ -108,12 +104,9 @@ final DictAppBootstrapConfig bootstrapConfig = DictAppBootstrapConfig(
       // with android/get-sha1.sh; every hash must also be registered in
       // Azure and as a <data> entry in AndroidManifest.xml. Details:
       // MANUAL_SETUP.md in the private backend repo §3.
-      microsoftAndroidRedirectUri:
-          'msauth://com.banool.auslan_dictionary/tnPupvWBIsfs5VUhZbUCXxyL8%2FQ%3D',
-      microsoftAndroidUploadRedirectUri:
-          'msauth://com.banool.auslan_dictionary/uJIuQL8qD443LNaG3%2B5OF%2BzMYB4%3D',
-      microsoftAndroidDebugRedirectUri:
-          'msauth://com.banool.auslan_dictionary/mLnUCgy8ygvZ%2B2jXJtHai%2FNmrCw%3D',
+      microsoftAndroidRedirectUri: 'msauth://com.banool.auslan_dictionary/tnPupvWBIsfs5VUhZbUCXxyL8%2FQ%3D',
+      microsoftAndroidUploadRedirectUri: 'msauth://com.banool.auslan_dictionary/uJIuQL8qD443LNaG3%2B5OF%2BzMYB4%3D',
+      microsoftAndroidDebugRedirectUri: 'msauth://com.banool.auslan_dictionary/mLnUCgy8ygvZ%2B2jXJtHai%2FNmrCw%3D',
     ),
     // Debug-only "Sign in as test user" button. Visible only in
     // kDebugMode AND when testAuthToken is non-empty. Token must be
@@ -135,13 +128,15 @@ final DictAppBootstrapConfig bootstrapConfig = DictAppBootstrapConfig(
 /// Kept as an app-local entrypoint because the shared integration-test suites
 /// call it (see integration_test/test_config.dart).
 Future<void> setup({Set<Entry>? entriesGlobalReplacement}) =>
-    setupDictionaryApp(bootstrapConfig,
-        entriesGlobalReplacement: entriesGlobalReplacement);
+    setupDictionaryApp(
+      bootstrapConfig,
+      entriesGlobalReplacement: entriesGlobalReplacement,
+    );
 
 Future<void> main() => runDictionaryApp(
-      bootstrapConfig,
-      appName: APP_NAME,
-      iOSAppId: IOS_APP_ID,
-      androidAppId: ANDROID_APP_ID,
-      buildApp: (locale) => RootApp(startingLocale: locale),
-    );
+  bootstrapConfig,
+  appName: APP_NAME,
+  iOSAppId: IOS_APP_ID,
+  androidAppId: ANDROID_APP_ID,
+  buildApp: (locale) => RootApp(startingLocale: locale),
+);

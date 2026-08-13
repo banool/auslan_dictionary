@@ -23,8 +23,10 @@ void main() {
     final items = sub.getMediaItems();
 
     // Paths still come through unchanged (saved-video identity is preserved).
-    expect(items.map((e) => e.path).toList(),
-        ['/mp4video/11/11450.mp4', '/mp4video/11/11451.mp4']);
+    expect(items.map((e) => e.path).toList(), [
+      '/mp4video/11/11450.mp4',
+      '/mp4video/11/11451.mp4',
+    ]);
     expect(items.map((e) => e.path).toList(), sub.getMedia());
 
     // The key invariant: no status, no details -> no pill, no source sheet.

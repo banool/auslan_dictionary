@@ -34,7 +34,9 @@ class MyEntryLoader extends EntryLoader {
 
   @override
   Future<NewData?> downloadNewData(
-      int currentVersion, bool forceDownload) async {
+    int currentVersion,
+    bool forceDownload,
+  ) async {
     printAndLog("Fetching latest version of data");
 
     // Try each base URL until one works
@@ -42,26 +44,30 @@ class MyEntryLoader extends EntryLoader {
       printAndLog("Trying base URL $baseUrl");
       try {
         int latestVersion = int.parse(
-            (await http.get(Uri.parse('$baseUrl/latest_version'))).body);
+          (await http.get(Uri.parse('$baseUrl/latest_version'))).body,
+        );
         printAndLog("Fetched latest version of data: $latestVersion");
 
         if (!forceDownload && latestVersion <= currentVersion) {
           printAndLog(
-              "Current version ($currentVersion) is >= latest version ($latestVersion), not downloading new data");
+            "Current version ($currentVersion) is >= latest version ($latestVersion), not downloading new data",
+          );
           return null;
         }
 
         if (forceDownload) {
           printAndLog(
-              "Forcing download of new data, even if the latest version is no newer than the current version. Current version: $currentVersion. Latest version: $latestVersion");
+            "Forcing download of new data, even if the latest version is no newer than the current version. Current version: $currentVersion. Latest version: $latestVersion",
+          );
         } else {
           printAndLog(
-              "Current version ($currentVersion) is < latest version ($latestVersion), downloading new data");
+            "Current version ($currentVersion) is < latest version ($latestVersion), downloading new data",
+          );
         }
 
         // Download the new data
-        String newData =
-            (await http.get(Uri.parse('$baseUrl/$dataFileName'))).body;
+        String newData = (await http.get(Uri.parse('$baseUrl/$dataFileName')))
+            .body;
 
         printAndLog("Successfully downloaded new data from $baseUrl");
 

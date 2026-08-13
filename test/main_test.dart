@@ -11,19 +11,24 @@ void main() async {
 
   entriesGlobal = {
     MyEntry(
-        entryInEnglish: "friend",
-        subEntries: [
-          MySubEntry(index: 0, definitions: [
+      entryInEnglish: "friend",
+      subEntries: [
+        MySubEntry(
+          index: 0,
+          definitions: [
             Definition(
-                heading: "As a Noun", subdefinitions: ["Someone you love :)"])
-          ], videoLinksInner: [
-            "auslan/46/46930.mp4"
-          ], regions: [
-            Region.EVERYWHERE
-          ], keywords: [])
-        ],
-        categories: [],
-        entryType: EntryType.WORD)
+              heading: "As a Noun",
+              subdefinitions: ["Someone you love :)"],
+            ),
+          ],
+          videoLinksInner: ["auslan/46/46930.mp4"],
+          regions: [Region.EVERYWHERE],
+          keywords: [],
+        ),
+      ],
+      categories: [],
+      entryType: EntryType.WORD,
+    ),
   };
 
   SharedPreferences.setMockInitialValues({});
@@ -46,13 +51,14 @@ void main() async {
     for (Entry w in entriesGlobal) {
       var ww = w as MyEntry;
       for (MySubEntry sw in ww.subEntries) {
-        var m = Master(id: sw.getKey(ww), fields: [
-          ww.entryInEnglish,
-          sw.getMedia().join("=====")
-        ], combinations: const [
-          Combination(front: [0], back: [1]),
-          Combination(front: [1], back: [0]),
-        ]);
+        var m = Master(
+          id: sw.getKey(ww),
+          fields: [ww.entryInEnglish, sw.getMedia().join("=====")],
+          combinations: const [
+            Combination(front: [0], back: [1]),
+            Combination(front: [1], back: [0]),
+          ],
+        );
         masters.add(m);
       }
     }

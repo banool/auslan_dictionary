@@ -24,8 +24,7 @@ import 'package:dictionarylib_test_support/helpers.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets(
-      'region sheet recommends unknown-region signs and keeps a concise '
+  testWidgets('region sheet recommends unknown-region signs and keeps a concise '
       'summary', (WidgetTester tester) async {
     await setup();
 
@@ -39,8 +38,9 @@ void main() {
     // Start from no extra regions selected, unknown-region signs on (the
     // default). Restore afterwards so we don't disturb real settings.
     final priorRegions = sharedPreferences.getStringList(KEY_FLASHCARD_REGIONS);
-    final priorUnknown =
-        sharedPreferences.getBool(KEY_USE_UNKNOWN_REGION_SIGNS);
+    final priorUnknown = sharedPreferences.getBool(
+      KEY_USE_UNKNOWN_REGION_SIGNS,
+    );
     await sharedPreferences.setStringList(KEY_FLASHCARD_REGIONS, const []);
     await sharedPreferences.setBool(KEY_USE_UNKNOWN_REGION_SIGNS, true);
     addTearDown(() async {
@@ -48,13 +48,17 @@ void main() {
         await sharedPreferences.remove(KEY_FLASHCARD_REGIONS);
       } else {
         await sharedPreferences.setStringList(
-            KEY_FLASHCARD_REGIONS, priorRegions);
+          KEY_FLASHCARD_REGIONS,
+          priorRegions,
+        );
       }
       if (priorUnknown == null) {
         await sharedPreferences.remove(KEY_USE_UNKNOWN_REGION_SIGNS);
       } else {
         await sharedPreferences.setBool(
-            KEY_USE_UNKNOWN_REGION_SIGNS, priorUnknown);
+          KEY_USE_UNKNOWN_REGION_SIGNS,
+          priorUnknown,
+        );
       }
     });
 
@@ -68,18 +72,26 @@ void main() {
     // The landing is a lazy ListView and the Sign regions row sits at the
     // bottom, so scroll it into view (and build it) before interacting.
     final regionsRow = find.text('Sign regions');
-    await tester.scrollUntilVisible(regionsRow, 250,
-        scrollable: find.byType(Scrollable).first);
+    await tester.scrollUntilVisible(
+      regionsRow,
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
     await settle(tester);
 
     // --- Open the sheet: the unknown-region toggle is flagged Recommended. ---
     await tester.tap(regionsRow);
     await settle(tester);
-    expect(find.text('Recommended'), findsOneWidget,
-        reason: 'the unknown-region toggle should be marked Recommended');
-    expect(find.textContaining("Most signs aren't tagged with a region"),
-        findsOneWidget,
-        reason: 'the sheet should explain why keeping it on is recommended');
+    expect(
+      find.text('Recommended'),
+      findsOneWidget,
+      reason: 'the unknown-region toggle should be marked Recommended',
+    );
+    expect(
+      find.textContaining("Most signs aren't tagged with a region"),
+      findsOneWidget,
+      reason: 'the sheet should explain why keeping it on is recommended',
+    );
 
     // --- Select four regions, then close: the summary collapses to a count. ---
     for (final r in const ['NSW', 'VIC', 'QLD', 'SA']) {
@@ -89,9 +101,13 @@ void main() {
       await settle(tester);
     }
     await _tapDone(tester);
-    expect(find.textContaining('4 regions'), findsOneWidget,
-        reason: 'more than three regions should summarise as a count, not a '
-            'long wrapping list');
+    expect(
+      find.textContaining('4 regions'),
+      findsOneWidget,
+      reason:
+          'more than three regions should summarise as a count, not a '
+          'long wrapping list',
+    );
 
     // --- Drop back to three: now it lists them by name. ---
     await tester.tap(find.text('Sign regions'));
@@ -101,12 +117,18 @@ void main() {
     await tester.tap(saPill); // deselect the fourth
     await settle(tester);
     await _tapDone(tester);
-    expect(find.textContaining('NSW, VIC, QLD'), findsOneWidget,
-        reason: 'three or fewer regions should be listed by name');
+    expect(
+      find.textContaining('NSW, VIC, QLD'),
+      findsOneWidget,
+      reason: 'three or fewer regions should be listed by name',
+    );
     // The count form ("3 regions") must not show when they're listed. (Note
     // the row's own "Sign regions" title legitimately contains "regions".)
-    expect(find.textContaining('3 regions'), findsNothing,
-        reason: 'the count form should not show when regions are listed');
+    expect(
+      find.textContaining('3 regions'),
+      findsNothing,
+      reason: 'the count form should not show when regions are listed',
+    );
   });
 }
 

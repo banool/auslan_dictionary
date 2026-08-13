@@ -17,8 +17,9 @@ final DictAppTestConfig appTestConfig = DictAppTestConfig(
   // Auslan filters the flashcard pool by region; allow every region (and
   // unknown-region signs) so no seeded video is filtered out.
   seedFlashcardSettings: () async {
-    await sharedPreferences.setStringList(KEY_FLASHCARD_REGIONS,
-        [for (var i = 0; i < et.Region.values.length; i++) '$i']);
+    await sharedPreferences.setStringList(KEY_FLASHCARD_REGIONS, [
+      for (var i = 0; i < et.Region.values.length; i++) '$i',
+    ]);
     await sharedPreferences.setBool(KEY_USE_UNKNOWN_REGION_SIGNS, true);
   },
   clearFlashcardSettings: () async {
