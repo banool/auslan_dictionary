@@ -1,0 +1,285 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <title>FAQ - Auslan Dictionary</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Favicons, generated from the app icon (ios/.../Icon-App-1024x1024@1x.png). -->
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <meta name="description" content="Answers to common questions about the Auslan Dictionary app, including what to do when the app won't load and which domains it needs to reach on a school or work network." />
+    <link rel="canonical" href="https://auslandictionary.org/faq.html" />
+    <!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+    <!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        /* Same Hearth-themed content page as privacy.html / terms.html, with a
+           few extras this page needs: a contents list, sub-headings, and the
+           table of domains that has to be readable on a phone. */
+        body {
+            background-color: #FBF5EE;
+            font-family: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+        }
+        .page-content h1,
+        .page-content h2,
+        .page-content h3 {
+            font-family: 'Bricolage Grotesque', 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            letter-spacing: -0.01em;
+        }
+        .page-content {
+            max-width: 50em;
+            margin: 0 auto;
+            padding: 3em 2em;
+            line-height: 1.8;
+            color: #4A3C33;
+        }
+        .page-content h1 {
+            font-size: 2em;
+            margin-bottom: 0.5em;
+            color: #2A201A;
+        }
+        .page-content h2 {
+            font-size: 1.3em;
+            margin-top: 2.5em;
+            margin-bottom: 0.5em;
+            color: #2A201A;
+        }
+        .page-content h3 {
+            font-size: 1.05em;
+            margin-top: 1.8em;
+            margin-bottom: 0.5em;
+            color: #2A201A;
+        }
+        .page-content p,
+        .page-content ul,
+        .page-content ol {
+            margin-bottom: 1em;
+        }
+        .page-content .last-updated {
+            font-style: italic;
+            color: #9A8B7D;
+            margin-bottom: 2em;
+        }
+        .page-content a {
+            color: #BF5C36;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2em;
+            color: #BF5C36;
+            text-decoration: none;
+            font-size: 0.95em;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        /* Contents list at the top, so someone sent here for one answer can
+           jump straight to it. */
+        .contents {
+            background-color: #F4EADF;
+            border-radius: 0.6em;
+            padding: 1.2em 1.5em;
+            margin-bottom: 2.5em;
+        }
+        .contents ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .contents li {
+            padding-left: 0;
+            line-height: 1.6;
+            margin-bottom: 0.3em;
+        }
+        /* The domain table: an allowlist a network administrator can work
+           from. Scrolls rather than overflowing on a narrow screen. */
+        .domain-table-wrapper {
+            overflow-x: auto;
+            margin-bottom: 1.5em;
+        }
+        .page-content table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        .page-content th,
+        .page-content td {
+            text-align: left;
+            padding: 0.7em 1em 0.7em 0;
+            border-bottom: 1px solid #E4D8CA;
+            vertical-align: top;
+        }
+        .page-content th {
+            color: #2A201A;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .page-content code {
+            font-family: 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.92em;
+            background-color: #F4EADF;
+            border-radius: 0.3em;
+            padding: 0.1em 0.35em;
+            white-space: nowrap;
+        }
+        /* The template greys out <strong>, which reads as de-emphasis rather
+           than emphasis. Restore the body heading colour. */
+        .page-content strong {
+            color: #2A201A;
+        }
+        /* Inside the tables the domain is already the row label, so the pill
+           background is noise; the template's row striping likewise, on tables
+           this short. */
+        .page-content th code,
+        .page-content td code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .page-content .domain-table-wrapper tbody tr:nth-child(2n + 1) {
+            background-color: transparent;
+        }
+    </style>
+</head>
+
+<body id="top">
+
+    <div class="page-content">
+        <a href="index.html" class="back-link">&larr; Back to Auslan Dictionary</a>
+
+        <h1>Frequently Asked Questions</h1>
+        <p class="last-updated">Last updated: August 17, 2026</p>
+
+        <div class="contents">
+            <ul>
+                <li><a href="#app-wont-load">The app won't load, even though my internet is working</a></li>
+                <li><a href="#domains">Which domains does the app need to reach?</a></li>
+                <li><a href="#offline">Does the app work offline?</a></li>
+                <li><a href="#free">Is the app free?</a></li>
+                <li><a href="#signs">Where do the signs come from?</a></li>
+                <li><a href="#wrong-sign">A sign is missing, or looks wrong</a></li>
+                <li><a href="#report">Something else is broken. How do I report it?</a></li>
+            </ul>
+        </div>
+
+        <h2 id="app-wont-load">The app won't load, even though my internet is working</h2>
+
+        <p>The usual cause is a network that blocks one or more of the addresses the app needs. This comes up most often on <strong>school, workplace and government devices</strong>, where a content filter or firewall sits between the device and the internet. Web browsing still works, so the internet looks fine &mdash; but the app can't reach the servers it downloads the dictionary from, and gets stuck on the launch screen.</p>
+
+        <p>The app keeps its own copy of the dictionary on your device so it can work offline. It only needs to download that copy when it doesn't already have one: the first time you ever open the app, and occasionally after an update that changes the format of the stored copy. That is why a device can run happily for months and then suddenly stop working after an update &mdash; the block was always there, but until then the app had a local copy and never needed to go and fetch one.</p>
+
+        <p>Some things to try:</p>
+
+        <ol>
+            <li><strong>Open the app once on a different connection.</strong> A home wi-fi network or a personal phone hotspot is ideal. Once the dictionary has downloaded, it's stored on the device, and the app should work on the restricted network again afterwards.</li>
+            <li><strong>Give it a couple of minutes.</strong> If the app sits on the launch screen, leave it for two or three minutes. It will eventually give up and show an error screen, which tells you a lot more than a frozen logo does. (We're working on making this quicker and clearer.)</li>
+            <li><strong>If your network uses a proxy</strong>, as many managed networks do, go to <strong>Settings &rarr; Use system HTTP proxy</strong> in the app and turn it on, then fully close and reopen the app. The app doesn't use the device's proxy settings unless you ask it to.</li>
+            <li><strong>Ask whoever manages the network to allow the addresses below.</strong> This is the real fix on a managed device. The list is written so you can forward it straight to an IT department.</li>
+        </ol>
+
+        <h2 id="domains">Which domains does the app need to reach?</h2>
+
+        <p>If you administer a network or a fleet of managed devices, these are the domains Auslan Dictionary connects to, all over HTTPS on port 443. The first group is required for the app to start at all.</p>
+
+        <h3>Required for the app to start</h3>
+
+        <div class="domain-table-wrapper">
+            <table>
+                <tr>
+                    <th><code>raw.githubusercontent.com</code></th>
+                    <td>Where the dictionary data is downloaded from</td>
+                </tr>
+                <tr>
+                    <th><code>cdn.auslandictionary.org</code></th>
+                    <td>Backup copy of the same data</td>
+                </tr>
+            </table>
+        </div>
+
+        <h3>Required to play the sign videos</h3>
+
+        <div class="domain-table-wrapper">
+            <table>
+                <tr>
+                    <th><code>object-store.rc.nectar.org.au</code></th>
+                    <td>The video files themselves, hosted by Auslan Signbank</td>
+                </tr>
+                <tr>
+                    <th><code>cdn.auslandictionary.org</code></th>
+                    <td>Backup video host (same as above)</td>
+                </tr>
+            </table>
+        </div>
+
+        <h3>Optional &mdash; the app works without these</h3>
+
+        <div class="domain-table-wrapper">
+            <table>
+                <tr>
+                    <th><code>api.auslandictionary.org</code></th>
+                    <td>Signing in and shared word lists</td>
+                </tr>
+                <tr>
+                    <th><code>share.auslandictionary.org</code></th>
+                    <td>Opening a shared list link someone sends you</td>
+                </tr>
+                <tr>
+                    <th><code>analytics.auslandictionary.org</code></th>
+                    <td>Anonymous usage statistics (see the <a href="privacy.html">Privacy Policy</a>)</td>
+                </tr>
+                <tr>
+                    <th><code>www.auslan.org.au</code></th>
+                    <td>The "view on Signbank" links, which open in a browser</td>
+                </tr>
+            </table>
+        </div>
+
+        <p>In practice <code>raw.githubusercontent.com</code> is the one most often blocked, since filters tend to treat all of GitHub as a code-sharing site.</p>
+
+        <h2 id="offline">Does the app work offline?</h2>
+
+        <p>Mostly, yes. Once the dictionary has downloaded, searching and browsing work with no internet connection at all.</p>
+
+        <p>The sign videos are streamed, so playing a sign you haven't watched before does need a connection. Videos you have watched recently are kept on the device for 21 days, so revisiting a sign usually works offline too. You can turn this caching off, or clear it, in Settings.</p>
+
+        <h2 id="free">Is the app free?</h2>
+
+        <p>Yes &mdash; completely free, with no ads, no subscriptions and no in-app purchases. It's also open source; the code is on <a href="https://github.com/banool/auslan_dictionary">GitHub</a>.</p>
+
+        <h2 id="signs">Where do the signs come from?</h2>
+
+        <p>All of the sign information and video in the app comes from <a href="https://www.auslan.org.au">Auslan Signbank</a> (Johnston, T., &amp; Cassidy, S. (2008). Auslan Signbank, Sydney: Macquarie University &amp; Trevor Johnston). The app is an alternative way to browse and revise their dictionary; it isn't a separate source of Auslan. New and updated signs published to Signbank flow through to the app automatically.</p>
+
+        <h2 id="wrong-sign">A sign is missing, or looks wrong</h2>
+
+        <p>Because the content comes from Auslan Signbank, corrections need to go to them rather than to us &mdash; that way the fix reaches everyone who uses Signbank, not just app users. Use the <a href="https://www.auslan.org.au/feedback/">Signbank feedback form</a>. The same applies to a definition that seems inaccurate, or a sign that's missing entirely.</p>
+
+        <p>A video that won't play for a specific sign is usually a problem with the source media as well, though if lots of videos are failing it's worth reporting to us too.</p>
+
+        <h2 id="report">Something else is broken. How do I report it?</h2>
+
+        <p>For anything that's a problem with the app itself &mdash; a feature that doesn't work, a crash, something that looks wrong &mdash; either open an issue on <a href="https://github.com/banool/auslan_dictionary/issues">GitHub</a> or email <a href="mailto:daniel@dport.me">daniel@dport.me</a>.</p>
+
+        <p>Two things make a report much easier to act on: a screenshot of what you're seeing, and the app's background logs (Settings &rarr; Background logs), which record what the app was doing at the time. Mentioning your device and whether you're on a home, school or work network helps too.</p>
+
+        <p style="margin-top: 3em;"><a href="privacy.html">Privacy Policy</a> &nbsp;&middot;&nbsp; <a href="terms.html">Terms of Service</a></p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/jquery.scrolly.min.js"></script>
+    <script src="assets/js/skel.min.js"></script>
+    <script src="assets/js/util.js"></script>
+    <!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+    <script src="assets/js/main.js"></script>
+
+</body>
+
+</html>
