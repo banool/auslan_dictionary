@@ -45,8 +45,9 @@ final DictAppBootstrapConfig bootstrapConfig = DictAppBootstrapConfig(
   knobUrlBase: KNOBS_URL_BASE,
   aptabaseAppKey: APTABASE_APP_KEY,
   // Linked from the startup error screen; the anchor lands on the "app won't
-  // load" section, which lists the domains the app needs to reach.
-  faqUrl: "https://auslandictionary.org/faq.html#app-wont-load",
+  // load" section, which lists the domains the app needs to reach. The site
+  // serves extensionless URLs (faq.html 308s to /faq), so link that directly.
+  faqUrl: "https://auslandictionary.org/faq#app-wont-load",
   // Same artwork as the native splash (bundled above in pubspec assets), so
   // the splash → loading screen handoff on a cold start is visually
   // continuous.
