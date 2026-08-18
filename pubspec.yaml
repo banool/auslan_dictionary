@@ -3,7 +3,7 @@ description: Free video dictionary of Auslan signs
 
 publish_to: 'none'
 
-version: 2.0.82+993
+version: 2.0.83+994
 
 environment:
   sdk: '>=3.13.0 <4.0.0'
@@ -22,7 +22,7 @@ dependencies:
       url: https://github.com/banool/dictionarylib.git
       # NOTE: keep this ref and dictionarylib_test_support's ref (below, in
       # dev_dependencies) on the SAME commit when repinning.
-      ref: 9e7c0b876ca34bca8c39dd7feea96598d0250862
+      ref: f7b8e89485360474e86fc15418aa74b0a2cf3bc4
   dolphinsr: ^4.0.0
   flutter_native_splash:
   go_router:
@@ -37,7 +37,7 @@ dev_dependencies:
   dictionarylib_test_support:
     git:
       url: https://github.com/banool/dictionarylib.git
-      ref: 9e7c0b876ca34bca8c39dd7feea96598d0250862
+      ref: f7b8e89485360474e86fc15418aa74b0a2cf3bc4
       path: dictionarylib_test_support
   dependency_validator: ^5.0.5
   flutter_driver:
@@ -82,3 +82,8 @@ flutter:
   # the private backend repo's MANUAL_SETUP.md section 4.
   assets:
     - assets/msal_config.json
+    # The splash logo, bundled so the cold-start loading screen (see
+    # buildStartupLogo in lib/main.dart) can hand off from the native splash
+    # with the same artwork.
+    - assets/icon/01-okay-splash.png
+    - assets/icon/01-okay-splash-dark.png

@@ -1,4 +1,5 @@
 import 'package:dictionarylib/dictionarylib.dart';
+import 'package:flutter/material.dart';
 
 import 'common.dart';
 import 'entries_loader.dart';
@@ -43,6 +44,18 @@ final DictAppBootstrapConfig bootstrapConfig = DictAppBootstrapConfig(
   yankedVersionsUrl: "https://raw.githubusercontent.com/banool/auslan_dictionary/master/assets/yanked_versions",
   knobUrlBase: KNOBS_URL_BASE,
   aptabaseAppKey: APTABASE_APP_KEY,
+  // Linked from the startup error screen; the anchor lands on the "app won't
+  // load" section, which lists the domains the app needs to reach.
+  faqUrl: "https://auslandictionary.org/faq.html#app-wont-load",
+  // Same artwork as the native splash (bundled above in pubspec assets), so
+  // the splash → loading screen handoff on a cold start is visually
+  // continuous.
+  buildStartupLogo: (context) => Image.asset(
+    Theme.of(context).brightness == Brightness.dark
+        ? 'assets/icon/01-okay-splash-dark.png'
+        : 'assets/icon/01-okay-splash.png',
+    width: 140,
+  ),
   setupMediaAndEntryLoader: () async {
     // Configure how saved-video paths resolve to playable URLs. Must be set
     // before the dictionary + lists load so the list migration can resolve /
