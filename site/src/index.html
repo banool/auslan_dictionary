@@ -45,7 +45,11 @@
 		<style>
 			/* Hearth theme: a warm clay-and-cream re-skin of the stock template,
 			   using the app's typefaces (Bricolage Grotesque for display, Hanken
-			   Grotesk for body) so the site matches the app's redesign. */
+			   Grotesk for body) so the site matches the app's redesign.
+			   The colours below mirror dictionarylib's Hearth light tokens
+			   (theme.dart): bg, onSurface, muted, outline, primary. Nothing
+			   mechanically ties them to it, so keep them in step if the palette
+			   moves — as with web/index.html and its manifest.json. */
 			html, body {
 				background-color: #FBF5EE;
 				font-family: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
@@ -69,16 +73,19 @@
 				font-family: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
 			}
 
-			/* Store + GitHub buttons become clay (the Hearth primary). */
+			/* Store + GitHub buttons become clay (the Hearth primary). The hover
+			   and active shades are that primary darkened; Hearth has no tokens for
+			   them, because in the app Material draws the pressed state as an
+			   overlay rather than a second colour. */
 			#header .button.special {
-				background-color: #BF5C36 !important;
+				background-color: #B06544 !important;
 				color: #FFFFFF !important;
 				box-shadow: none !important;
 				font-family: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
 				font-weight: 700;
 			}
-			#header .button.special:hover { background-color: #A94E2C !important; }
-			#header .button.special:active { background-color: #8F3F22 !important; }
+			#header .button.special:hover { background-color: #9C5739 !important; }
+			#header .button.special:active { background-color: #83472D !important; }
 
 			/* Render the screenshot inside a realistic iPhone device frame:
 			   a dark titanium bezel with large, concentric rounded corners. The
