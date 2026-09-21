@@ -31,6 +31,10 @@ on:
         description: "Plan only, touch nothing on either store"
         type: boolean
         default: false
+      replace_pending:
+        description: "iOS: pull the version currently waiting for App Store review and submit this build in its place"
+        type: boolean
+        default: false
 
 # Never cancel a promote that is mid-flight against the stores; queue instead.
 concurrency:
@@ -46,6 +50,7 @@ jobs:
       notes: ${{ inputs.notes }}
       rollout: ${{ inputs.rollout }}
       dry_run: ${{ inputs.dry_run }}
+      replace_pending: ${{ inputs.replace_pending }}
     secrets:
       APP_STORE_CONNECT_API_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
       APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
