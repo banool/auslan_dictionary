@@ -41,32 +41,41 @@ lib.configure(
         "2560x1600": ["sevenInchScreenshots", "tenInchScreenshots"],
         # Touch TV: no Play slot (tvScreenshots is for Android TV releases,
         # which this app doesn't ship) — stays local-only.
-        "1920x1080": [],
+        # The touch-TV captures fill Play's Android TV slot.
+        "1920x1080": ["tvScreenshots"],
     },
     # The marketable subset of the captured slugs, in storefront order (the
     # stores cap listings at 10 / 8 images).
+    # The marketable subset of the captured slugs, in storefront order (the
+    # stores cap listings at 10 / 8 images). The word page leads: a signer's
+    # video says what the app is at a glance, where the empty search screen
+    # didn't.
     app_store_shots=[
-        "01-search",
-        "02-searchResults",
         "03-wordPage",
+        "02-searchResults",
+        "09-flashcardRevealed",
+        "07-revisionLanding",
         "04-saveToList",
         "05-lists",
         "06-insideList",
-        "07-revisionLanding",
+        "01-search",
         "08-flashcardFront",
-        "09-flashcardRevealed",
         "11-searchDark",
     ],
     play_shots=[
-        "01-search",
-        "02-searchResults",
         "03-wordPage",
+        "02-searchResults",
+        "09-flashcardRevealed",
+        "07-revisionLanding",
         "04-saveToList",
         "05-lists",
         "06-insideList",
-        "08-flashcardFront",
-        "09-flashcardRevealed",
+        "01-search",
     ],
+    # The 5.5"/4.7" iPhone and older iPad sets still held pre-Hearth captures
+    # from the fastlane days; drop them so older devices get the current
+    # 6.9"/13" shots scaled down.
+    prune_unmanaged_ios_sets=True,
 )
 
 if __name__ == "__main__":

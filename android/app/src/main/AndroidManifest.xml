@@ -8,9 +8,21 @@
     <uses-permission
         android:name="com.google.android.gms.permission.AD_ID"
         tools:node="remove" />
+    <!-- Android TV: the leanback launcher lists the app (the LEANBACK_LAUNCHER
+         category below plus this banner), and neither leanback nor a
+         touchscreen is required, so phones and tablets are unaffected. The
+         banner is 320x180 xhdpi and must carry the app name; its source is
+         screenshots/feature_graphic/tv_banner.html. -->
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
     <application
         android:name="${applicationName}"
         android:label="Auslan Dictionary"
+        android:banner="@drawable/tv_banner"
         android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -52,6 +64,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
             </intent-filter>
             <!-- Verified App Link for shared-list URLs. The matching
                  assetlinks.json is served at

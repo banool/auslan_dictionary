@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<!-- Source of tv_banner.png next to this file. Colours are dictionarylib's
+     Hearth light tokens; hands.png is assets/icon/01-okay-splash.png cropped
+     and recoloured to the Hearth ink. Render it at exactly 1280x720 with any
+     headless Chromium, from this directory:
+       chromium --headless=new --hide-scrollbars --force-device-scale-factor=1 \
+         --window-size=1280,720 --virtual-time-budget=10000 \
+         --screenshot=tv_banner.png tv_banner.html
+     then upload it as the listing's tvBanner, and save a 320x180
+     downscale as android/app/src/main/res/drawable-xhdpi/tv_banner.png
+     (the Android TV launcher banner). -->
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Hanken+Grotesk:wght@600&display=block" rel="stylesheet" />
+<style>
+  html, body { margin: 0; width: 1280px; height: 720px; overflow: hidden; }
+  body { background: #FBF5EE; display: flex; align-items: center; justify-content: center; gap: 64px;
+         font-family: 'Hanken Grotesk', sans-serif; color: #2A201A; position: relative; }
+  .blob { position: absolute; border-radius: 50%; background: #F6D9C8; opacity: 0.6; }
+  .b1 { width: 640px; height: 640px; left: -220px; top: -200px; }
+  .b2 { width: 460px; height: 460px; right: -160px; bottom: -220px; }
+  img { width: 400px; position: relative; }
+  h1 { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 128px; line-height: 0.95; margin: 0; letter-spacing: -3px; position: relative; }
+</style>
+</head>
+<body>
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <img src="hands.png" alt="" />
+  <h1>Auslan<br />Dictionary</h1>
+</body>
+</html>
