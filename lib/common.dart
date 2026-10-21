@@ -20,14 +20,14 @@ const String ANDROID_APP_ID = "com.banool.auslan_dictionary";
 Future<void> navigateToEntryPage(
   BuildContext context,
   Entry entry,
-  bool showFavouritesButton, {
+  bool showSaveButton, {
   SavedVideo? focusVideo,
   EntryList? saveToList,
 }) {
   return defaultNavigateToEntryPage(
     context,
     entry,
-    showFavouritesButton,
+    showSaveButton,
     focusVideo: focusVideo,
     saveToList: saveToList,
     config: auslanWordPageConfig,
