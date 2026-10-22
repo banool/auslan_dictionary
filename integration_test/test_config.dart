@@ -25,6 +25,12 @@ final DictAppTestConfig appTestConfig = DictAppTestConfig(
   clearFlashcardSettings: () async {
     await sharedPreferences.remove(KEY_FLASHCARD_REGIONS);
   },
+  // Read off a device running a released build.
+  storedVideos: const [
+    'apple|/mp4video/29/29380_1.mp4',
+    'dog|/mp4video/39/39340_1.mp4',
+    'cat|/mp4video/50/50980_1.mp4',
+  ],
 );
 
 const ScreenshotSuiteConfig screenshotConfig = ScreenshotSuiteConfig(
