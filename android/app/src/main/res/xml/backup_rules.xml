@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android backup (Android 11 and earlier; Android 12 and later read
+     data_extraction_rules.xml). Everything is backed up, so the lists on the
+     device survive a new phone for people who don't sign in, except:
+       - install_marker: tells a restored install from the original (see
+         dictionarylib's lib/sharing/install_marker.dart). It must not travel,
+         or a restored phone would pass for the old one.
+       - FlutterSecureStorage.xml: the sign-in session. Its key stays in the
+         old phone's keystore, so a restored copy can't be read anyway. -->
+<full-backup-content>
+    <exclude domain="file" path="install_marker" />
+    <exclude domain="sharedpref" path="FlutterSecureStorage.xml" />
+</full-backup-content>
