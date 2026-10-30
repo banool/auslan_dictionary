@@ -95,3 +95,21 @@ Thanks so much for using Auslan Dictionary! As always the app is free, no ads, a
 Happy learning!
 Daniel
 END===
+START===
+DATE===2026-10-30
+MINVERSION===2.3.0
+## Your lists can now sync between your devices!
+
+Hey all!
+
+Bottom line up front: Sign in on the settings page and your lists and revision progress will be backed up and synced between all your devices!
+
+Prior to this update, if you used the app on multiple devices, your lists and revision progress never left each device. If you don't sign in it'll keep behaving this way, but if you want lists and revision progress to sync between your devices, sign in on each of them and it'll automagically work! The app still works fully offline and catches up when you're back online.
+
+If you've ever shared a list before, you're already signed in, so there's nothing to do: your lists are syncing now.
+
+As always the app is free, no ads, and will stay that way forever. If anything looks off, please let me know via `Settings -> Report issue with app (Email)`.
+
+Thanks for using the app!!
+Daniel
+END===
