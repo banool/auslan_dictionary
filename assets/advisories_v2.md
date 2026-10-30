@@ -98,16 +98,18 @@ END===
 START===
 DATE===2026-10-30
 MINVERSION===2.3.0
-## Your lists now sync between your devices!
+## Your lists can now sync between your devices!
 
-Hey all,
+Hey all!
 
-Sign in from Settings → Sharing and syncing and your lists, the lists you follow and your revision progress follow you to every device you sign in on. Phone and tablet, old phone and new phone, they all stay in step. The app still works fully offline and catches up when you're back online.
+Bottom line up front: Sign in on the settings page and your lists and revision progress will be backed up and synced between all your devices!
 
-If you've shared a list before, you're already signed in, so there's nothing to do: your lists are syncing now.
+Prior to this update, if you used the app on multiple devices, your lists and revision progress never left each device. If you don't sign in it'll keep behaving this way, but if you want lists and revision progress to sync between your devices, sign in on each of them and it'll automagically work! The app still works fully offline and catches up when you're back online.
 
-As always the app is free, has no ads, and will stay that way forever. If anything looks off, please tell me via `Settings -> Report issue with app (Email)`.
+If you've ever shared a list before, you're already signed in, so there's nothing to do: your lists are syncing now.
 
-Cheers,
+As always the app is free, no ads, and will stay that way forever. If anything looks off, please let me know via `Settings -> Report issue with app (Email)`.
+
+Thanks for using the app!!
 Daniel
 END===
