@@ -277,17 +277,17 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: a2715ad4caf313710aeb4ce6883663f36b1d53ad
-      resolved-ref: a2715ad4caf313710aeb4ce6883663f36b1d53ad
+      ref: "68b6ded17e67eee514705ea6efa0053217f3d4de"
+      resolved-ref: "68b6ded17e67eee514705ea6efa0053217f3d4de"
       url: "https://github.com/banool/dictionarylib.git"
     source: git
-    version: "0.4.35"
+    version: "0.4.36"
   dictionarylib_test_support:
     dependency: "direct dev"
     description:
       path: dictionarylib_test_support
-      ref: a2715ad4caf313710aeb4ce6883663f36b1d53ad
-      resolved-ref: a2715ad4caf313710aeb4ce6883663f36b1d53ad
+      ref: "68b6ded17e67eee514705ea6efa0053217f3d4de"
+      resolved-ref: "68b6ded17e67eee514705ea6efa0053217f3d4de"
       url: "https://github.com/banool/dictionarylib.git"
     source: git
     version: "0.0.1"
