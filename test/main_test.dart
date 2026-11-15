@@ -41,6 +41,7 @@ void main() async {
   testWidgets('Pump app test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(RootApp(startingLocale: LOCALE_ENGLISH));
+    await tester.runAsync(themeFontsLoaded);
     print("Pump successful!");
   });
 

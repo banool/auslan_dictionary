@@ -5,7 +5,7 @@ import 'package:dictionarylib/hearth.dart';
 import 'package:dictionarylib/page_flashcards.dart';
 import 'package:dictionarylib/page_flashcards_help_en.dart';
 import 'package:dictionarylib/page_flashcards_landing.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:dictionarylib/dictionarylib.dart' show DictLibLocalizations;
 
 import 'common.dart';

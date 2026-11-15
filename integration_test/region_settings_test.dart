@@ -3,7 +3,7 @@ import 'package:dictionarylib/entry_types.dart';
 import 'package:dictionarylib/flashcards_logic.dart'
     show KEY_USE_UNKNOWN_REGION_SIGNS;
 import 'package:dictionarylib/globals.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 

@@ -1,6 +1,6 @@
 import 'package:dictionarylib/entry_types.dart';
 import 'package:dictionarylib/root_app.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'common.dart';
 import 'entries_types.dart';

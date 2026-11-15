@@ -2,7 +2,7 @@ import 'package:dictionarylib/entry_list.dart';
 import 'package:dictionarylib/entry_types.dart';
 import 'package:dictionarylib/root_app.dart' show defaultNavigateToEntryPage;
 import 'package:dictionarylib/saved_video.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'word_page.dart';
 

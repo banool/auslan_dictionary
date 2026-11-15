@@ -3,7 +3,7 @@ import 'package:dictionarylib/common.dart';
 import 'package:dictionarylib/entry_types.dart';
 import 'package:dictionarylib/globals.dart';
 import 'package:dictionarylib/page_word.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'common.dart';
